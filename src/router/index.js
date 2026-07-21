@@ -5,13 +5,25 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    redirect: { name: 'home' }
+    redirect: { name: 'wallet' }
   },
   {
     path: '/login',
     name: 'login',
     component: () => import('@/views/auth/LoginView.vue')
   },
+  {
+    path: '/wallet',
+    name: 'wallet',
+    component: () => import('@/views/wallet/WalletView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/transactions',
+    name: 'transactions',
+    component: () => import('@/views/transaction/TransactionListView.vue'),
+    meta: { requiresAuth: true }
+  }
 ]
 
 const router = createRouter({
