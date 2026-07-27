@@ -34,7 +34,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const SPLASH_DELAY_MS = 1200
+const SPLASH_DELAY_MS = 2000
 
 onMounted(() => {
   setTimeout(() => {

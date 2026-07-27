@@ -1,18 +1,5 @@
-<script setup>
-import { onMounted } from 'vue'
-import { useWalletStore } from '@/stores/wallet'
-import { formatCurrency } from '@/utils/format'
-
-const walletStore = useWalletStore()
-
-onMounted(() => {
-  walletStore.fetchBalance()
-})
-</script>
-
 <template>
-  <section>
-    <h1 class="mb-2 text-lg font-semibold">내 지갑</h1>
-    <p class="text-2xl font-bold">{{ formatCurrency(walletStore.balance) }}</p>
-  </section>
+  <div class="p-4">
+    <p class="text-muted text-sm">과카몰리 리포트 화면 준비 중입니다.</p>
+  </div>
 </template>
