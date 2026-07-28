@@ -59,6 +59,24 @@ const routes = [
     component: () => import('@/views/piggy/PiggyBonusSetupView.vue'),
     meta: { hideLayout: true, title: '보너스 설정하기' }
   },
+  {
+    path: '/piggy/:id/cheer-messages',
+    name: 'piggyCheerMessages',
+    component: () => import('@/views/piggy/PiggyCheerMessageListView.vue'),
+    meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: false }
+  },
+  {
+    path: '/piggy/:id/cheer-messages/manage',
+    name: 'piggyCheerMessagesManage',
+    component: () => import('@/views/piggy/PiggyCheerMessageListView.vue'),
+    meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true }
+  },
+  {
+    path: '/piggy/:id/cheer-messages/new',
+    name: 'piggyCheerCompose',
+    component: () => import('@/views/piggy/PiggyCheerMessageComposeView.vue'),
+    meta: { hideLayout: true, title: '응원 보내기' }
+  },
 ]
 
 const router = createRouter({
