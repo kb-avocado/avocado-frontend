@@ -3,7 +3,8 @@ import { useAuthStore } from '@/stores/auth'
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 10000
+  timeout: 10000,
+  withCredentials: true
 })
 
 // 요청 인터셉터: JWT 토큰 자동 첨부
