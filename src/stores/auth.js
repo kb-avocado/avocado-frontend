@@ -7,8 +7,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value)
 
-  function setAuth({ token, userInfo }) {
-    accessToken.value = token
+  function setAuth({ accessToken, userInfo }) {
+    accessToken.value = accessToken
     user.value = userInfo
   }
 

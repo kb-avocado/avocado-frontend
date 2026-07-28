@@ -19,8 +19,11 @@ async function handleSubmit() {
   errorMessage.value = ''
 
   try {
-    const { data } = await login(form.value)
-    authStore.setAuth({ token: data.accessToken, userInfo: data.user })
+    const { data: response } = await login(form.value)
+    authStore.setAuth({
+      accessToken: response.data.tokens.accessToken,
+      userInfo: response.data.user
+    })
     router.push({ name: 'wallet' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '이메일 또는 비밀번호를 확인해 주세요.'
