@@ -52,6 +52,13 @@ const routes = [
     meta: { title: '과카몰리 리포트' }
   },
 
+  // 저금통
+  {
+    path: '/piggy/:id/bonus',
+    name: 'piggyBonus',
+    component: () => import('@/views/piggy/PiggyBonusSetupView.vue'),
+    meta: { hideLayout: true, title: '보너스 설정하기' }
+  },
 ]
 
 const router = createRouter({
