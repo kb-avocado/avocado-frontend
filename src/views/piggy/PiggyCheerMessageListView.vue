@@ -1,3 +1,39 @@
+<template>
+    <div class="min-h-screen flex flex-col bg-white">
+        <AppHeader :title="route.meta.title" show-back :show-bell="false" :show-avatar="false"
+            @click-back="router.back()" />
+
+        <div class="flex-1 p-4 space-y-3">
+            <p class="text-sm font-medium text-avocado-900">응원 메시지 ({{ messages.length }})</p>
+
+            <div v-for="msg in messages" :key="msg.id" class="relative flex gap-3 bg-avocado-100 rounded-2xl p-4"
+                :class="route.meta.cheerDeletable ? 'pr-10' : ''">
+                <div class="w-9 h-9 rounded-full bg-avocado-300 flex items-center justify-center shrink-0">
+                    <UserRound :size="18" class="text-white" />
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-semibold text-avocado-900">{{ msg.senderName }}</p>
+                        <p class="text-xs text-muted">{{ formatMessageTime(msg.createdAt) }}</p>
+                    </div>
+                    <p class="text-sm text-avocado-900 mt-1 leading-relaxed">{{ msg.message }}</p>
+                </div>
+
+                <button v-if="route.meta.cheerDeletable" type="button"
+                    class="absolute top-3 right-3 text-muted hover:text-red-500" @click="handleDelete(msg.id)">
+                    <Trash2 :size="16" />
+                </button>
+            </div>
+
+            <p v-if="messages.length === 0" class="text-sm text-muted text-center mt-10">
+                아직 도착한 응원 메시지가 없어요.
+            </p>
+        </div>
+
+        <BottomNavBar />
+    </div>
+</template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
