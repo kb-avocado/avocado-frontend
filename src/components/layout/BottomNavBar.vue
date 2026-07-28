@@ -1,68 +1,60 @@
 <template>
   <nav
     class="flex items-end justify-between px-2 pt-2 pb-3 bg-white border-t border-gray-100"
+    aria-label="하단 메뉴"
   >
     <RouterLink
       v-for="item in leftItems"
-      :key="item.name"
-      :to="{ name: item.name }"
+      :key="item.key"
+      :to="item.to"
       class="flex-1 flex flex-col items-center gap-1"
     >
       <span
         class="flex items-center justify-center px-3 py-1 rounded-full"
-        :class="isActive(item.name) ? 'bg-avocado-100' : ''"
+        :class="isActive(item) ? 'bg-avocado-100' : ''"
       >
         <component
           :is="item.icon"
           :size="18"
-          :class="isActive(item.name) ? 'text-avocado-600' : 'text-muted'"
+          :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
         />
       </span>
-      <span
-        class="text-[11px]"
-        :class="isActive(item.name) ? 'text-avocado-600' : 'text-muted'"
-      >
+
+      <span class="text-[11px]" :class="isActive(item) ? 'text-avocado-600' : 'text-muted'">
         {{ item.label }}
       </span>
     </RouterLink>
 
-    <RouterLink
-      :to="{ name: centerItem.name }"
-      class="flex-1 flex flex-col items-center gap-1 -mt-6"
-    >
+    <RouterLink :to="centerItem.to" class="flex-1 flex flex-col items-center gap-1 -mt-6">
       <span
-        class="w-[52px] h-[52px] rounded-2xl bg-avocado-600 flex items-center justify-center"
+        class="w-[52px] h-[52px] rounded-2xl bg-avocado-600 flex items-center justify-center shadow-md"
       >
         <component :is="centerItem.icon" :size="22" class="text-white" />
       </span>
-      <span
-        class="text-[11px]"
-        :class="isActive(centerItem.name) ? 'text-avocado-600' : 'text-muted'"
-      >
+
+      <span class="text-[11px]" :class="isActive(centerItem) ? 'text-avocado-600' : 'text-muted'">
         {{ centerItem.label }}
       </span>
     </RouterLink>
 
     <RouterLink
       v-for="item in rightItems"
-      :key="item.name"
-      :to="{ name: item.name }"
+      :key="item.key"
+      :to="item.to"
       class="flex-1 flex flex-col items-center gap-1"
     >
       <span
         class="flex items-center justify-center px-3 py-1 rounded-full"
-        :class="isActive(item.name) ? 'bg-avocado-100' : ''"
+        :class="isActive(item) ? 'bg-avocado-100' : ''"
       >
         <component
           :is="item.icon"
           :size="18"
-          :class="isActive(item.name) ? 'text-avocado-600' : 'text-muted'"
+          :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
         />
       </span>
-      <span
-        class="text-[11px]"
-        :class="isActive(item.name) ? 'text-avocado-600' : 'text-muted'"
-      >
+
+      <span class="text-[11px]" :class="isActive(item) ? 'text-avocado-600' : 'text-muted'">
         {{ item.label }}
       </span>
     </RouterLink>
@@ -70,22 +62,95 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Home, PiggyBank, LayoutGrid, Newspaper, PieChart } from 'lucide-vue-next'
+import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
 
 const route = useRoute()
 
-const leftItems = [
-  { name: 'home', label: '홈', icon: Home },
-  { name: 'piggy', label: '저금통', icon: PiggyBank },
-]
-const centerItem = { name: 'wallet', label: '결제하기', icon: LayoutGrid }
-const rightItems = [
-  { name: 'newspaper', label: '신문', icon: Newspaper },
-  { name: 'report', label: '리포트', icon: PieChart },
-]
+const isParent = computed(() => route.meta.audience === 'parent')
 
-function isActive(routeName) {
-  return route.name === routeName
+const childId = computed(() => String(route.params.childId ?? ''))
+
+const leftItems = computed(() => [
+  {
+    key: 'home',
+    menu: 'home',
+    label: '홈',
+    icon: Home,
+    to: {
+      name: 'home'
+    }
+  },
+  {
+    key: 'piggy',
+    menu: 'piggy',
+    label: '저금통',
+    icon: PiggyBank,
+    to:
+      isParent.value && childId.value
+        ? {
+            name: 'parent-piggy-list',
+            params: {
+              childId: childId.value
+            }
+          }
+        : {
+            name: 'piggy'
+          }
+  }
+])
+
+const centerItem = computed(() => {
+  if (isParent.value) {
+    return {
+      key: 'transfer',
+      menu: 'wallet',
+      label: '송금하기',
+      icon: Send,
+      to: {
+        name: 'wallet',
+        query: {
+          mode: 'transfer',
+          childId: childId.value || undefined
+        }
+      }
+    }
+  }
+
+  return {
+    key: 'payment',
+    menu: 'wallet',
+    label: '결제하기',
+    icon: LayoutGrid,
+    to: {
+      name: 'wallet'
+    }
+  }
+})
+
+const rightItems = computed(() => [
+  {
+    key: 'newspaper',
+    menu: 'newspaper',
+    label: '신문',
+    icon: Newspaper,
+    to: {
+      name: 'newspaper'
+    }
+  },
+  {
+    key: 'report',
+    menu: 'report',
+    label: '리포트',
+    icon: PieChart,
+    to: {
+      name: 'report'
+    }
+  }
+])
+
+function isActive(item) {
+  return route.meta.menu === item.menu || route.name === item.to?.name
 }
 </script>
