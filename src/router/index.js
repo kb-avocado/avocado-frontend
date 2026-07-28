@@ -51,6 +51,30 @@ const routes = [
     component: () => import('@/views/report/ReportView.vue'),
     meta: { title: '과카몰리 리포트' }
   },
+    
+    /* 저금통 목록 */
+  {
+    path: '/piggy',
+    alias: '/piggy-banks',
+    name: 'piggy',
+    component: () => import('@/views/piggy/PiggyView.vue'),
+    meta: {
+      title: '저금통',
+      menu: 'piggy',
+      audience: 'child'
+    }
+  },
+  {
+    path: '/parent/children/:childId/piggy-banks',
+    name: 'parent-piggy-list',
+    component: () => import('@/views/piggy/ParentPiggyBankListView.vue'),
+    props: true,
+    meta: {
+      title: '저금통',
+      menu: 'piggy',
+      audience: 'parent'
+    }
+  },
 
   // 저금통
   {
