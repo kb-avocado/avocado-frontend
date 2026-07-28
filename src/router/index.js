@@ -46,6 +46,12 @@ const routes = [
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
   {
+    path: '/newspaper/:newsId',
+    name: 'newspaper-detail',
+    component: () => import('@/views/newspaper/NewsDetailView.vue'),
+    meta: { title: '신문', showBack: true }
+  },
+  {
     path: '/report',
     name: 'report',
     component: () => import('@/views/report/ReportView.vue'),
@@ -58,7 +64,7 @@ const routes = [
     name: 'piggyBonus',
     component: () => import('@/views/piggy/PiggyBonusSetupView.vue'),
     meta: { hideLayout: true, title: '보너스 설정하기' }
-  },
+  }
 ]
 
 const router = createRouter({
