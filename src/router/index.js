@@ -113,7 +113,7 @@ const routes = [
     name: 'piggyBonusTransferStub',
     component: () => import('@/views/piggy/PiggyBonusTransferStub.vue'),
     meta: { hideLayout: true, title: '송금하기 (임시)' }
-  }
+  },
 ]
 
 const router = createRouter({
