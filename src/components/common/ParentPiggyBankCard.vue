@@ -5,6 +5,7 @@
       'parent-piggy-card--completed': isCompleted,
       'parent-piggy-card--abandoned': isAbandoned
     }"
+    @click="goToDetail"
   >
     <header class="parent-piggy-card__header">
       <span class="parent-piggy-card__icon" aria-hidden="true">
@@ -17,7 +18,9 @@
         <small>{{ category }}</small>
       </div>
 
-      <button type="button" class="parent-piggy-card__cheer" @click.stop>보호자님 응원보기</button>
+      <button type="button" class="parent-piggy-card__cheer" @click.stop="goToCheerMessages">
+        보호자님 응원보기
+      </button>
     </header>
 
     <PiggyBankProgressBar :rate="item.progressRate" :abandoned="isAbandoned" />
@@ -69,6 +72,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import PiggyBankProgressBar from '@/components/common/PiggyBankProgressBar.vue'
 
 const props = defineProps({
@@ -77,6 +81,17 @@ const props = defineProps({
     required: true
   }
 })
+
+const router = useRouter()
+
+// 응원 보기 버튼 연결
+function goToCheerMessages() {
+  router.push({ name: 'piggyCheerMessages', params: { id: props.item.piggyBankId } })
+}
+// 저금통 상세 화면 연결
+function goToDetail() {
+  router.push({ name: 'piggyDetail', params: { id: props.item.piggyBankId } })
+}
 
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
 
@@ -139,6 +154,7 @@ function won(amount) {
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 7px 19px rgb(37 54 42 / 8%);
+  cursor: pointer;
 }
 
 .parent-piggy-card--abandoned {

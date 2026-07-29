@@ -84,6 +84,20 @@ const routes = [
 
   // 저금통
   {
+    path: '/piggy/:id',
+    name: 'piggyDetail',
+    component: () => import('@/views/piggy/PiggyDetailView.vue'),
+    meta: { title: '저금통 상세', showBack: true }
+  },
+  // 저금통 생성
+  {
+    path: '/piggy/new',
+    name: 'piggyCreate',
+    component: () => import('@/views/piggy/PiggyCreateView.vue'),
+    meta: { hideLayout: true, title: '새 저금 목표' }
+  },
+
+  {
     path: '/piggy/:id/bonus',
     name: 'piggyBonus',
     component: () => import('@/views/piggy/PiggyBonusSetupView.vue'),

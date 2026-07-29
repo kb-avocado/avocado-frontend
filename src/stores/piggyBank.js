@@ -104,6 +104,22 @@ export const usePiggyBankStore = defineStore('piggyBank', {
 
   actions: {
     /**
+     * 즐겨찾기 상태를 토글합니다.
+     */
+    toggleFavorite(piggyBankId) {
+      for (const tab of Object.keys(this.childLists)) {
+        const target = this.childLists[tab].find(
+          (item) => String(item.piggyBankId) === String(piggyBankId)
+        )
+        if (target) {
+          target.favorite = !target.favorite
+          // TODO: 백엔드 즐겨찾기 API 생기면 여기서 호출
+          return
+        }
+      }
+    },
+
+    /**
      * 보호자가 처음 해당 아이의 목록을 조회할 때
      * 기본 상태를 생성합니다.
      */
