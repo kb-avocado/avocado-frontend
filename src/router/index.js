@@ -28,12 +28,6 @@ const routes = [
     meta: { title: '아보카도 홈' }
   },
   {
-    path: '/piggy',
-    name: 'piggy',
-    component: () => import('@/views/piggy/PiggyView.vue'),
-    meta: { title: '저금통' }
-  },
-  {
     path: '/wallet',
     name: 'wallet',
     component: () => import('@/views/wallet/WalletView.vue'),
@@ -82,7 +76,7 @@ const routes = [
     }
   },
 
-  // 저금통
+  // 저금통 보너스 및 응원
   {
     path: '/piggy/:id/bonus',
     name: 'piggyBonus',
@@ -106,6 +100,19 @@ const routes = [
     name: 'piggyCheerCompose',
     component: () => import('@/views/piggy/PiggyCheerMessageComposeView.vue'),
     meta: { hideLayout: true, title: '응원 보내기' }
+  },
+  {
+    path: '/piggy/:id/complete',
+    name: 'piggyGoalComplete',
+    component: () => import('@/views/piggy/PiggyGoalCompleteView.vue'),
+    meta: { hideLayout: true, title: '저금통' }
+  },
+  // 송금하기 구현 전 임시로 만듬
+  {
+    path: '/piggy/:id/bonus-transfer',
+    name: 'piggyBonusTransferStub',
+    component: () => import('@/views/piggy/PiggyBonusTransferStub.vue'),
+    meta: { hideLayout: true, title: '송금하기 (임시)' }
   }
 ]
 
