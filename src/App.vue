@@ -22,10 +22,9 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import BottomNavBar from '@/components/layout/BottomNavBar.vue'
-
+import { pageTitleOverride } from '@/composables/usePageTitle'
 const route = useRoute()
 const router = useRouter()
-
 const pageTitle = computed(() => route.meta.title ?? '아보카도')
 
 const showBack = computed(() => route.meta.showBack === true)

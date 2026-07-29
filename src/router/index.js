@@ -46,13 +46,19 @@ const routes = [
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
   {
+    path: '/newspaper/:newsId',
+    name: 'newspaper-detail',
+    component: () => import('@/views/newspaper/NewsDetailView.vue'),
+    meta: { title: '신문', showBack: true }
+  },
+  {
     path: '/report',
     name: 'report',
     component: () => import('@/views/report/ReportView.vue'),
     meta: { title: '과카몰리 리포트' }
   },
-    
-    /* 저금통 목록 */
+
+  /* 저금통 목록 */
   {
     path: '/piggy',
     alias: '/piggy-banks',
@@ -100,7 +106,7 @@ const routes = [
     name: 'piggyCheerCompose',
     component: () => import('@/views/piggy/PiggyCheerMessageComposeView.vue'),
     meta: { hideLayout: true, title: '응원 보내기' }
-  },
+  }
 ]
 
 const router = createRouter({
