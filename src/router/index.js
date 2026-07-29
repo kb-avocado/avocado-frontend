@@ -8,6 +8,8 @@ const routes = [
     component: () => import('@/views/SplashView.vue'),
     meta: { hideLayout: true }
   },
+
+  // 로그인, 회원가입
   {
     path: '/login',
     name: 'login',
@@ -33,6 +35,14 @@ const routes = [
         }
       }
     ],
+    meta: { hideLayout: true }
+  },
+
+  // 계좌 등록
+  {
+    path: '/account/connect',
+    name: 'account-connect',
+    component: () => import('@/views/auth/AccountConnectionView.vue'),
     meta: { hideLayout: true }
   },
 
