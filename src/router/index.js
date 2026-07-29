@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useSignupStore } from '@/stores/signup'
 
 const routes = [
   {
@@ -15,10 +16,26 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'signup',
-    component: () => import('@/views/auth/SignupView.vue'),
+    children: [
+      {
+        path: 'role',
+        name: 'signup-role',
+        component: () => import('@/views/auth/SignupRoleView.vue')
+      },
+      {
+        path: 'profile',
+        name: 'signup-profile',
+        component: () => import('@/views/auth/SignupProfileView.vue'),
+        beforeEnter: () => {
+          const signupStore = useSignupStore()
+          // role 선택 없이 직접 URL 접근 차단
+          if (!signupStore.type) return { name: 'signup-role' }
+        }
+      }
+    ],
     meta: { hideLayout: true }
   },
+
 
   // 하단 네비게이션 바 5개 탭
   {

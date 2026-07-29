@@ -112,7 +112,7 @@ async function handleSubmit() {
       </div>
 
       <RouterLink
-        to="/signup"
+        :to="{ name: 'signup-role' }"
         class="mt-4 flex h-12 w-full items-center justify-center rounded-xl border border-[var(--color-avocado-600)]/35 text-[15px] font-semibold text-[var(--color-avocado-600)] transition hover:bg-[var(--color-avocado-100)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-avocado-300)]/60"
       >
         회원가입
