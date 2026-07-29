@@ -164,3 +164,6 @@ export const deleteCheerMessage = (piggyId, messageId) =>
 /* 저금통 저축(입금) 내역 조회 */
 export const getDeposits = (piggyId) =>
   axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
+
+/* 저금통 생성 */
+// export const createPiggyBank = (payload) => axiosInstance.post('/piggy-banks', payload)
