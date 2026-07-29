@@ -16,9 +16,14 @@
     </section>
 
     <div v-else-if="loading" class="child-list-page__state">저금통 목록을 불러오는 중입니다.</div>
-
+    <!-- 카드에 이벤트 연결 -->
     <section v-else-if="items.length > 0" class="child-list-page__cards">
-      <ChildPiggyBankCard v-for="item in items" :key="item.piggyBankId" :item="item" />
+      <ChildPiggyBankCard
+        v-for="item in items"
+        :key="item.piggyBankId"
+        :item="item"
+        @toggle-favorite="onToggleFavorite"
+      />
     </section>
 
     <div v-else class="child-list-page__state">
@@ -26,7 +31,12 @@
     </div>
 
     <template v-if="tab === 'IN_PROGRESS'">
-      <button type="button" class="child-list-page__add" disabled>
+      <button
+        type="button"
+        class="child-list-page__add"
+        :disabled="!store.childCanCreate"
+        @click="goToCreate"
+      >
         <span aria-hidden="true">＋</span>
         새로운 저금 목표 추가하기
       </button>
@@ -51,11 +61,25 @@ import { usePiggyBankStore } from '@/stores/piggyBank'
 import PiggyBankTabs from '@/components/common/PiggyBankTabs.vue'
 import ChildPiggyBankCard from '@/components/common/ChildPiggyBankCard.vue'
 
+import { useRouter } from 'vue-router'
+
 const store = usePiggyBankStore()
+
+const router = useRouter()
 
 const tab = ref('IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
+
+// 저금통 생성 연결부분
+function goToCreate() {
+  router.push({ name: 'piggyCreate' })
+}
+
+// 카드에 이벤트 연결 핸들러 추가
+function onToggleFavorite(item) {
+  store.toggleFavorite(item.piggyBankId)
+}
 
 /**
  * 현재 선택한 탭의 목록을 Pinia store에서 가져옵니다.
