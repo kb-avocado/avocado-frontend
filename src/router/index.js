@@ -78,6 +78,17 @@ const routes = [
     meta: { title: '과카몰리 리포트' }
   },
 
+  // 송금
+  {
+    path: '/transfer',
+    name: 'transfer',
+    component: () => import('@/views/transfer/TransferView.vue'),
+    meta: {
+      title: '송금하기',
+      showBack: true
+    }
+  },
+
   /* 저금통 목록 */
   {
     path: '/piggy',
