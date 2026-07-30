@@ -60,7 +60,7 @@
         type="button"
         class="parent-piggy-card__bonus-button"
         :disabled="isBonusPaid || isAbandoned"
-        @click.stop
+        @click.stop="goToBonusTransfer"
       >
         보너스 송금
       </button>
@@ -82,6 +82,11 @@ const props = defineProps({
   }
 })
 const router = useRouter()
+
+//보너스 송금 버튼 연결
+function goToBonusTransfer() {
+  router.push({ name: 'piggyGoalComplete', params: { id: props.item.piggyBankId } })
+}
 
 // 응원 보기 버튼 연결
 function goToCheerMessages() {
