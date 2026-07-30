@@ -46,26 +46,6 @@ const routes = [
     meta: { hideLayout: true }
   },
 
-  // 가족 연결
-  {
-    path: '/family',
-    children: [
-      {
-        // 아이: 코드 입력
-        path: 'connect',
-        name: 'family-connect',
-        component: () => import('@/views/family/FamilyCodeInputView.vue')
-      },
-      {
-        // 아이: 승인 대기/완료 화면
-        path: 'pending/:requestId',
-        name: 'family-pending',
-        component: () => import('@/views/family/FamilyPendingView.vue')
-      }
-    ],
-    meta: { hideLayout: true }
-  },
-
   // 하단 네비게이션 바 5개 탭
   {
     path: '/home',
@@ -98,6 +78,17 @@ const routes = [
     meta: { title: '과카몰리 리포트' }
   },
 
+  // 송금
+  {
+    path: '/transfer',
+    name: 'transfer',
+    component: () => import('@/views/transfer/TransferView.vue'),
+    meta: {
+      title: '송금하기',
+      showBack: true
+    }
+  },
+
   /* 저금통 목록 */
   {
     path: '/piggy',
@@ -120,6 +111,21 @@ const routes = [
       menu: 'piggy',
       audience: 'parent'
     }
+  },
+  //저금통 부모 상세
+  {
+    path: '/piggy/:id',
+    name: 'piggyDetail',
+    component: () => import('@/views/piggy/PiggyDetailView.vue'),
+    meta: { hideLayout: true, title: '저금통 부모 상세' }
+  },
+
+  // 저금통 아이 상세
+  {
+    path: '/piggy/:id/child',
+    name: 'piggyChildDetail',
+    component: () => import('@/views/piggy/ChildPiggyDetailView.vue'),
+    meta: { hideLayout: true, title: '저금통 아이 상세' }
   },
 
   // 저금통 보너스 및 응원
@@ -159,7 +165,7 @@ const routes = [
     name: 'piggyBonusTransferStub',
     component: () => import('@/views/piggy/PiggyBonusTransferStub.vue'),
     meta: { hideLayout: true, title: '송금하기 (임시)' }
-  },
+  }
 ]
 
 const router = createRouter({
