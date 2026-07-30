@@ -54,9 +54,9 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import AppHeader from '@/components/layout/AppHeader.vue'
-import BottomNavBar from '@/components/layout/BottomNavBar.vue'
-import PiggyBonusPayoutBanner from '@/components/common/PiggyBonusPayoutBanner.vue'
+import AppHeader from '@/components/common/AppHeader.vue'
+import BottomNavBar from '@/components/common/BottomNavBar.vue'
+import PiggyBonusPayoutBanner from '@/components/piggy/PiggyBonusPayoutBanner.vue'
 
 import { usePiggyBankStore } from '@/stores/piggyBank'
 

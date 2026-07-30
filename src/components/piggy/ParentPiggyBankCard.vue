@@ -73,7 +73,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import PiggyBankProgressBar from '@/components/common/PiggyBankProgressBar.vue'
+import PiggyBankProgressBar from '@/components/piggy/PiggyBankProgressBar.vue'
 
 const props = defineProps({
   item: {
