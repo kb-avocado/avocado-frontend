@@ -46,7 +46,6 @@ const routes = [
     meta: { hideLayout: true }
   },
 
-
   // 하단 네비게이션 바 5개 탭
   {
     path: '/home',
@@ -77,6 +76,17 @@ const routes = [
     name: 'report',
     component: () => import('@/views/report/ReportView.vue'),
     meta: { title: '과카몰리 리포트' }
+  },
+
+  // 송금
+  {
+    path: '/transfer',
+    name: 'transfer',
+    component: () => import('@/views/transfer/TransferView.vue'),
+    meta: {
+      title: '송금하기',
+      showBack: true
+    }
   },
 
   /* 저금통 목록 */
@@ -140,7 +150,7 @@ const routes = [
     name: 'piggyBonusTransferStub',
     component: () => import('@/views/piggy/PiggyBonusTransferStub.vue'),
     meta: { hideLayout: true, title: '송금하기 (임시)' }
-  },
+  }
 ]
 
 const router = createRouter({
