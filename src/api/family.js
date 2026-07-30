@@ -5,3 +5,4 @@ export const getFamilyRequest = (requestId) => api.get(`/family/requests/${reque
 export const getMyCode = () => api.get('/users/me/code')
 export const updateFamilyRequest = (requestId, data) =>
     api.patch(`/family/requests/${requestId}`, data)
+export const cancelFamilyRequest = (requestId) => api.patch(`/family/requests/${requestId}/cancel`)
