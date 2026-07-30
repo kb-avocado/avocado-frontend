@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useSignupStore } from '@/stores/signup'
 
 const routes = [
   {
@@ -7,6 +8,8 @@ const routes = [
     component: () => import('@/views/SplashView.vue'),
     meta: { hideLayout: true }
   },
+
+  // 로그인, 회원가입
   {
     path: '/login',
     name: 'login',
@@ -15,10 +18,34 @@ const routes = [
   },
   {
     path: '/signup',
-    name: 'signup',
-    component: () => import('@/views/auth/SignupView.vue'),
+    children: [
+      {
+        path: 'role',
+        name: 'signup-role',
+        component: () => import('@/views/auth/SignupRoleView.vue')
+      },
+      {
+        path: 'profile',
+        name: 'signup-profile',
+        component: () => import('@/views/auth/SignupProfileView.vue'),
+        beforeEnter: () => {
+          const signupStore = useSignupStore()
+          // role 선택 없이 직접 URL 접근 차단
+          if (!signupStore.type) return { name: 'signup-role' }
+        }
+      }
+    ],
     meta: { hideLayout: true }
   },
+
+  // 계좌 등록
+  {
+    path: '/account/connect',
+    name: 'account-connect',
+    component: () => import('@/views/auth/AccountConnectionView.vue'),
+    meta: { hideLayout: true }
+  },
+
 
   // 하단 네비게이션 바 5개 탭
   {
