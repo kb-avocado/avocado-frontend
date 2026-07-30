@@ -83,7 +83,7 @@ const props = defineProps({
 })
 // 카드 클릭 연결
 function goToDetail() {
-  router.push({ name: 'piggyDetail', params: { id: props.item.piggyBankId } })
+  router.push({ name: 'piggyChildDetail', params: { id: props.item.piggyBankId } })
 }
 
 //즐겨찾기 버튼 연결

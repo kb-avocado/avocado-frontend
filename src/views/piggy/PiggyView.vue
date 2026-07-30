@@ -6,6 +6,24 @@
       <h1>{{ introTitle }}</h1>
       <p>{{ introDescription }}</p>
     </section>
+    <!-- 즐겨찾기 북마크 추가 -->
+    <button
+      type="button"
+      class="child-list-page__filter"
+      :class="{ 'child-list-page__filter--active': showFavoritesOnly }"
+      :aria-pressed="showFavoritesOnly"
+      @click="showFavoritesOnly = !showFavoritesOnly"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1z"
+          :fill="showFavoritesOnly ? '#78B159' : 'none'"
+          stroke="#78B159"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
 
     <section v-if="error" class="child-list-page__error">
       <span aria-hidden="true">!</span>
@@ -17,9 +35,10 @@
 
     <div v-else-if="loading" class="child-list-page__state">저금통 목록을 불러오는 중입니다.</div>
     <!-- 카드에 이벤트 연결 -->
-    <section v-else-if="items.length > 0" class="child-list-page__cards">
+    <!-- 즐겨찾기 : item에서 displayedItems 변경 -->
+    <section v-else-if="displayedItems.length > 0" class="child-list-page__cards">
       <ChildPiggyBankCard
-        v-for="item in items"
+        v-for="item in displayedItems"
         :key="item.piggyBankId"
         :item="item"
         @toggle-favorite="onToggleFavorite"
@@ -27,7 +46,13 @@
     </section>
 
     <div v-else class="child-list-page__state">
-      {{ tab === 'IN_PROGRESS' ? '진행 중인 저금통이 없습니다.' : '완료된 저금통이 없습니다.' }}
+      {{
+        showFavoritesOnly
+          ? '즐겨찾기한 저금통이 없습니다.'
+          : tab === 'IN_PROGRESS'
+            ? '진행 중인 저금통이 없습니다.'
+            : '완료된 저금통이 없습니다.'
+      }}
     </div>
 
     <template v-if="tab === 'IN_PROGRESS'">
@@ -70,6 +95,14 @@ const router = useRouter()
 const tab = ref('IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
+
+// 즐겨찾기만 보기 토글
+const showFavoritesOnly = ref(false)
+
+// 화면에 실제로 뿌릴 목록 (필터 적용)
+const displayedItems = computed(() =>
+  showFavoritesOnly.value ? items.value.filter((i) => i.favorite) : items.value
+)
 
 // 저금통 생성 연결부분
 function goToCreate() {
@@ -220,5 +253,20 @@ watch(tab, load, {
 
 .child-list-page__count strong {
   color: #3d7837;
+}
+/* 즐겨찾기 북마크 버튼 */
+.child-list-page__filter {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 8px;
+  margin-bottom: 12px;
+  border: 1px solid #edf0ed;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+.child-list-page__filter--active {
+  background: #eef8e5;
+  border-color: #cfe6bd;
 }
 </style>
