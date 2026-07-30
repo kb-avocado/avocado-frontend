@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signup } from '@/api/auth'
 import { useSignupStore } from '@/stores/signup'
@@ -21,6 +21,11 @@ const form = ref({
 const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
+const submitButtonLabel = computed(() => {
+  if (signupStore.type === 'CHILD') return '가족 연결하기'
+  if (signupStore.type === 'PARENT') return '계좌 등록하기'
+  return '아보카도 시작하기'
+})
 
 async function handleSubmit() {
   if (loading.value) return
@@ -261,7 +266,7 @@ async function handleSubmit() {
             v-if="loading"
             class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
           />
-          {{ loading ? '가입 중...' : '아보카도 시작하기' }}
+          {{ loading ? '가입 중...' : submitButtonLabel }}
         </BaseButton>
       </form>
     </div>
