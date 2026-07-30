@@ -5,13 +5,13 @@
 
         <div class="flex-1 p-4 space-y-6">
             <!-- 목표 정보 -->
-            <div>
+            <div v-if="piggyBank">
                 <h2 class="text-xl font-bold text-avocado-900 mb-3">아이의 새 목표를 확인하세요</h2>
                 <div class="rounded-2xl border border-avocado-100 shadow-sm p-4 space-y-4">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-muted">아이 이름</p>
-                            <p class="text-lg font-semibold text-avocado-900 mt-1">{{ piggyBank.childName }}</p>
+                            <p class="text-lg font-semibold text-avocado-900 mt-1">{{ childName }}</p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-avocado-100 flex items-center justify-center">
                             <Gamepad2 :size="22" class="text-avocado-600" />
@@ -22,7 +22,7 @@
 
                     <div class="flex items-center justify-between">
                         <p class="text-sm text-muted">목표</p>
-                        <p class="text-[15px] font-medium text-avocado-900">{{ piggyBank.goalTitle }}</p>
+                        <p class="text-[15px] font-medium text-avocado-900">{{ piggyBank.name }}</p>
                     </div>
                     <div class="flex items-center justify-between">
                         <p class="text-sm text-muted">목표 금액</p>
@@ -111,16 +111,17 @@ import { BONUS_TYPE } from '@/constants'
 /* 이자와 정액 유효성 검사 */
 import { isValidAmount, isValidPercentage } from '@/utils/validators'
 
+/* 해당 저금통 정보를 가져오는 composables import */
+import { usePiggyBankDetail } from '@/composables/usePiggyBankDetail'
+
 const route = useRoute()
 const router = useRouter()
 
-/* 테스트 데이터 */
-const piggyBank = ref({
-    id: route.params.id,
-    childName: '민준',
-    goalTitle: '닌텐도 스위치 사기',
-    targetAmount: 300000
-})
+/* 가져온 저금통의 데이터 */
+const { piggyBank } = usePiggyBankDetail(route.params.id)
+
+/* 추후 사용자 db를 통해 가져올 예정 */
+const childName = '민준'
 
 /* 보너스 한번 설정 후 수정 불가에 의해서 기본값은 Null로 설정 */
 const bonusType = ref(null)
@@ -136,7 +137,7 @@ const submitError = ref('')
 
 /* toLocaleString 숫자 포맷 */
 const formattedTargetAmount = computed(() =>
-    `${piggyBank.value.targetAmount.toLocaleString('ko-KR')}원`
+    `${(piggyBank.value?.targetAmount ?? 0).toLocaleString('ko-KR')}원`
 )
 
 /* 타입에 따른 validators.js 검증함수 적용 */
@@ -146,8 +147,10 @@ const isValueValid = computed(() => {
     return false
 })
 
-/* 저장 버튼이 활성화 되기위한 조건 () */
-const canSubmit = computed(() => bonusType.value !== null && isValueValid.value && !isSubmitting.value)
+/* 저장 버튼이 활성화 되기위한 조건 (저금통 데이터가 null이 아님, 보너스 타입이 null 아님, 검증이 적용됨, 요청상태 활성화) */
+const canSubmit = computed(() =>
+    piggyBank.value !== null && bonusType.value !== null && isValueValid.value && !isSubmitting.value
+)
 
 /* 이자 혹은 정액 토글을 누르면 타입이 지정되고 호출될 함수 */
 function selectBonusType(type) {
@@ -168,8 +171,8 @@ async function handleSubmit() {
     // 이전 에러 메세지 초기화
     submitError.value = ''
     try {
-        // setBonus의 piggyId와 payload 파라미터에 들어갈 값
-        await setBonus(piggyBank.value.id, {
+        // setBonus의 piggyBankId와 payload 파라미터에 들어갈 값
+        await setBonus(piggyBank.value.piggyBankId, {
             bonusType: bonusType.value,
             bonusValue: Number(bonusValue.value)
         })
