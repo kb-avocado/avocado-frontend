@@ -101,6 +101,13 @@ const routes = [
       audience: 'parent'
     }
   },
+  //  저금통 생성
+  {
+    path: '/piggy/new',
+    name: 'piggyCreate',
+    component: () => import('@/views/piggy/PiggyCreateView.vue'),
+    meta: { hideLayout: true, title: '새 저금 목표' }
+  },
   //저금통 부모 상세
   {
     path: '/piggy/:id',
