@@ -1,16 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { requestFamilyConnect } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
+import { useFamilyConnectStore } from '@/stores/signup'
 
 const router = useRouter()
+const familyConnectStore = useFamilyConnectStore()
 
 const CODE_LENGTH = 6
 const codeInputs = ref(Array(CODE_LENGTH).fill(''))
 const inputRefs = ref([])
-const loading = ref(false)
-const errorMessage = ref('')
 
 const fullCode = computed(() => codeInputs.value.join(''))
 const canSubmit = computed(() => fullCode.value.length === CODE_LENGTH)
@@ -82,19 +81,11 @@ function onPaste(event) {
   inputRefs.value[focusIndex]?.focus()
 }
 
-async function handleSubmit() {
-  if (!canSubmit.value || loading.value) return
-  loading.value = true
-  errorMessage.value = ''
+function handleSubmit() {
+  if (!canSubmit.value) return
 
-  try {
-    const { data } = await requestFamilyConnect({ code: fullCode.value })
-    router.push({ name: 'family-pending', params: { requestId: data.requestId } })
-  } catch (error) {
-    errorMessage.value = error?.response?.data?.message ?? '연결 요청 중 오류가 발생했습니다.'
-  } finally {
-    loading.value = false
-  }
+  familyConnectStore.setCode(fullCode.value)
+  router.push({ name: 'family-pending' })
 }
 </script>
 
@@ -160,24 +151,8 @@ async function handleSubmit() {
           있습니다.
         </p>
 
-        <!-- 에러 메시지 -->
-        <p
-          v-if="errorMessage"
-          role="alert"
-          class="rounded-xl px-3.5 py-2.5 text-sm text-red-700"
-          style="background-color: #fef2f2"
-        >
-          {{ errorMessage }}
-        </p>
-
         <!-- 연결하기 버튼 -->
-        <BaseButton type="submit" class="w-full" :disabled="!canSubmit || loading">
-          <span
-            v-if="loading"
-            class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-          />
-          {{ loading ? '연결 중...' : '연결하기' }}
-        </BaseButton>
+        <BaseButton type="submit" class="w-full" :disabled="!canSubmit"> 연결하기 </BaseButton>
       </form>
     </div>
   </main>

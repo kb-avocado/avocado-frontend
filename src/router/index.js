@@ -46,6 +46,27 @@ const routes = [
     meta: { hideLayout: true }
   },
 
+
+  // 가족 연결
+  {
+    path: '/family',
+    children: [
+      {
+        // 아이: 코드 입력
+        path: 'connect',
+        name: 'family-connect',
+        component: () => import('@/views/family/child/FamilyCodeInputView.vue')
+      },
+      {
+        // 아이: 승인 대기/완료 화면
+        path: 'pending',
+        name: 'family-pending',
+        component: () => import('@/views/family/child/FamilyPendingView.vue')
+      }
+    ],
+    meta: { hideLayout: true }
+  },
+
   // 하단 네비게이션 바 5개 탭
   {
     path: '/home',
