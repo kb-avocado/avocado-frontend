@@ -116,7 +116,7 @@ const routes = [
   {
     path: '/piggy/new',
     name: 'piggyCreate',
-    component: () => import('@/views/piggy/PiggyCreateView.vue'),
+    component: () => import('@/views/piggy/child/PiggyCreateView.vue'),
     meta: { hideLayout: true, title: '새 저금 목표' }
   },
   //저금통 부모 상세
@@ -165,7 +165,7 @@ const routes = [
     name: 'piggyGoalComplete',
     component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
     meta: { hideLayout: true, title: '저금통' }
-  },
+  }
 ]
 
 const router = createRouter({
