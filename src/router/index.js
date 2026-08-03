@@ -130,42 +130,35 @@ const routes = [
 
   // 저금통 보너스 및 응원
   {
-    path: '/piggy/:id/bonus',
+    path: '/parent/piggy/:id/bonus',
     name: 'piggyBonus',
     component: () => import('@/views/piggy/parent/PiggyBonusSetupView.vue'),
     meta: { hideLayout: true, title: '보너스 설정하기' }
   },
   {
-    path: '/piggy/:id/cheer-messages',
+    path: '/child/piggy/:id/cheer-messages',
     name: 'piggyCheerMessages',
     component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
     meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: false }
   },
   {
-    path: '/piggy/:id/cheer-messages/manage',
+    path: '/parent/piggy/:id/cheer-messages/manage',
     name: 'piggyCheerMessagesManage',
     component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
     meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true }
   },
   {
-    path: '/piggy/:id/cheer-messages/new',
+    path: '/parent/piggy/:id/cheer-messages/new',
     name: 'piggyCheerCompose',
     component: () => import('@/views/piggy/parent/PiggyCheerMessageComposeView.vue'),
     meta: { hideLayout: true, title: '응원 보내기' }
   },
   {
-    path: '/piggy/:id/complete',
+    path: '/parent/piggy/:id/complete',
     name: 'piggyGoalComplete',
     component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
     meta: { hideLayout: true, title: '저금통' }
   },
-  // 송금하기 구현 전 임시로 만듬
-  {
-    path: '/piggy/:id/bonus-transfer',
-    name: 'piggyBonusTransferStub',
-    component: () => import('@/views/piggy/common/PiggyBonusTransferStub.vue'),
-    meta: { hideLayout: true, title: '송금하기 (임시)' }
-  }
 ]
 
 const router = createRouter({
