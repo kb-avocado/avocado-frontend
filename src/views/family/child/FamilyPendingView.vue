@@ -1,40 +1,97 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { getFamilyRequest } from '@/api/family'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { requestFamilyConnect, getFamilyRequest, confirmFamilyRequest } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
+import { useFamilyConnectStore } from '@/stores/signup'
 
 const router = useRouter()
-const route = useRoute()
+const familyConnectStore = useFamilyConnectStore()
 
-const requestId = route.params.requestId
-const status = ref('PENDING') // PENDING | APPROVED
-const code = ref('')
-const loading = ref(false)
+const POLL_INTERVAL = 3000
+const LOST_REDIRECT_DELAY = 2500
 
-async function fetchStatus() {
-  loading.value = true
+const phase = ref('lost')
+
+const code = familyConnectStore.code
+const requestId = ref(null)
+const parentInfo = ref({ name: '', image: '' })
+
+let pollTimer = null
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+async function pollStatus() {
   try {
-    const { data } = await getFamilyRequest(requestId)
-    status.value = data.status
-    code.value = data.code ?? ''
+    const { data } = await getFamilyRequest(requestId.value)
 
     if (data.status === 'APPROVED') {
-      // 승인됨 → 완료 화면으로 자동 전환 (같은 View 내 상태 변경)
+      stopPolling()
+      parentInfo.value = { name: data.parentName, image: data.parentProfileImage }
+      phase.value = 'confirm'
+    } else if (data.status === 'REJECTED') {
+      stopPolling()
+      phase.value = 'rejected'
     }
+    // PENDING이면 폴링 계속 유지
   } catch (error) {
-    // 조회 실패 시 현재 상태 유지
-  } finally {
-    loading.value = false
+    // 일시적 네트워크 오류로 간주, 폴링은 계속 유지
+  }
+}
+
+async function sendRequest() {
+  phase.value = 'sending'
+  try {
+    const { data } = await requestFamilyConnect({ code })
+    requestId.value = data.requestId
+    phase.value = 'waiting'
+    pollTimer = setInterval(pollStatus, POLL_INTERVAL)
+  } catch (error) {
+    phase.value = 'send_error'
+  }
+}
+
+function goToCodeInput() {
+  clearStoredCode()
+  router.replace({ name: 'family-connect' })
+}
+
+async function handleConfirm(confirm) {
+  phase.value = 'confirming'
+  try {
+    const { data } = await confirmFamilyRequest(requestId.value, confirm)
+    phase.value = data.status === 'CONFIRMED' ? 'done' : 'canceled'
+  } catch (error) {
+    // 실패 시 확인 화면으로 되돌림
+    phase.value = 'confirm'
   }
 }
 
 function goHome() {
+  clearStoredCode()
   router.push({ name: 'home' })
 }
 
 onMounted(() => {
-  fetchStatus()
+  if (!code) {
+    phase.value = 'lost'
+    setTimeout(goToCodeInput, LOST_REDIRECT_DELAY)
+    return
+  }
+  sendRequest()
+})
+
+function clearStoredCode() {
+  familyConnectStore.clearCode()
+}
+
+onUnmounted(() => {
+  stopPolling()
 })
 </script>
 
@@ -65,9 +122,65 @@ onMounted(() => {
     </header>
 
     <div class="mx-auto flex w-full max-w-sm flex-col items-center gap-8 px-6 pt-16 pb-12">
-      <!-- ── 대기 중 화면 ── -->
-      <template v-if="status === 'PENDING'">
-        <!-- 모래시계 아이콘 -->
+      <!-- ── code 유실 (새로고침 등) ── -->
+      <template v-if="phase === 'lost'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span class="text-4xl">⚠️</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            요청 정보를 찾을 수 없어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            잠시 후 코드 입력 화면으로 이동합니다.
+          </p>
+        </div>
+      </template>
+
+      <!-- ── 요청 전송 중 ── -->
+      <template v-else-if="phase === 'sending'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span
+            class="inline-block h-10 w-10 animate-spin rounded-full border-4 border-avocado-300 border-t-transparent"
+          />
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            연결 요청을 보내고 있어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            요청이 전송되기 전까지 새로고침하지 말아주세요.
+          </p>
+        </div>
+      </template>
+
+      <!-- ── 요청 전송 실패 ── -->
+      <template v-else-if="phase === 'send_error'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span class="text-4xl">😥</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            요청 전송에 실패했어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            다시 시도해주세요.
+          </p>
+        </div>
+        <BaseButton class="w-full" @click="sendRequest"> 다시 시도 </BaseButton>
+      </template>
+
+      <!-- ── 대기 중 (폴링) ── -->
+      <template v-else-if="phase === 'waiting'">
         <div
           class="flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
@@ -96,7 +209,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 텍스트 -->
         <div class="flex flex-col items-center gap-2 text-center">
           <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
             보호자의 승인을 기다리고 있어요!
@@ -106,7 +218,6 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- 연결 코드 카드 -->
         <div
           class="flex w-full items-center justify-between rounded-2xl px-4 py-4"
           style="background-color: var(--color-surface); border: 1px solid var(--color-border)"
@@ -133,36 +244,95 @@ onMounted(() => {
           </span>
         </div>
 
-        <!-- 새로고침 버튼 -->
-        <div class="flex w-full flex-col items-center gap-3">
-          <BaseButton class="w-full" :disabled="loading" @click="fetchStatus">
-            <svg
-              class="mr-2 inline-block"
-              :class="{ 'animate-spin': loading }"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
-              <path
-                d="M14 8A6 6 0 112 8M14 8V4M14 8h-4"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            {{ loading ? '확인 중...' : '새로고침' }}
-          </BaseButton>
-          <p class="text-xs" style="color: var(--color-text-muted)">
-            승인이 완료되면 자동으로 화면이 넘어갑니다
+        <p class="text-xs" style="color: var(--color-text-muted)">
+          승인이 완료되면 자동으로 화면이 넘어갑니다
+        </p>
+      </template>
+
+      <!-- ── 보호자가 거절함 ── -->
+      <template v-else-if="phase === 'rejected'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span class="text-4xl">🙁</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            연결 요청이 거절되었어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            보호자님께 다시 코드를 받아 시도해주세요.
           </p>
+        </div>
+        <BaseButton class="w-full" @click="goToCodeInput"> 코드 다시 입력하기 </BaseButton>
+      </template>
+
+      <!-- ── 보호자 정보 최종 확인 ── -->
+      <template v-else-if="phase === 'confirm' || phase === 'confirming'">
+        <div
+          class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <img
+            v-if="parentInfo.image"
+            :src="parentInfo.image"
+            alt="보호자 프로필"
+            class="h-full w-full object-cover"
+          />
+          <span v-else class="text-4xl">👤</span>
+        </div>
+
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            {{ parentInfo.name }}님이 맞나요?
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            원하셨던 보호자님이 맞는지 확인해주세요.
+          </p>
+        </div>
+
+        <div class="flex w-full flex-col gap-3">
+          <BaseButton
+            class="w-full"
+            :disabled="phase === 'confirming'"
+            @click="handleConfirm(true)"
+          >
+            {{ phase === 'confirming' ? '확인 중...' : '네, 맞아요' }}
+          </BaseButton>
+          <button
+            type="button"
+            class="w-full py-2 text-sm font-medium"
+            style="color: var(--color-text-secondary)"
+            :disabled="phase === 'confirming'"
+            @click="handleConfirm(false)"
+          >
+            아니에요, 다른 사람이에요
+          </button>
         </div>
       </template>
 
-      <!-- ── 승인 완료 화면 ── -->
-      <template v-else-if="status === 'APPROVED'">
-        <!-- 체크 아이콘 (glow 효과) -->
+      <!-- ── 아이가 확인 거부함 ── -->
+      <template v-else-if="phase === 'canceled'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span class="text-4xl">🙁</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            연결이 취소되었어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            보호자님께 정확한 코드를 다시 받아 시도해주세요.
+          </p>
+        </div>
+        <BaseButton class="w-full" @click="goToCodeInput"> 코드 다시 입력하기 </BaseButton>
+      </template>
+
+      <!-- ── 최종 연결 완료 ── -->
+      <template v-else-if="phase === 'done'">
         <div class="relative flex items-center justify-center">
           <div
             class="absolute h-40 w-40 rounded-full opacity-30"
@@ -196,7 +366,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 텍스트 -->
         <div class="flex flex-col items-center gap-3 text-center">
           <h1 class="text-2xl font-bold" style="color: var(--color-text-primary)">
             연결이 완료되었어요!
@@ -206,7 +375,6 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- 시작하기 버튼 -->
         <BaseButton class="w-full" @click="goHome"> 시작하기 </BaseButton>
       </template>
     </div>

@@ -10,3 +10,21 @@ export const useSignupStore = defineStore('signup', () => {
 
     return { type, reset }
 })
+
+export const useFamilyConnectStore = defineStore('familyConnect', () => {
+    const code = ref('')
+
+    function setCode(value) {
+        code.value = value
+    }
+
+    function clearCode() {
+        code.value = ''
+    }
+
+    return {
+        code,
+        setCode,
+        clearCode
+    }
+})
