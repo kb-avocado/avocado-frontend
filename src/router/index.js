@@ -13,7 +13,7 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    component: () => import('@/views/auth/common/LoginView.vue'),
     meta: { hideLayout: true }
   },
   {
@@ -22,12 +22,12 @@ const routes = [
       {
         path: 'role',
         name: 'signup-role',
-        component: () => import('@/views/auth/SignupRoleView.vue')
+        component: () => import('@/views/auth/common/SignupRoleView.vue')
       },
       {
         path: 'profile',
         name: 'signup-profile',
-        component: () => import('@/views/auth/SignupProfileView.vue'),
+        component: () => import('@/views/auth/common/SignupProfileView.vue'),
         beforeEnter: () => {
           const signupStore = useSignupStore()
           // role 선택 없이 직접 URL 접근 차단
@@ -42,7 +42,7 @@ const routes = [
   {
     path: '/account/connect',
     name: 'account-connect',
-    component: () => import('@/views/auth/AccountConnectionView.vue'),
+    component: () => import('@/views/auth/parent/AccountConnectionView.vue'),
     meta: { hideLayout: true }
   },
 
@@ -50,32 +50,43 @@ const routes = [
   {
     path: '/home',
     name: 'home',
-    component: () => import('@/views/home/HomeView.vue'),
+    component: () => import('@/views/home/common/HomeView.vue'),
     meta: { title: '아보카도 홈' }
   },
   {
     path: '/wallet',
     name: 'wallet',
-    component: () => import('@/views/wallet/WalletView.vue'),
+    component: () => import('@/views/wallet/common/WalletView.vue'),
     meta: { title: '결제하기' }
   },
   {
     path: '/newspaper',
     name: 'newspaper',
-    component: () => import('@/views/newspaper/NewspaperView.vue'),
+    component: () => import('@/views/newspaper/common/NewspaperView.vue'),
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
   {
     path: '/newspaper/:newsId',
     name: 'newspaper-detail',
-    component: () => import('@/views/newspaper/NewsDetailView.vue'),
+    component: () => import('@/views/newspaper/common/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
   {
     path: '/report',
     name: 'report',
-    component: () => import('@/views/report/ReportView.vue'),
+    component: () => import('@/views/report/common/ReportView.vue'),
     meta: { title: '과카몰리 리포트' }
+  },
+
+  // 송금
+  {
+    path: '/transfer',
+    name: 'transfer',
+    component: () => import('@/views/transfer/common/TransferView.vue'),
+    meta: {
+      title: '송금하기',
+      showBack: true
+    }
   },
 
   /* 저금통 목록 */
@@ -83,7 +94,7 @@ const routes = [
     path: '/piggy',
     alias: '/piggy-banks',
     name: 'piggy',
-    component: () => import('@/views/piggy/PiggyView.vue'),
+    component: () => import('@/views/piggy/common/PiggyView.vue'),
     meta: {
       title: '저금통',
       menu: 'piggy',
@@ -93,7 +104,7 @@ const routes = [
   {
     path: '/parent/children/:childId/piggy-banks',
     name: 'parent-piggy-list',
-    component: () => import('@/views/piggy/ParentPiggyBankListView.vue'),
+    component: () => import('@/views/piggy/parent/ParentPiggyBankListView.vue'),
     props: true,
     meta: {
       title: '저금통',
@@ -112,7 +123,7 @@ const routes = [
   {
     path: '/piggy/:id',
     name: 'piggyDetail',
-    component: () => import('@/views/piggy/PiggyDetailView.vue'),
+    component: () => import('@/views/piggy/parent/PiggyDetailView.vue'),
     meta: { hideLayout: true, title: '저금통 부모 상세' }
   },
 
@@ -120,48 +131,41 @@ const routes = [
   {
     path: '/piggy/:id/child',
     name: 'piggyChildDetail',
-    component: () => import('@/views/piggy/ChildPiggyDetailView.vue'),
+    component: () => import('@/views/piggy/child/ChildPiggyDetailView.vue'),
     meta: { hideLayout: true, title: '저금통 아이 상세' }
   },
 
   // 저금통 보너스 및 응원
   {
-    path: '/piggy/:id/bonus',
+    path: '/parent/piggy/:id/bonus',
     name: 'piggyBonus',
-    component: () => import('@/views/piggy/PiggyBonusSetupView.vue'),
+    component: () => import('@/views/piggy/parent/PiggyBonusSetupView.vue'),
     meta: { hideLayout: true, title: '보너스 설정하기' }
   },
   {
-    path: '/piggy/:id/cheer-messages',
+    path: '/child/piggy/:id/cheer-messages',
     name: 'piggyCheerMessages',
-    component: () => import('@/views/piggy/PiggyCheerMessageListView.vue'),
+    component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
     meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: false }
   },
   {
-    path: '/piggy/:id/cheer-messages/manage',
+    path: '/parent/piggy/:id/cheer-messages/manage',
     name: 'piggyCheerMessagesManage',
-    component: () => import('@/views/piggy/PiggyCheerMessageListView.vue'),
+    component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
     meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true }
   },
   {
-    path: '/piggy/:id/cheer-messages/new',
+    path: '/parent/piggy/:id/cheer-messages/new',
     name: 'piggyCheerCompose',
-    component: () => import('@/views/piggy/PiggyCheerMessageComposeView.vue'),
+    component: () => import('@/views/piggy/parent/PiggyCheerMessageComposeView.vue'),
     meta: { hideLayout: true, title: '응원 보내기' }
   },
   {
-    path: '/piggy/:id/complete',
+    path: '/parent/piggy/:id/complete',
     name: 'piggyGoalComplete',
-    component: () => import('@/views/piggy/PiggyGoalCompleteView.vue'),
+    component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
     meta: { hideLayout: true, title: '저금통' }
   },
-  // 송금하기 구현 전 임시로 만듬
-  {
-    path: '/piggy/:id/bonus-transfer',
-    name: 'piggyBonusTransferStub',
-    component: () => import('@/views/piggy/PiggyBonusTransferStub.vue'),
-    meta: { hideLayout: true, title: '송금하기 (임시)' }
-  }
 ]
 
 const router = createRouter({

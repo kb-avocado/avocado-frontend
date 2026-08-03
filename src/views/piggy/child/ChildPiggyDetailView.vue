@@ -50,9 +50,9 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import AppHeader from '@/components/layout/AppHeader.vue'
-import BottomNavBar from '@/components/layout/BottomNavBar.vue'
-import PiggyDepositHistoryList from '@/components/common/PiggyDepositHistoryList.vue'
+import AppHeader from '@/components/common/AppHeader.vue'
+import BottomNavBar from '@/components/common/BottomNavBar.vue'
+import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 
 // 성장 단계 이미지 (5단계)

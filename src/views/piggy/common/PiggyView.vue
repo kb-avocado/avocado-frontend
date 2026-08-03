@@ -84,8 +84,8 @@
 import { computed, ref, watch } from 'vue'
 
 import { usePiggyBankStore } from '@/stores/piggyBank'
-import PiggyBankTabs from '@/components/common/PiggyBankTabs.vue'
-import ChildPiggyBankCard from '@/components/common/ChildPiggyBankCard.vue'
+import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
+import ChildPiggyBankCard from '@/components/piggy/ChildPiggyBankCard.vue'
 
 import { useRouter } from 'vue-router'
 

@@ -46,8 +46,8 @@
 import { computed, ref, watch } from 'vue'
 
 import { usePiggyBankStore } from '@/stores/piggyBank'
-import PiggyBankTabs from '@/components/common/PiggyBankTabs.vue'
-import ParentPiggyBankCard from '@/components/common/ParentPiggyBankCard.vue'
+import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
+import ParentPiggyBankCard from '@/components/piggy/ParentPiggyBankCard.vue'
 
 const props = defineProps({
   childId: {

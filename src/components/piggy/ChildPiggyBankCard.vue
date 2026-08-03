@@ -72,7 +72,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import PiggyBankProgressBar from '@/components/common/PiggyBankProgressBar.vue'
+import PiggyBankProgressBar from '@/components/piggy/PiggyBankProgressBar.vue'
 // 부모님 응원 보기 연결
 import { useRouter } from 'vue-router'
 const props = defineProps({
