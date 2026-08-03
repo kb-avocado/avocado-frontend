@@ -8,6 +8,7 @@
     </section>
     <!-- 즐겨찾기 북마크 추가 -->
     <button
+      v-if="tab === 'IN_PROGRESS'"
       type="button"
       class="child-list-page__filter"
       :class="{ 'child-list-page__filter--active': showFavoritesOnly }"
@@ -54,7 +55,7 @@
             : '완료된 저금통이 없습니다.'
       }}
     </div>
-
+    <!-- 저금통 생성 버튼 연결 -->
     <template v-if="tab === 'IN_PROGRESS'">
       <button
         type="button"
@@ -101,7 +102,9 @@ const showFavoritesOnly = ref(false)
 
 // 화면에 실제로 뿌릴 목록 (필터 적용)
 const displayedItems = computed(() =>
-  showFavoritesOnly.value ? items.value.filter((i) => i.favorite) : items.value
+  showFavoritesOnly.value && tab.value === 'IN_PROGRESS'
+    ? items.value.filter((i) => i.favorite)
+    : items.value
 )
 
 // 저금통 생성 연결부분

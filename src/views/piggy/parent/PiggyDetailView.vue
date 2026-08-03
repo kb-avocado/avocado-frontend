@@ -36,7 +36,11 @@
           <p class="text-xl font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
         </div>
       </div>
-
+      <!-- 입금 내역 -->
+      <div>
+        <p class="text-sm font-medium text-avocado-900 mb-2">입금 내역</p>
+        <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" />
+      </div>
       <!-- 보너스 지급 배너 (팀원 컴포넌트) -->
       <PiggyBonusPayoutBanner
         :piggy-bank-id="item.piggyBankId"
@@ -57,6 +61,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import PiggyBonusPayoutBanner from '@/components/piggy/PiggyBonusPayoutBanner.vue'
+import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.vue'
 
 import { usePiggyBankStore } from '@/stores/piggyBank'
 

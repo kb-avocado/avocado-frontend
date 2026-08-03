@@ -90,7 +90,10 @@ function goToBonusTransfer() {
 
 // 응원 보기 버튼 연결
 function goToCheerMessages() {
-  router.push({ name: 'piggyCheerMessages', params: { id: props.item.piggyBankId } })
+  router.push({
+    name: isActive.value ? 'piggyCheerCompose' : 'piggyCheerMessages',
+    params: { id: props.item.piggyBankId }
+  })
 }
 // 저금통 상세 화면 연결
 function goToDetail() {

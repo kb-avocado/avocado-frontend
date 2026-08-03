@@ -1,6 +1,7 @@
 const inProgressPiggyBanks = [
   {
     piggyBankId: 1,
+    walletId: 101,
     name: '레고 우주선',
     description: '장난감',
     status: 'ACTIVE',
@@ -25,6 +26,7 @@ const inProgressPiggyBanks = [
 
   {
     piggyBankId: 2,
+    walletId: 101,
     name: '산악 자전거',
     description: '스포츠',
     status: 'ACTIVE',
@@ -41,6 +43,7 @@ const inProgressPiggyBanks = [
 
   {
     piggyBankId: 3,
+    walletId: 101,
     name: '닌텐도 게임기',
     description: '게임',
     status: 'ACTIVE',
@@ -70,6 +73,7 @@ const closedPiggyBanks = [
    */
   {
     piggyBankId: 4,
+    walletId: 101,
     name: '여행 가방',
     description: '여행',
     status: 'ACHIEVED',
@@ -97,6 +101,7 @@ const closedPiggyBanks = [
    */
   {
     piggyBankId: 5,
+    walletId: 101,
     name: '레고 우주선',
     description: '장난감',
     status: 'ACHIEVED',
@@ -124,6 +129,7 @@ const closedPiggyBanks = [
    */
   {
     piggyBankId: 6,
+    walletId: 101,
     name: '경제 도서 세트',
     description: '도서',
     status: 'ACHIEVED',
@@ -146,6 +152,7 @@ const closedPiggyBanks = [
    */
   {
     piggyBankId: 7,
+    walletId: 101,
     name: '산악 자전거',
     description: '스포츠',
     status: 'CANCELLED',
@@ -168,6 +175,10 @@ const closedPiggyBanks = [
     }
   }
 ]
+
+function resolveWalletId(childId) {
+  return walletIdByChild[Number(childId)] ?? Number(childId)
+}
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
