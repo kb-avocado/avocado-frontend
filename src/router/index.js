@@ -62,6 +62,11 @@ const routes = [
         path: 'pending',
         name: 'family-pending',
         component: () => import('@/views/family/child/FamilyPendingView.vue')
+      },
+      {
+        path: 'check/:requestId',
+        name: 'family-check',
+        component: () => import('@/views/family/parent/FamilyCheckView.vue')
       }
     ],
     meta: { hideLayout: true }
