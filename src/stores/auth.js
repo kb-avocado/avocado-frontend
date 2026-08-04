@@ -2,20 +2,24 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useAuthStore = defineStore('auth', () => {
-  const accessToken = ref(null)
+  // 화면 표시와 분기에 쓰는 사용자 정보만 둔다.
+  // 메모리에만 있어 새로고침하면 사라진다.
   const user = ref(null)
 
-  const isAuthenticated = computed(() => !!accessToken.value)
+  const isAuthenticated = computed(() => !!user.value)
 
-  function setAuth({ accessToken, userInfo }) {
-    accessToken.value = accessToken
+  function setUser(userInfo) {
     user.value = userInfo
   }
 
-  function logout() {
-    accessToken.value = null
+  function clear() {
     user.value = null
   }
 
-  return { accessToken, user, isAuthenticated, setAuth, logout }
+  // TODO: 회원가입 브랜치에서 SignupProfileView를 setUser로 옮긴 뒤 제거
+  function setAuth({ userInfo }) {
+    setUser(userInfo)
+  }
+
+  return { user, isAuthenticated, setUser, clear, setAuth }
 })
