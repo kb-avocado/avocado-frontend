@@ -1,11 +1,17 @@
 <template>
   <div v-if="news" class="p-4 pb-8 flex flex-col gap-5">
     <div>
-      <h1 class="text-lg font-bold text-gray-900 mb-2">{{ news.headline ?? news.title }}</h1>
+      <h1 class="text-xl font-bold text-gray-900 mb-2">{{ news.title }}</h1>
       <p class="text-sm text-gray-700 leading-relaxed">{{ news.summary }}</p>
     </div>
 
-    <a>
+    <a
+      :href="news.url"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-1 self-start px-3 py-2 rounded-lg text-sm font-medium text-gray-900"
+      style="background-color: #ebf4dd"
+    >
       기사 전문 보기
       <ExternalLink :size="14" />
     </a>
@@ -31,19 +37,17 @@
           :readonly="!canEditAnswer"
           maxlength="500"
           rows="5"
-          placeholder="챌린지에 대한 나의 생각을 적어보세요"
+          placeholder="기사를 읽고 챌린지에 대한 나의 생각을 적어보세요"
           class="w-full resize-none text-sm text-gray-900 outline-none disabled:bg-white"
         />
         <p class="text-right text-xs text-muted mt-1">{{ answer.length }} / 500</p>
       </div>
 
-      <BaseButton
-        v-if="canEditAnswer"
-        variant="primary"
-        class="w-full mt-3"
-        :disabled="!answer.trim() || isSaving"
-        @click="onSubmit"
-      >
+      <p v-if="showMinLengthError" class="text-xs text-red-500 mt-2">
+        최소 {{ MIN_ANSWER_LENGTH }}자를 채워야 활동을 완료할 수 있습니다.
+      </p>
+
+      <BaseButton v-if="canEditAnswer" variant="primary" class="w-full mt-3" @click="onSubmit">
         <CheckCircle :size="16" class="mr-1" />
         활동 완료하기
       </BaseButton>
@@ -58,10 +62,10 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ExternalLink, Rocket, CheckCircle } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
-// TODO(mock): 백엔드 붙으면 아래 주석 풀고 mock 코드 지우기
-// import { getNewsDetail, saveNewsAnswer } from '@/api/news'
 import { useAuthStore } from '@/stores/auth'
 import { usePageTitle } from '@/composables/usePageTitle'
+
+const MIN_ANSWER_LENGTH = 50
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -70,19 +74,16 @@ const { setPageTitle, clearPageTitle } = usePageTitle()
 const news = ref(null)
 const answer = ref('')
 const isSaving = ref(false)
+const showMinLengthError = ref(false)
 
-// TODO: 로그인 붙으면 authStore.user.role로 정확히 판단.
-// 로그인 전 개발 단계에서는 기본적으로 아이(편집 가능)로 취급.
 const canEditAnswer = computed(() => authStore.user?.role !== 'PARENT')
 
-// TODO(mock): 백엔드 붙으면 이 목업 객체 삭제
 const MOCK_NEWS_DETAIL = {
-  newsId: 104,
-  title: '보너스란 무엇일까요?',
-  headline: '돈을 불리는 마법: 복리의 비밀',
+  newsId: 105,
+  title: '폭염이 바꾼 프랑스, 에어컨 논쟁으로',
   summary:
-    '내 돈이 아기를 낳고, 그 아기가 또 아기를 낳는다면? 바로 복리의 원리에요! 우리 돈이 슈퍼히어로 팀처럼 일하게 만드는 법을 배워봅시다.',
-  url: 'https://news.example.com/articles/bonus-explained',
+    '프랑스가 기록적인 폭염으로 큰 어려움을 겪고 있어요. 일부 지역의 낮 최고 기온은 40도를 훌쩍 넘기기도 했죠. 그런데 프랑스는 우리나라와 달리 에어컨을 설치한 곳이 많지 않아요. ',
+  url: 'https://www.econoi.com/news/articleView.html?idxno=42228',
   publishedAt: '2026-07-21T09:00:00',
   challenge: {
     challengeId: 5,
@@ -92,19 +93,21 @@ const MOCK_NEWS_DETAIL = {
 }
 
 async function fetchDetail() {
-  // TODO(mock): 백엔드 붙으면 아래로 교체
-  // const { data } = await getNewsDetail(route.params.newsId)
   const data = { ...MOCK_NEWS_DETAIL, newsId: route.params.newsId }
   news.value = data
   answer.value = data.myAnswer?.review ?? ''
-  setPageTitle(data.title)
+  setPageTitle('경제가 쏙쏙! 아보카도 신문')
 }
 
 async function onSubmit() {
+  if (answer.value.trim().length < MIN_ANSWER_LENGTH) {
+    showMinLengthError.value = true
+    return
+  }
+  showMinLengthError.value = false
+
   isSaving.value = true
   try {
-    // TODO(mock): 백엔드 붙으면 아래로 교체
-    // await saveNewsAnswer(route.params.newsId, answer.value)
     console.log('mock 저장:', answer.value)
   } finally {
     isSaving.value = false

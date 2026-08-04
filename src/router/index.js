@@ -62,13 +62,13 @@ const routes = [
   {
     path: '/newspaper',
     name: 'newspaper',
-    component: () => import('@/views/newspaper/common/NewspaperView.vue'),
+    component: () => import('@/views/news/common/NewspaperView.vue'),
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
   {
     path: '/newspaper/:newsId',
     name: 'newspaper-detail',
-    component: () => import('@/views/newspaper/common/NewsDetailView.vue'),
+    component: () => import('@/views/news/common/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
   {
