@@ -25,7 +25,7 @@ import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import { pageTitleOverride } from '@/composables/usePageTitle'
 const route = useRoute()
 const router = useRouter()
-const pageTitle = computed(() => route.meta.title ?? '아보카도')
+const pageTitle = computed(() => pageTitleOverride.value ?? route.meta.title ?? '아보카도')
 
 const showBack = computed(() => route.meta.showBack === true)
 
