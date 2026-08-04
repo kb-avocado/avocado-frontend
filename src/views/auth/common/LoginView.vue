@@ -20,16 +20,29 @@ async function handleSubmit() {
 
   try {
     const { data: response } = await login(form.value)
-    authStore.setAuth({
-      accessToken: response.data.tokens.accessToken,
-      userInfo: response.data.user
-    })
-    router.push({ name: 'wallet' })
+    const user = response.data.user
+
+    authStore.setUser(user)
+    router.push(resolveNextRoute(response.code, user))
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '이메일 또는 비밀번호를 확인해 주세요.'
   } finally {
     loading.value = false
   }
+}
+
+// 로그인은 성공했지만 계좌/가족 연결이 안 된 계정(PENDING)은 홈이 아닌 연결 화면으로 보낸다.
+function resolveNextRoute(code, user) {
+  if (code === 'ACCOUNT_LINK_REQUIRED') {
+    return { name: 'account-connect' }
+  }
+
+  if (code === 'FAMILY_LINK_REQUIRED') {
+    // 연결 요청 이력이 있으면 승인 대기 화면, 없으면 코드 입력 화면
+    return { name: user.family ? 'family-pending' : 'family-connect' }
+  }
+
+  return { name: 'home' }
 }
 </script>
 
