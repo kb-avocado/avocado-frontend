@@ -8,6 +8,12 @@ export const TRANSFER_RECIPIENT_TYPE = {
   ACCOUNT: 'ACCOUNT'
 }
 
+/* 송금 대상 검색 기준 (사용자 코드 / 지갑 계좌번호) */
+export const TRANSFER_RECIPIENT_SEARCH_TYPE = {
+  USER_CODE: 'USER_CODE',
+  ACCOUNT_NUMBER: 'ACCOUNT_NUMBER'
+}
+
 /* 보너스 타입 (이자 / 정액) */
 export const BONUS_TYPE = {
   RATE: 'RATE',
