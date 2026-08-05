@@ -19,7 +19,7 @@ const validSearchTypes = Object.values(TRANSFER_RECIPIENT_SEARCH_TYPE)
  *
  * @example
  * router.push({
- *   name: 'transfer',
+ *   name: 'transfer-recipient',
  *   query: createTransferQuery({
  *     searchType: TRANSFER_RECIPIENT_SEARCH_TYPE.USER_CODE,
  *     keyword: 'AVO1234',

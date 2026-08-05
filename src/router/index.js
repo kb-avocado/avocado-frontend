@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
+import { useTransferStore } from '@/stores/transfer'
 
 const routes = [
   {
@@ -113,7 +114,25 @@ const routes = [
   {
     path: '/transfer',
     name: 'transfer',
-    component: () => import('@/views/transfer/common/TransferView.vue'),
+    redirect: { name: 'transfer-recipient' }
+  },
+  {
+    path: '/transfer/recipient',
+    name: 'transfer-recipient',
+    component: () => import('@/views/transfer/common/TransferRecipientView.vue'),
+    meta: {
+      title: '송금하기',
+      showBack: true
+    }
+  },
+  {
+    path: '/transfer/amount',
+    name: 'transfer-amount',
+    component: () => import('@/views/transfer/common/TransferAmountView.vue'),
+    beforeEnter: () => {
+      const transferStore = useTransferStore()
+      if (!transferStore.recipient) return { name: 'transfer-recipient' }
+    },
     meta: {
       title: '송금하기',
       showBack: true

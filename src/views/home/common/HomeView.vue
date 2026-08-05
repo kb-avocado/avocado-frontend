@@ -11,7 +11,7 @@
         </p>
 
         <RouterLink
-          :to="{ name: 'transfer' }"
+          :to="{ name: 'transfer-recipient' }"
           class="flex items-center gap-1 bg-white text-avocado-600 text-sm font-medium px-3 py-2 rounded-full shrink-0"
         >
           <CreditCard :size="14" />
