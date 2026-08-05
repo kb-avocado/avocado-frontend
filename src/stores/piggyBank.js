@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import { piggyBankApi } from '@/api/piggy'
+import { useAuthStore } from '@/stores/auth'
+
+// TODO: 로그인 연동 전까지 임시 walletId. DB에 존재하는 지갑 id로.
+const TEST_WALLET_ID = 1
 
 /**
  * 진행 중/완료 목록을 분리해서 보관할 기본 상태를 생성합니다.
@@ -59,6 +63,8 @@ export const usePiggyBankStore = defineStore('piggyBank', {
      * parentChildren['2'].lists.IN_PROGRESS
      */
     parentChildren: {},
+
+    detail: null, //추가 : 상세 조회
 
     loading: false,
     error: ''
@@ -148,7 +154,10 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       this.error = ''
 
       try {
-        const result = await piggyBankApi.getChildList(tab)
+        // TODO: 로그인 붙으면 로그인 사용자 walletId로 교체
+        const walletId = useAuthStore().user?.walletId ?? TEST_WALLET_ID
+
+        const result = await piggyBankApi.getChildList(tab, walletId)
 
         const normalized = normalizeListResponse(result)
 
@@ -184,7 +193,12 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       const parentState = this.ensureParentState(childId)
 
       try {
-        const result = await piggyBankApi.getParentList(childId, tab)
+        //  childId로 그 아이의 walletId를 구한다.
+        // TODO: 로그인 붙으면 authStore.user.child[]에서 childId에 해당하는 walletId 사용
+        //       지금은 로그인 전이라 테스트 지갑으로 조회
+        const walletId = TEST_WALLET_ID
+
+        const result = await piggyBankApi.getParentList(walletId, tab) // ★ walletId 넘김
 
         const normalized = normalizeListResponse(result)
 
@@ -199,6 +213,41 @@ export const usePiggyBankStore = defineStore('piggyBank', {
         return normalized
       } catch (error) {
         this.error = error.message || '아이의 저금통 목록을 불러오지 못했습니다.'
+
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    // 추가 : 상세 조회
+    async loadDetail(piggyBankId) {
+      this.loading = true
+      this.error = ''
+
+      try {
+        this.detail = await piggyBankApi.getDetail(piggyBankId)
+
+        return this.detail
+      } catch (error) {
+        this.error = error.message || '저금통 정보를 불러오지 못했습니다.'
+
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    // 추가: 저금통 생성
+    async createPiggyBank(payload) {
+      this.loading = true
+      this.error = ''
+
+      try {
+        // TODO: 로그인 붙으면 로그인 사용자 walletId로 교체
+        const walletId = useAuthStore().user?.walletId ?? TEST_WALLET_ID
+
+        return await piggyBankApi.createPiggyBank(payload, walletId)
+      } catch (error) {
+        this.error = error.message || '저금통 생성에 실패했습니다.'
 
         throw error
       } finally {
