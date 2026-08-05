@@ -27,7 +27,7 @@
       v-else-if="!recipients.length"
       class="rounded-2xl bg-gray-50 px-4 py-7 text-center text-sm text-gray-500"
     >
-      최근 송금 내역이 없어요.
+      없음
     </p>
 
     <ul v-else class="space-y-3">

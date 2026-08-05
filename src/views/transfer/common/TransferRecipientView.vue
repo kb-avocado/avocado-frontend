@@ -69,12 +69,11 @@ import { getRecentTransferRecipients, getTransferRecipient } from '@/api/transfe
 import { TRANSFER_RECIPIENT_SEARCH_TYPE, TRANSFER_RECIPIENT_TYPE } from '@/constants'
 import { useTransferStore } from '@/stores/transfer'
 
-const MIN_ACCOUNT_NUMBER_LENGTH = 8
-
 const router = useRouter()
 const transferStore = useTransferStore()
 
 const banks = [
+  { code: 'AVOCADO', name: '아보카도 은행' },
   { code: 'KB', name: 'KB국민은행' },
   { code: 'SHINHAN', name: '신한은행' },
   { code: 'HANA', name: '하나은행' },
@@ -106,10 +105,7 @@ let recentRequestController = null
 
 const canSubmit = computed(
   () =>
-    form.bankCode !== '' &&
-    form.accountNumber.length >= MIN_ACCOUNT_NUMBER_LENGTH &&
-    !errors.bankCode &&
-    !errors.accountNumber
+    form.bankCode !== '' && form.accountNumber !== '' && !errors.bankCode && !errors.accountNumber
 )
 
 function clearFieldError(field) {
@@ -120,11 +116,6 @@ function clearFieldError(field) {
 function validateAccountNumber() {
   if (!form.accountNumber) {
     errors.accountNumber = '계좌번호를 입력해주세요.'
-    return false
-  }
-
-  if (form.accountNumber.length < MIN_ACCOUNT_NUMBER_LENGTH) {
-    errors.accountNumber = '계좌번호를 8자리 이상 입력해주세요.'
     return false
   }
 
