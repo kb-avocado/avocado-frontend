@@ -100,7 +100,7 @@ export const piggyBankApi = {
    * 실제 API 모드:
    * GET /api/piggy-banks
    */
-  async getChildList(tab = 'IN_PROGRESS') {
+  async getChildList(tab = 'IN_PROGRESS', walletId) {
     if (useMockData) {
       await wait(400)
 
@@ -109,9 +109,10 @@ export const piggyBankApi = {
 
     return request({
       method: 'GET',
-      url: '/piggy-banks',
+      url: '/piggybanks', // piggy-banks → piggybanks
       params: {
-        tab
+        status: tab, // tab → status
+        walletId // walletId 추가
       }
     })
   },
@@ -126,21 +127,45 @@ export const piggyBankApi = {
    * GET
    * /api/parent/children/{childId}/piggy-banks
    */
-  async getParentList(childId, tab = 'IN_PROGRESS') {
-    const normalizedChildId = validateChildId(childId)
-
+  async getParentList(walletId, tab = 'IN_PROGRESS') {
     if (useMockData) {
       await wait(400)
 
-      return getParentMockList(normalizedChildId, tab)
+      return getParentMockList(walletId, tab)
     }
 
     return request({
       method: 'GET',
-      url: `/parent/children/` + `${encodeURIComponent(normalizedChildId)}` + `/piggy-banks`,
+      url: '/piggybanks', //  공통 엔드포인트로 변경
       params: {
-        tab
+        status: tab, //  tab → status
+        walletId //  childId 대신 walletId
       }
+    })
+  },
+  /**
+   * [상세 조회 핵심 함수]
+   *
+   * 실제 API 모드:
+   * GET /api/piggybanks/{id}
+   */
+  async getDetail(piggyId) {
+    return request({
+      method: 'GET',
+      url: `/piggybanks/${piggyId}`
+    })
+  },
+  // 추가: 저금통 생성
+  /**
+   * [생성 핵심 함수]
+   * POST /api/piggybanks?walletId=  body { name, targetAmount }
+   */
+  async createPiggyBank(payload, walletId) {
+    return request({
+      method: 'POST',
+      url: '/piggybanks',
+      params: { walletId },
+      data: payload
     })
   }
 }
@@ -162,8 +187,7 @@ export const deleteCheerMessage = (piggyId, messageId) =>
   axiosInstance.delete(`/piggybanks/${piggyId}/cheer-messages/${messageId}`)
 
 /* 저금통 저축(입금) 내역 조회 */
-export const getDeposits = (piggyId) =>
-  axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
+export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
 
 /* 저금통 생성 */
 // export const createPiggyBank = (payload) => axiosInstance.post('/piggy-banks', payload)

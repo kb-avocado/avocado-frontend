@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue' // 상세조회 추가: onMounted
 import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/common/AppHeader.vue'
@@ -78,30 +78,18 @@ const store = usePiggyBankStore()
 
 const piggyBankId = computed(() => route.params.id)
 
-// store의 아이·보호자 목록에서 해당 저금통을 찾습니다.
-const item = computed(() => {
-  const target = String(piggyBankId.value)
-
-  for (const tab of Object.keys(store.childLists)) {
-    const found = store.childLists[tab].find((p) => String(p.piggyBankId) === target)
-    if (found) return found
-  }
-  for (const childKey of Object.keys(store.parentChildren)) {
-    const lists = store.parentChildren[childKey]?.lists ?? {}
-    for (const tab of Object.keys(lists)) {
-      const found = lists[tab].find((p) => String(p.piggyBankId) === target)
-      if (found) return found
-    }
-  }
-  return null
+// 상세조회 변경: 스토어를 뒤지지 않고, 백엔드 상세 API로 조회
+onMounted(() => {
+  store.loadDetail(piggyBankId.value)
 })
 
-// 남은 금액 = 목표 - 모은 금액
+// 상세조회 변경: 백엔드 상세 결과 사용
+const item = computed(() => store.detail)
+
 const remainingAmount = computed(() =>
   Math.max(0, Number(item.value?.targetAmount || 0) - Number(item.value?.savedAmount || 0))
 )
 
-// 성장 애니메이션 진행률에 따라 단계 이미지 선택 (1~5단계)
 const growthImage = computed(() => {
   const rate = Number(item.value?.progressRate || 0)
   if (rate < 20) return stage1

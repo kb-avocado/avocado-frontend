@@ -118,8 +118,11 @@ import { Pencil, Info } from 'lucide-vue-next'
 
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
+import { usePiggyBankStore } from '@/stores/piggyBank'
 
 const router = useRouter()
+
+const store = usePiggyBankStore()
 
 // 목표 아이콘 (SVG: 자전거·게임·가방·책 / 스키·톱니·별·하트)
 const icons = ['🚗', '🎮', '🎂', '📚', '👕', '⚽', '⭐', '❤️']
@@ -139,16 +142,21 @@ function addAmount(amount) {
   targetAmount.value = Number(targetAmount.value || 0) + amount
 }
 
+// 변경: 실제 생성 API 연동
 async function handleSubmit() {
   if (!canSubmit.value) return
   isSubmitting.value = true
   errorMessage.value = ''
   try {
-    // TODO: 저금통 생성 API 연동
-    // await createPiggyBank({ name: name.value, icon: selectedIcon.value, targetAmount: targetAmount.value })
-    router.push({ name: 'piggy' })
+    await store.createPiggyBank({
+      name: name.value.trim(),
+      targetAmount: Number(targetAmount.value)
+      // icon은 백엔드에 없어서 안 보냄 (프론트 장식용)
+    })
+    router.push({ name: 'piggy' }) // 성공 → 목록으로 (목록 화면이 새로 조회함)
   } catch (e) {
-    errorMessage.value = '저금통 생성에 실패했어요. 다시 시도해주세요.'
+    // 백엔드 에러 메시지 그대로 표시 (예: 3개 초과 시 안내)
+    errorMessage.value = e.message || '저금통 생성에 실패했어요. 다시 시도해주세요.'
   } finally {
     isSubmitting.value = false
   }
