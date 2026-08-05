@@ -20,3 +20,14 @@ export function getTransferRecipient(searchType, keyword, config = {}) {
     signal: config.signal
   })
 }
+
+/**
+ * 최근 송금 대상을 조회합니다.
+ *
+ * @param {{ signal?: AbortSignal }} [config]
+ */
+export function getRecentTransferRecipients(config = {}) {
+  return api.get('/transfers/recent-recipients', {
+    signal: config.signal
+  })
+}

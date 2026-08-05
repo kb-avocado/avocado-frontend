@@ -32,6 +32,14 @@
         >
           {{ searchError }}
         </p>
+
+        <RecentRecipientList
+          :recipients="recentRecipients"
+          :loading="isRecentLoading"
+          :error="recentError"
+          @retry="fetchRecentRecipients"
+          @select="selectRecentRecipient"
+        />
       </div>
 
       <BaseButton
@@ -51,12 +59,13 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/components/common/BaseButton.vue'
 import AccountNumberInput from '@/components/transfer/AccountNumberInput.vue'
 import BankSelect from '@/components/transfer/BankSelect.vue'
-import { getTransferRecipient } from '@/api/transfer'
+import RecentRecipientList from '@/components/transfer/RecentRecipientList.vue'
+import { getRecentTransferRecipients, getTransferRecipient } from '@/api/transfer'
 import { TRANSFER_RECIPIENT_SEARCH_TYPE, TRANSFER_RECIPIENT_TYPE } from '@/constants'
 import { useTransferStore } from '@/stores/transfer'
 
@@ -87,8 +96,13 @@ const errors = reactive({
 
 const isSearching = ref(false)
 const searchError = ref('')
+const recentRecipients = ref([])
+const isRecentLoading = ref(false)
+const recentError = ref('')
 let requestSequence = 0
 let requestController = null
+let recentRequestSequence = 0
+let recentRequestController = null
 
 const canSubmit = computed(
   () =>
@@ -134,12 +148,11 @@ function unwrapResponse(response) {
   return body?.data ?? body
 }
 
-function normalizeRecipient(data) {
+function normalizeRecipient(data, fallback = {}) {
   if (!data || typeof data !== 'object') return null
 
   const name = data.recipientName ?? data.name
-  const accountNumber = data.accountNumber ?? form.accountNumber
-  const selectedBank = banks.find((bank) => bank.code === form.bankCode)
+  const accountNumber = data.accountNumber ?? fallback.accountNumber ?? data.maskedAccountNumber
 
   if (!name || !accountNumber) return null
 
@@ -147,12 +160,24 @@ function normalizeRecipient(data) {
     recipientId: data.recipientId ?? data.accountId ?? data.walletId ?? data.id ?? null,
     recipientType: data.recipientType ?? TRANSFER_RECIPIENT_TYPE.ACCOUNT,
     name,
-    bankCode: data.bankCode ?? form.bankCode,
-    bankName: data.bankName ?? selectedBank?.name ?? '',
+    bankCode: data.bankCode ?? fallback.bankCode ?? '',
+    bankName: data.bankName ?? fallback.bankName ?? '',
     accountNumber,
     maskedAccountNumber: data.maskedAccountNumber ?? accountNumber,
     userCode: data.userCode ?? ''
   }
+}
+
+function normalizeRecentRecipients(data) {
+  const items = Array.isArray(data) ? data : (data?.content ?? data?.recipients ?? [])
+
+  return items
+    .map((item) => normalizeRecipient(item))
+    .filter(Boolean)
+    .map((recipient, index) => ({
+      ...recipient,
+      key: recipient.recipientId ?? `${recipient.accountNumber}-${index}`
+    }))
 }
 
 function getSearchErrorMessage(error) {
@@ -183,7 +208,12 @@ async function handleSearch() {
 
     if (currentSequence !== requestSequence) return
 
-    const recipient = normalizeRecipient(unwrapResponse(response))
+    const selectedBank = banks.find((bank) => bank.code === form.bankCode)
+    const recipient = normalizeRecipient(unwrapResponse(response), {
+      bankCode: form.bankCode,
+      bankName: selectedBank?.name,
+      accountNumber: form.accountNumber
+    })
 
     if (!recipient) {
       searchError.value = '송금 대상 정보를 확인할 수 없어요.'
@@ -203,8 +233,48 @@ async function handleSearch() {
   }
 }
 
+async function fetchRecentRecipients() {
+  const currentSequence = ++recentRequestSequence
+  recentRequestController?.abort()
+  recentRequestController = new AbortController()
+
+  isRecentLoading.value = true
+  recentError.value = ''
+
+  try {
+    const response = await getRecentTransferRecipients({
+      signal: recentRequestController.signal
+    })
+
+    if (currentSequence !== recentRequestSequence) return
+    recentRecipients.value = normalizeRecentRecipients(unwrapResponse(response))
+  } catch (error) {
+    if (currentSequence !== recentRequestSequence || error?.code === 'ERR_CANCELED') return
+
+    recentRecipients.value = []
+    recentError.value =
+      error?.response?.status >= 500
+        ? '서버 문제로 최근 내역을 불러오지 못했어요.'
+        : '최근 송금 내역을 불러오지 못했어요.'
+  } finally {
+    if (currentSequence === recentRequestSequence) {
+      isRecentLoading.value = false
+      recentRequestController = null
+    }
+  }
+}
+
+async function selectRecentRecipient(recipient) {
+  transferStore.setRecipient(recipient)
+  await router.push({ name: 'transfer-amount' })
+}
+
+onMounted(fetchRecentRecipients)
+
 onBeforeUnmount(() => {
   requestSequence += 1
   requestController?.abort()
+  recentRequestSequence += 1
+  recentRequestController?.abort()
 })
 </script>
