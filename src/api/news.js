@@ -7,5 +7,5 @@ export function getNewsDetail(newsId) {
   return axiosInstance.get(`/news/${newsId}`)
 }
 export function saveNewsAnswer(newsId, review) {
-  return axiosInstance.put(`/news/${newsId}/answers`, { review })
+  return axiosInstance.put(`/news/${newsId}/answers`, { childAnswer: review })
 }
