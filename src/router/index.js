@@ -45,8 +45,13 @@ const routes = [
     component: () => import('@/views/auth/parent/AccountConnectionView.vue'),
     meta: { hideLayout: true }
   },
-
-
+  // 홈 (아이 / 부모 분리)
+  {
+    path: '/home',
+    name: 'home',
+    component: () => import('@/views/home/common/HomeView.vue'),
+    meta: { title: '아보카도 홈' }
+  },
   // 가족 연결
   {
     path: '/family',
