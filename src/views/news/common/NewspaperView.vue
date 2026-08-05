@@ -85,6 +85,7 @@ import { computed, onMounted, ref } from 'vue'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import ch11 from '@/assets/images/ch11.png'
 import ch12 from '@/assets/images/ch12.png'
+import { getNewsList } from '@/api/news'
 
 const PAGE_SIZE = 8
 const NEW_BADGE_DAYS = 3 // 발행 후 3일 이내면 New!!! 표시
@@ -118,135 +119,13 @@ function isNewArticle(publishedAt) {
   return publishedDate > cutoff
 }
 
-const MOCK_NEWS = [
-  {
-    newsId: 105,
-    title: '폭염이 바꾼 프랑스, 에어컨 논쟁으로',
-    isRead: false,
-    isCompleted: false,
-    publishedAt: '2026-08-02T09:00:00'
-  },
-  {
-    newsId: 104,
-    title: '일회용 스티로폼 상자 대안은?',
-    isRead: false,
-    isCompleted: false,
-    publishedAt: '2026-08-02T09:00:00'
-  },
-  {
-    newsId: 101,
-    title: '"이 저금통은 어떻게 만들까요?"',
-    isRead: true,
-    isCompleted: false,
-    publishedAt: '2026-07-14T09:00:00'
-  },
-  {
-    newsId: 100,
-    title: '세계유산위원회, 부산에서 열려요',
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-14T09:00:00'
-  },
-  {
-    newsId: 99,
-    title: '생생하게 만나는 근현대사, 한국근현대사박물관',
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 98,
-    title: '국립고궁박물관에서 만나다, 조선-프랑스 140년의 우정',
-    isRead: false,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 97,
-    title: '내가 지킨 나라에 잠들고 싶습니다',
-    isRead: true,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 96,
-    title: "에스컬레이터, '한 줄'에서 '두 줄'로?",
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 95,
-    title: "'모자'로 완성하는 멋",
-    isRead: true,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 94,
-    title: '봄철 불청객, 송홧가루',
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 93,
-    title: '대체 항공유와 항공유, 뭐가 다를까?',
-    isRead: false,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 92,
-    title: "네이버 플레이스, '별점 리뷰' 부활",
-    isRead: false,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 91,
-    title: "이제 초1도 '내 카드' 쓴다",
-    isRead: true,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 90,
-    title: "'사재기'가 만든 종량제 봉투 대란",
-    isRead: true,
-    isCompleted: false,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 89,
-    title: "'문화가 있는 날' 이제 매주 수요일로!",
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 88,
-    title: '음식물 쓰레기 60%, 가정에서 나온다',
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  },
-  {
-    newsId: 87,
-    title: '도량형의 기준 된 작물, 기장',
-    isRead: true,
-    isCompleted: true,
-    publishedAt: '2026-07-10T09:00:00'
-  }
-]
 
 async function fetchNews() {
   isLoading.value = true
   try {
-    // TODO(mock): 백엔드 붙으면 page/size 쿼리로 서버에서 잘라서 받아오도록 교체
-    const start = page.value * PAGE_SIZE
-    newsList.value = MOCK_NEWS.slice(start, start + PAGE_SIZE)
-    totalCount.value = MOCK_NEWS.length
+    const { data } = await getNewsList({ page: page.value, size: PAGE_SIZE })
+    newsList.value = data.data.news
+    totalCount.value = data.data.totalCount
   } finally {
     isLoading.value = false
   }
@@ -258,8 +137,12 @@ function goToPage(nextPage) {
   fetchNews()
 }
 
-function formatDate(isoString) {
-  return isoString?.slice(0, 10) ?? ''
+function formatDate(dateValue) {
+  if (Array.isArray(dateValue)) {
+    const [year, month, day] = dateValue
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  }
+  return dateValue?.slice(0, 10) ?? ''
 }
 
 onMounted(fetchNews)
