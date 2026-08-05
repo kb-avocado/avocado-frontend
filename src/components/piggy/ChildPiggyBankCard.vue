@@ -106,10 +106,12 @@ const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperC
 
 const isActive = computed(() => normalizedStatus.value === 'ACTIVE')
 
-const isCompleted = computed(() => ['ACHIEVED', 'COMPLETED'].includes(normalizedStatus.value))
+const isCompleted = computed(() =>
+  ['ACHIEVE', 'ACHIEVED', 'COMPLETED'].includes(normalizedStatus.value)
+)
 
 const isAbandoned = computed(() =>
-  ['CANCELLED', 'CANCELED', 'ABANDONED'].includes(normalizedStatus.value)
+  ['CANCEL', 'CANCELLED', 'CANCELED', 'ABANDONED'].includes(normalizedStatus.value)
 )
 
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())

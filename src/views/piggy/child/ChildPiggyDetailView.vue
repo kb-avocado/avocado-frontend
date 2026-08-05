@@ -24,6 +24,8 @@
           부모님 응원보기
         </button>
       </div>
+      <!-- 추가: 성장 단계 진행률바 -->
+      <PiggyGrowthProgressBar :progress-rate="item.progressRate" />
 
       <!-- 남은 금액 / 목표 금액 -->
       <div class="flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
@@ -55,6 +57,7 @@ import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 
+import PiggyGrowthProgressBar from '@/components/piggy/PiggyGrowthProgressBar.vue'
 // 성장 단계 이미지 (5단계)
 import stage1 from '@/assets/images/ch6.png'
 import stage2 from '@/assets/images/ch7.png'
