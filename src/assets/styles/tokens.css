@@ -9,13 +9,13 @@
 :root {
   /* Brand - Avocado Green */
   --color-avocado-50: #ffffff; /* 페이지 배경 */
-  --color-avocado-100: #ecf3e9; /* 카드/선택된 탭 배경 */
+  --color-avocado-100: #ebf4dd; /* 카드/선택된 탭 배경 */
   --color-avocado-300: #cfe8a9; /* 보조 강조 */
   --color-avocado-600: #78b159; /* 브랜드 메인 그린 (버튼/활성 탭/강조 텍스트/프로그레스바) */
   --color-avocado-900: #000000; /* 가장 진한 텍스트 */
 
   /* Text */
-  --color-text-primary: #000000;
+  --color-text-primary: #030202;
   --color-text-secondary: #9ca3af;
   --color-text-muted: #6b7280;
 
@@ -28,4 +28,8 @@
   --radius-pill: 999px;
   --nav-height: 64px;
   --header-height: 56px;
+
+  /* 프로그레스 바 */
+  --color-progress-track: #e9ede3;
+  --color-progress-value: #3d7837;
 }
