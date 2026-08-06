@@ -253,6 +253,19 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       } finally {
         this.loading = false
       }
+    },
+    // 저금통 중도 포기(삭제)
+    async closePiggyBank(piggyBankId) {
+      this.loading = true
+      this.error = ''
+      try {
+        await piggyBankApi.closePiggyBank(piggyBankId)
+      } catch (error) {
+        this.error = error.message || '저금통 삭제에 실패했습니다.'
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

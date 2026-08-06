@@ -167,6 +167,13 @@ export const piggyBankApi = {
       params: { walletId },
       data: payload
     })
+  },
+  // 저금통 중도 포기(삭제)
+  async closePiggyBank(piggyId) {
+    return request({
+      method: 'POST',
+      url: `/piggybanks/${piggyId}/close`
+    })
   }
 }
 
@@ -190,8 +197,7 @@ export const deleteCheerMessage = (piggyId, messageId) =>
 export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
 
 /* 저금통 상세 조회 (보너스 정보 포함) */
-export const getPiggyBankDetail = (piggyId) =>
-  axiosInstance.get(`/piggybanks/${piggyId}`)
+export const getPiggyBankDetail = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}`)
 
 /* 저금통 생성 */
 // export const createPiggyBank = (payload) => axiosInstance.post('/piggy-banks', payload)
