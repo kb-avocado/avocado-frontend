@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-white">
+  <div class="min-h-screen flex flex-col bg-surface">
     <AppHeader
       title="저금통 만들기"
       show-back
@@ -12,7 +12,7 @@
       <!-- 선택 아이콘 미리보기 -->
       <div class="flex justify-center pt-4">
         <div
-          class="w-24 h-24 grid place-items-center rounded-full bg-white border-2 border-[#B6F393] text-4xl shadow-sm"
+          class="w-24 h-24 grid place-items-center rounded-full bg-surface border-2 border-[#B6F393] text-4xl shadow-sm"
         >
           {{ selectedIcon }}
         </div>
@@ -22,7 +22,7 @@
       <div>
         <p class="text-sm font-medium text-[#42493C] mb-2">무엇을 위해 저금하나요?</p>
         <div
-          class="flex items-center gap-2 h-[54px] px-4 rounded-[11px] border-2 border-[#C2C9B8] bg-white"
+          class="flex items-center gap-2 h-[54px] px-4 rounded-[11px] border-2 border-[#C2C9B8] bg-surface"
         >
           <input
             v-model="name"
@@ -46,8 +46,8 @@
             class="aspect-square grid place-items-center rounded-[16px] text-2xl transition-colors"
             :class="
               selectedIcon === icon
-                ? 'bg-[#EBF4DD] shadow-sm'
-                : 'bg-white border border-[#C2C9B8]/20'
+                ? 'bg-avocado-100 shadow-sm'
+                : 'bg-surface border border-[#C2C9B8]/20'
             "
             @click="selectedIcon = icon"
           >
@@ -60,13 +60,13 @@
       <div>
         <p class="text-sm font-medium text-[#42493C] mb-2">목표 금액</p>
         <div
-          class="flex items-center gap-2 h-[54px] px-4 rounded-[11px] border-2 border-[#C2C9B8] bg-white"
+          class="flex items-center gap-2 h-[54px] px-4 rounded-[11px] border-2 border-[#C2C9B8] bg-surface"
         >
           <input
             v-model.number="targetAmount"
             type="number"
             min="0"
-            class="flex-1 text-[15px] outline-none bg-transparent text-[#6B7280]"
+            class="flex-1 text-[15px] outline-none bg-transparent text-muted"
           />
           <span class="text-[15px] text-[#42493C]">원</span>
         </div>
@@ -75,7 +75,7 @@
             v-for="amount in quickAmounts"
             :key="amount"
             type="button"
-            class="flex-1 py-2 rounded-full bg-[#CFE8A9] border border-[#D2EBAC] text-[#546937] text-sm font-medium"
+            class="flex-1 py-2 rounded-full bg-avocado-300 border border-[#D2EBAC] text-[#546937] text-sm font-medium"
             @click="addAmount(amount)"
           >
             +{{ amount.toLocaleString('ko-KR') }}원
@@ -99,7 +99,7 @@
     <div class="px-5 pb-4">
       <button
         type="button"
-        class="w-full h-14 rounded-[12px] bg-[#78B159] text-white text-base font-bold disabled:opacity-50"
+        class="w-full h-14 rounded-[12px] bg-avocado-600 text-white text-base font-bold disabled:opacity-50"
         :disabled="!canSubmit"
         @click="handleSubmit"
       >

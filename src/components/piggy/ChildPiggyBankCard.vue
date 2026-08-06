@@ -1,27 +1,31 @@
 <template>
-  <article
-    class="child-piggy-card"
-    :class="{
-      'child-piggy-card--completed': isCompleted,
-      'child-piggy-card--abandoned': isAbandoned
-    }"
-    @click="goToDetail"
-  >
-    <header class="child-piggy-card__header">
-      <span class="child-piggy-card__icon" aria-hidden="true">
+  <article :class="articleClass" @click="goToDetail">
+    <header
+      class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
+      :class="{ 'opacity-[0.42]': isCompleted }"
+    >
+      <span
+        class="w-[46px] h-[46px] grid place-items-center rounded-[14px] bg-[#edf7e5] text-[21px]"
+        aria-hidden="true"
+      >
         {{ icon }}
       </span>
 
-      <div class="child-piggy-card__title">
-        <h2>{{ item.name }}</h2>
-
-        <small>{{ category }}</small>
+      <div class="min-w-0">
+        <h2 class="mb-1 overflow-hidden text-[#252a26] text-base text-ellipsis whitespace-nowrap">
+          {{ item.name }}
+        </h2>
+        <small
+          class="block overflow-hidden text-[#9ca29e] text-[10px] text-ellipsis whitespace-nowrap"
+        >
+          {{ category }}
+        </small>
       </div>
 
       <button
         v-if="isActive"
         type="button"
-        class="child-piggy-card__favorite"
+        class="p-[7px] border-0 bg-transparent cursor-pointer"
         :aria-pressed="Boolean(item.favorite)"
         :aria-label="item.favorite ? '즐겨찾기 등록됨' : '즐겨찾기 등록 안 됨'"
         @click.stop="toggleFavorite"
@@ -41,67 +45,74 @@
         </svg>
       </button>
 
-      <button v-else type="button" class="child-piggy-card__cheer" @click.stop="goToCheerMessages">
+      <button
+        v-else
+        type="button"
+        class="py-[7px] px-[10px] border-0 rounded-full bg-[#eef8e5] text-[#68a34d] text-[9px] font-bold whitespace-nowrap"
+        @click.stop="goToCheerMessages"
+      >
         부모님 응원보기
       </button>
     </header>
 
-    <PiggyBankProgressBar :rate="item.progressRate" :abandoned="isAbandoned" />
+    <PiggyBankProgressBar
+      :rate="item.progressRate"
+      :abandoned="isAbandoned"
+      :class="{ 'opacity-[0.42]': isCompleted }"
+    />
 
-    <section class="child-piggy-card__summary">
-      <div>
-        <small> 보호자님 추가 보너스 </small>
-
-        <strong>
-          {{ bonusText }}
-        </strong>
+    <section
+      class="min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-[#f6f8f4]"
+      :class="{ 'opacity-[0.42]': isCompleted }"
+    >
+      <div class="grid gap-[5px]">
+        <small class="text-[#e47c24] text-[9px] font-bold">보호자님 추가 보너스</small>
+        <strong class="text-[#e47c24] text-[13px]">{{ bonusText }}</strong>
       </div>
 
-      <div class="child-piggy-card__target">
-        <small>목표</small>
-
-        <strong>
-          {{ won(item.targetAmount) }}
-        </strong>
+      <div class="grid gap-[5px] text-right">
+        <small class="text-[#a3a9a4] text-[9px] font-bold">목표</small>
+        <strong class="text-[#252a26] text-[13px]">{{ won(item.targetAmount) }}</strong>
       </div>
     </section>
 
-    <div v-if="isCompleted" class="child-piggy-card__completed-message">저금통 깨기 완료!</div>
+    <div
+      v-if="isCompleted"
+      class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] bg-avocado-600 text-white text-[13px] font-extrabold text-center shadow-[0_6px_14px_rgba(91,154,63,0.32)]"
+    >
+      저금통 깨기 완료!
+    </div>
   </article>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import PiggyBankProgressBar from '@/components/piggy/PiggyBankProgressBar.vue'
-// 부모님 응원 보기 연결
 import { useRouter } from 'vue-router'
+import PiggyBankProgressBar from '@/components/piggy/PiggyBankProgressBar.vue'
+
 const props = defineProps({
   item: {
     type: Object,
     required: true
   }
 })
-// 카드 클릭 연결
+
+const emit = defineEmits(['toggle-favorite'])
+
+const router = useRouter()
+
 function goToDetail() {
   router.push({ name: 'piggyChildDetail', params: { id: props.item.piggyBankId } })
 }
-
-//즐겨찾기 버튼 연결
-const emit = defineEmits(['toggle-favorite'])
 
 function toggleFavorite() {
   emit('toggle-favorite', props.item)
 }
 
-// 부모님 응원 보기 연결
-const router = useRouter()
-
 function goToCheerMessages() {
-  router.push({
-    name: 'piggyCheerMessages',
-    params: { id: props.item.piggyBankId }
-  })
+  router.push({ name: 'piggyCheerMessages', params: { id: props.item.piggyBankId } })
 }
+
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
 
 const isActive = computed(() => normalizedStatus.value === 'ACTIVE')
@@ -114,31 +125,22 @@ const isAbandoned = computed(() =>
   ['CANCEL', 'CANCELLED', 'CANCELED', 'ABANDONED'].includes(normalizedStatus.value)
 )
 
+// 카드 컨테이너 클래스 (기본 + 상태별)
+const articleClass = computed(() => [
+  'relative p-[18px] grid gap-[15px] border rounded-[20px]',
+  'shadow-[0_7px_19px_rgba(37,54,42,0.08)]',
+  isAbandoned.value ? 'border-[#f1dfcd] bg-[#fffcf8]' : 'border-[#edf0ed] bg-surface'
+])
+
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
 
 const icon = computed(() => {
   const text = `${props.item.name ?? ''} ` + `${props.item.description ?? ''}`
-
-  if (text.includes('자전거')) {
-    return '🚲'
-  }
-
-  if (text.includes('책')) {
-    return '📚'
-  }
-
-  if (text.includes('게임')) {
-    return '🎮'
-  }
-
-  if (text.includes('여행')) {
-    return '🌍'
-  }
-
-  if (text.includes('선물')) {
-    return '🎁'
-  }
-
+  if (text.includes('자전거')) return '🚲'
+  if (text.includes('책')) return '📚'
+  if (text.includes('게임')) return '🎮'
+  if (text.includes('여행')) return '🌍'
+  if (text.includes('선물')) return '🎁'
   return '🚀'
 })
 
@@ -146,29 +148,19 @@ const category = computed(() => props.item.description || '저금 목표')
 
 const bonusText = computed(() => {
   const bonus = props.item.bonus
-
-  if (!bonus) {
-    return '미지급'
-  }
+  if (!bonus) return '미지급'
 
   if (['PAID', 'COMPLETED'].includes(bonusStatus.value)) {
     return won(bonus.paidAmount ?? bonus.amount ?? calculateRateBonus(bonus))
   }
 
   const expectedAmount = bonus.amount ?? calculateRateBonus(bonus)
-
-  if (Number(expectedAmount) > 0) {
-    return `+${won(expectedAmount)}`
-  }
-
+  if (Number(expectedAmount) > 0) return `+${won(expectedAmount)}`
   return '미지급'
 })
 
 function calculateRateBonus(bonus) {
-  if (String(bonus?.type).toUpperCase() !== 'RATE' || bonus?.rate == null) {
-    return 0
-  }
-
+  if (String(bonus?.type).toUpperCase() !== 'RATE' || bonus?.rate == null) return 0
   return Math.floor((Number(props.item.targetAmount || 0) * Number(bonus.rate)) / 100)
 }
 
@@ -176,139 +168,3 @@ function won(amount) {
   return `${Number(amount || 0).toLocaleString('ko-KR')}원`
 }
 </script>
-
-<style scoped>
-.child-piggy-card {
-  position: relative;
-  padding: 18px;
-  display: grid;
-  gap: 15px;
-  border: 1px solid #edf0ed;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 7px 19px rgb(37 54 42 / 8%);
-}
-
-.child-piggy-card--abandoned {
-  border-color: #f1dfcd;
-  background: #fffcf8;
-}
-
-.child-piggy-card__header {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-}
-
-.child-piggy-card__icon {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: #edf7e5;
-  font-size: 21px;
-}
-
-.child-piggy-card__title {
-  min-width: 0;
-}
-
-.child-piggy-card__title h2 {
-  margin: 0 0 4px;
-  overflow: hidden;
-  color: #252a26;
-  font-size: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.child-piggy-card__title small {
-  display: block;
-  overflow: hidden;
-  color: #9ca29e;
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.child-piggy-card__favorite {
-  padding: 7px;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.child-piggy-card__cheer {
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: #eef8e5;
-  color: #68a34d;
-  font-size: 9px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.child-piggy-card__summary {
-  min-height: 62px;
-  padding: 12px 14px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  border-radius: 13px;
-  background: #f6f8f4;
-}
-
-.child-piggy-card__summary > div {
-  display: grid;
-  gap: 5px;
-}
-
-.child-piggy-card__summary small {
-  color: #e47c24;
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.child-piggy-card__summary strong {
-  color: #e47c24;
-  font-size: 13px;
-}
-
-.child-piggy-card__target {
-  text-align: right;
-}
-
-.child-piggy-card__target small {
-  color: #a3a9a4;
-}
-
-.child-piggy-card__target strong {
-  color: #252a26;
-}
-
-.child-piggy-card__completed-message {
-  position: absolute;
-  z-index: 2;
-  top: 52%;
-  left: 50%;
-  min-width: 140px;
-  padding: 12px 15px;
-  transform: translate(-50%, -50%);
-  border-radius: 11px;
-  background: #78b159;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  text-align: center;
-  box-shadow: 0 6px 14px rgb(91 154 63 / 32%);
-}
-
-.child-piggy-card--completed > :not(.child-piggy-card__completed-message) {
-  opacity: 0.42;
-}
-</style>

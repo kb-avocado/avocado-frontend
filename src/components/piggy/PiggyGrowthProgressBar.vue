@@ -1,12 +1,14 @@
 <template>
   <div class="max-w-[150px] mx-auto">
     <div class="flex items-center justify-between mb-1">
-      <span class="text-xs text-[#72796B]">{{ currentStage }}단계 / 5단계</span>
-      <span class="text-xs font-semibold text-[#546937]">{{ Math.round(stageProgress) }}%</span>
+      <span class="text-xs text-muted">{{ currentStage }}단계 / 5단계</span>
+      <span class="text-xs font-semibold text-progress-value"
+        >{{ Math.round(stageProgress) }}%</span
+      >
     </div>
-    <div class="w-full h-3 rounded-full bg-[#EBF0E5] overflow-hidden">
+    <div class="w-full h-3 rounded-full bg-progress-track overflow-hidden">
       <div
-        class="h-full rounded-full bg-[#78B159] transition-[width] duration-500"
+        class="h-full rounded-full bg-progress-value transition-[width] duration-500"
         :style="{ width: stageProgress + '%' }"
       ></div>
     </div>

@@ -1,17 +1,18 @@
 <template>
-  <div class="child-list-page">
+  <div class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
     <PiggyBankTabs v-model="tab" />
 
-    <section class="child-list-page__intro">
-      <h1>{{ introTitle }}</h1>
-      <p>{{ introDescription }}</p>
+    <section class="mt-[26px] mb-5">
+      <h1 class="mb-[7px] text-[#252a26] text-[22px] tracking-[-0.7px]">{{ introTitle }}</h1>
+      <p class="text-[#4b534e] text-[13px] leading-[1.55]">{{ introDescription }}</p>
     </section>
-    <!-- 즐겨찾기 북마크 추가 -->
+
+    <!-- 즐겨찾기 북마크 -->
     <button
       v-if="tab === 'IN_PROGRESS'"
       type="button"
-      class="child-list-page__filter"
-      :class="{ 'child-list-page__filter--active': showFavoritesOnly }"
+      class="inline-flex items-center py-[6px] px-2 mb-3 border rounded-[10px] cursor-pointer"
+      :class="showFavoritesOnly ? 'bg-[#eef8e5] border-[#cfe6bd]' : 'bg-surface border-[#edf0ed]'"
       :aria-pressed="showFavoritesOnly"
       @click="showFavoritesOnly = !showFavoritesOnly"
     >
@@ -26,18 +27,29 @@
       </svg>
     </button>
 
-    <section v-if="error" class="child-list-page__error">
+    <section
+      v-if="error"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
+    >
       <span aria-hidden="true">!</span>
-
-      <p>{{ error }}</p>
-
-      <button type="button" @click="load">다시 시도</button>
+      <p class="text-xs">{{ error }}</p>
+      <button
+        type="button"
+        class="py-2 px-[10px] border-0 rounded-lg bg-[#a73e33] text-white text-[11px]"
+        @click="load"
+      >
+        다시 시도
+      </button>
     </section>
 
-    <div v-else-if="loading" class="child-list-page__state">저금통 목록을 불러오는 중입니다.</div>
-    <!-- 카드에 이벤트 연결 -->
-    <!-- 즐겨찾기 : item에서 displayedItems 변경 -->
-    <section v-else-if="displayedItems.length > 0" class="child-list-page__cards">
+    <div
+      v-else-if="loading"
+      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+    >
+      저금통 목록을 불러오는 중입니다.
+    </div>
+
+    <section v-else-if="displayedItems.length > 0" class="grid gap-[18px]">
       <ChildPiggyBankCard
         v-for="item in displayedItems"
         :key="item.piggyBankId"
@@ -46,7 +58,10 @@
       />
     </section>
 
-    <div v-else class="child-list-page__state">
+    <div
+      v-else
+      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+    >
       {{
         showFavoritesOnly
           ? '즐겨찾기한 저금통이 없습니다.'
@@ -55,26 +70,23 @@
             : '완료된 저금통이 없습니다.'
       }}
     </div>
-    <!-- 저금통 생성 버튼 연결 -->
+
     <template v-if="tab === 'IN_PROGRESS'">
       <button
         type="button"
-        class="child-list-page__add"
+        class="w-full min-h-[76px] mt-5 grid place-items-center content-center gap-[3px] border-[1.5px] border-dashed border-[#dce5dc] rounded-[18px] bg-surface text-[#9ba49d] text-[11px]"
         :disabled="!store.childCanCreate"
         @click="goToCreate"
       >
-        <span aria-hidden="true">＋</span>
+        <span aria-hidden="true" class="text-[21px]">＋</span>
         새로운 저금 목표 추가하기
       </button>
 
-      <p class="child-list-page__count">
-        저금 목표는 최대
-        {{ store.childMaxCount }}개까지 만들 수 있어요.
-
-        <strong>
-          (현재
-          {{ store.childActiveCount }}/{{ store.childMaxCount }})
-        </strong>
+      <p class="mt-[25px] text-[#777f79] text-[9px] text-center">
+        저금 목표는 최대 {{ store.childMaxCount }}개까지 만들 수 있어요.
+        <strong class="text-[#3d7837]"
+          >(현재 {{ store.childActiveCount }}/{{ store.childMaxCount }})</strong
+        >
       </p>
     </template>
   </div>
@@ -97,29 +109,22 @@ const tab = ref('IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
-// 즐겨찾기만 보기 토글
 const showFavoritesOnly = ref(false)
 
-// 화면에 실제로 뿌릴 목록 (필터 적용)
 const displayedItems = computed(() =>
   showFavoritesOnly.value && tab.value === 'IN_PROGRESS'
     ? items.value.filter((i) => i.favorite)
     : items.value
 )
 
-// 저금통 생성 연결부분
 function goToCreate() {
   router.push({ name: 'piggyCreate' })
 }
 
-// 카드에 이벤트 연결 핸들러 추가
 function onToggleFavorite(item) {
   store.toggleFavorite(item.piggyBankId)
 }
 
-/**
- * 현재 선택한 탭의 목록을 Pinia store에서 가져옵니다.
- */
 const items = computed(() => store.getChildList(tab.value))
 
 const introTitle = computed(() => (tab.value === 'CLOSED' ? '모으기 성공! 🎉' : '나의 저금 목표'))
@@ -130,12 +135,6 @@ const introDescription = computed(() =>
     : '보호자님이 목표 달성을 응원하는 특별한 선물을 준비했어요!'
 )
 
-/**
- * [아이 목록 조회 핵심 함수]
- *
- * store.loadChildList()를 호출해서
- * 현재 탭의 목록을 서버에서 조회합니다.
- */
 async function load() {
   loading.value = true
   error.value = ''
@@ -149,127 +148,7 @@ async function load() {
   }
 }
 
-/**
- * 진행중/완료 탭이 바뀌면 목록을 다시 조회합니다.
- *
- * immediate: true이므로 화면 최초 진입 때도
- * load()가 자동으로 실행됩니다.
- */
 watch(tab, load, {
   immediate: true
 })
 </script>
-
-<style scoped>
-.child-list-page {
-  width: 100%;
-  min-height: 100%;
-  padding: 22px 20px 36px;
-  background: #fff;
-}
-
-.child-list-page__intro {
-  margin: 26px 0 20px;
-}
-
-.child-list-page__intro h1 {
-  margin: 0 0 7px;
-  color: #252a26;
-  font-size: 22px;
-  letter-spacing: -0.7px;
-}
-
-.child-list-page__intro p {
-  margin: 0;
-  color: #4b534e;
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.child-list-page__cards {
-  display: grid;
-  gap: 18px;
-}
-
-.child-list-page__state {
-  min-height: 240px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: #fafcfa;
-  color: #929a94;
-  font-size: 12px;
-  text-align: center;
-}
-
-.child-list-page__error {
-  min-height: 72px;
-  padding: 14px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  border-radius: 13px;
-  background: #fff1ee;
-  color: #a73e33;
-}
-
-.child-list-page__error p {
-  margin: 0;
-  font-size: 12px;
-}
-
-.child-list-page__error button {
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: #a73e33;
-  color: #fff;
-  font-size: 11px;
-}
-
-.child-list-page__add {
-  width: 100%;
-  min-height: 76px;
-  margin-top: 20px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 3px;
-  border: 1.5px dashed #dce5dc;
-  border-radius: 18px;
-  background: #fff;
-  color: #9ba49d;
-  font-size: 11px;
-}
-
-.child-list-page__add span {
-  font-size: 21px;
-}
-
-.child-list-page__count {
-  margin: 25px 0 0;
-  color: #777f79;
-  font-size: 9px;
-  text-align: center;
-}
-
-.child-list-page__count strong {
-  color: #3d7837;
-}
-/* 즐겨찾기 북마크 버튼 */
-.child-list-page__filter {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 8px;
-  margin-bottom: 12px;
-  border: 1px solid #edf0ed;
-  border-radius: 10px;
-  background: #fff;
-  cursor: pointer;
-}
-.child-list-page__filter--active {
-  background: #eef8e5;
-  border-color: #cfe6bd;
-}
-</style>
