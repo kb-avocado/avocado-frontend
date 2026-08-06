@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-white">
+  <div class="min-h-screen flex flex-col bg-surface">
     <AppHeader
       :title="item?.name || '저금통'"
       show-back

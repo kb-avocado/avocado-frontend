@@ -1,64 +1,74 @@
 <template>
-  <article
-    class="parent-piggy-card"
-    :class="{
-      'parent-piggy-card--completed': isCompleted,
-      'parent-piggy-card--abandoned': isAbandoned
-    }"
-    @click="goToDetail"
-  >
-    <header class="parent-piggy-card__header">
-      <span class="parent-piggy-card__icon" aria-hidden="true">
+  <article :class="articleClass" @click="goToDetail">
+    <header
+      class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
+      :class="{ 'opacity-[0.45]': isCompleted }"
+    >
+      <span
+        class="w-[46px] h-[46px] grid place-items-center rounded-[14px] bg-[#edf7e5] text-[21px]"
+        aria-hidden="true"
+      >
         {{ icon }}
       </span>
 
-      <div class="parent-piggy-card__title">
-        <h2>{{ item.name }}</h2>
-
-        <small>{{ category }}</small>
+      <div class="min-w-0">
+        <h2 class="mb-1 overflow-hidden text-[#252a26] text-base text-ellipsis whitespace-nowrap">
+          {{ item.name }}
+        </h2>
+        <small
+          class="block overflow-hidden text-[#9ca29e] text-[10px] text-ellipsis whitespace-nowrap"
+        >
+          {{ category }}
+        </small>
       </div>
 
-      <button type="button" class="parent-piggy-card__cheer" @click.stop="goToCheerMessages">
+      <button
+        type="button"
+        class="py-[7px] px-[10px] border-0 rounded-full bg-[#eef8e5] text-[#68a34d] text-[9px] font-bold whitespace-nowrap"
+        @click.stop="goToCheerMessages"
+      >
         보호자님 응원보기
       </button>
     </header>
 
-    <PiggyBankProgressBar :rate="item.progressRate" :abandoned="isAbandoned" />
+    <PiggyBankProgressBar
+      :rate="item.progressRate"
+      :abandoned="isAbandoned"
+      :class="{ 'opacity-[0.45]': isCompleted }"
+    />
 
-    <section v-if="isActive" class="parent-piggy-card__amounts">
-      <div>
-        <small>남은 금액</small>
-
-        <strong>
-          {{ won(remainingAmount) }}
-        </strong>
+    <section
+      v-if="isActive"
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-[#f6f8f4]"
+      :class="{ 'opacity-[0.45]': isCompleted }"
+    >
+      <div class="grid gap-[5px]">
+        <small class="text-[#a3a9a4] text-[9px]">남은 금액</small>
+        <strong class="text-[#252a26] text-[13px]">{{ won(remainingAmount) }}</strong>
       </div>
 
-      <div class="parent-piggy-card__target">
-        <small>목표</small>
-
-        <strong>
-          {{ won(item.targetAmount) }}
-        </strong>
+      <div class="grid gap-[5px] text-right">
+        <small class="text-[#a3a9a4] text-[9px]">목표</small>
+        <strong class="text-[#252a26] text-[13px]">{{ won(item.targetAmount) }}</strong>
       </div>
     </section>
 
-    <section v-else class="parent-piggy-card__bonus" @click.stop>
-      <div>
-        <small> 보호자님 추가 보너스 </small>
-
-        <strong
-          :class="{
-            'parent-piggy-card__paid': isBonusPaid
-          }"
-        >
+    <section
+      v-else
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-[#f6f8f4]"
+      :class="{ 'opacity-[0.45]': isCompleted }"
+      @click.stop
+    >
+      <div class="grid gap-[5px]">
+        <small class="text-[#e47c24] text-[9px] font-bold">보호자님 추가 보너스</small>
+        <strong class="text-[13px]" :class="isBonusPaid ? 'text-[#4e9440]' : 'text-[#e47c24]'">
           {{ isBonusPaid ? '지급 완료' : '미지급' }}
         </strong>
       </div>
 
       <button
         type="button"
-        class="parent-piggy-card__bonus-button"
+        class="min-w-[91px] h-[38px] border-0 rounded-[10px] bg-avocado-600 text-white text-[11px] font-bold disabled:bg-[#dcead5] disabled:shadow-none"
         :disabled="isBonusPaid || isAbandoned"
         @click.stop="goToBonusTransfer"
       >
@@ -66,7 +76,12 @@
       </button>
     </section>
 
-    <div v-if="isCompleted" class="parent-piggy-card__completed-message">저금통 깨기 완료!</div>
+    <div
+      v-if="isCompleted"
+      class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] bg-avocado-600 text-white text-[13px] font-extrabold text-center shadow-[0_6px_14px_rgba(91,154,63,0.32)]"
+    >
+      저금통 깨기 완료!
+    </div>
   </article>
 </template>
 
@@ -83,22 +98,21 @@ const props = defineProps({
 })
 const router = useRouter()
 
-//보너스 송금 버튼 연결
 function goToBonusTransfer() {
   router.push({ name: 'piggyGoalComplete', params: { id: props.item.piggyBankId } })
 }
 
-// 응원 보기 버튼 연결
 function goToCheerMessages() {
   router.push({
     name: isActive.value ? 'piggyCheerCompose' : 'piggyCheerMessages',
     params: { id: props.item.piggyBankId }
   })
 }
-// 저금통 상세 화면 연결
+
 function goToDetail() {
   router.push({ name: 'piggyDetail', params: { id: props.item.piggyBankId } })
 }
+
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
 
 const isActive = computed(() => normalizedStatus.value === 'ACTIVE')
@@ -111,6 +125,13 @@ const isAbandoned = computed(() =>
   ['CANCEL', 'CANCELLED', 'CANCELED', 'ABANDONED'].includes(normalizedStatus.value)
 )
 
+// 카드 컨테이너 클래스 (기본 + 상태별)
+const articleClass = computed(() => [
+  'relative p-[18px] grid gap-[15px] border rounded-[20px] cursor-pointer',
+  'shadow-[0_7px_19px_rgba(37,54,42,0.08)]',
+  isAbandoned.value ? 'border-[#f1dfcd] bg-[#fffcf8]' : 'border-[#edf0ed] bg-surface'
+])
+
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
 
 const isBonusPaid = computed(() => ['PAID', 'COMPLETED'].includes(bonusStatus.value))
@@ -121,27 +142,11 @@ const remainingAmount = computed(() =>
 
 const icon = computed(() => {
   const text = `${props.item.name ?? ''} ` + `${props.item.description ?? ''}`
-
-  if (text.includes('자전거')) {
-    return '🚲'
-  }
-
-  if (text.includes('책')) {
-    return '📚'
-  }
-
-  if (text.includes('게임')) {
-    return '🎮'
-  }
-
-  if (text.includes('여행')) {
-    return '🌍'
-  }
-
-  if (text.includes('선물')) {
-    return '🎁'
-  }
-
+  if (text.includes('자전거')) return '🚲'
+  if (text.includes('책')) return '📚'
+  if (text.includes('게임')) return '🎮'
+  if (text.includes('여행')) return '🌍'
+  if (text.includes('선물')) return '🎁'
   return '🚀'
 })
 
@@ -151,159 +156,3 @@ function won(amount) {
   return `${Number(amount || 0).toLocaleString('ko-KR')}원`
 }
 </script>
-
-<style scoped>
-.parent-piggy-card {
-  position: relative;
-  padding: 18px;
-  display: grid;
-  gap: 15px;
-  border: 1px solid #edf0ed;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 7px 19px rgb(37 54 42 / 8%);
-  cursor: pointer;
-}
-
-.parent-piggy-card--abandoned {
-  border-color: #f1dfcd;
-  background: #fffcf8;
-}
-
-.parent-piggy-card__header {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-}
-
-.parent-piggy-card__icon {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: #edf7e5;
-  font-size: 21px;
-}
-
-.parent-piggy-card__title {
-  min-width: 0;
-}
-
-.parent-piggy-card__title h2 {
-  margin: 0 0 4px;
-  overflow: hidden;
-  color: #252a26;
-  font-size: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.parent-piggy-card__title small {
-  display: block;
-  overflow: hidden;
-  color: #9ca29e;
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.parent-piggy-card__cheer {
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: #eef8e5;
-  color: #68a34d;
-  font-size: 9px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.parent-piggy-card__amounts,
-.parent-piggy-card__bonus {
-  position: relative;
-  z-index: 3;
-  min-height: 62px;
-  padding: 12px 14px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  border-radius: 13px;
-  background: #f6f8f4;
-}
-
-.parent-piggy-card__amounts > div,
-.parent-piggy-card__bonus > div {
-  display: grid;
-  gap: 5px;
-}
-
-.parent-piggy-card__amounts small {
-  color: #a3a9a4;
-  font-size: 9px;
-}
-
-.parent-piggy-card__amounts strong {
-  color: #252a26;
-  font-size: 13px;
-}
-
-.parent-piggy-card__target {
-  text-align: right;
-}
-
-.parent-piggy-card__bonus small {
-  color: #e47c24;
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.parent-piggy-card__bonus strong {
-  color: #e47c24;
-  font-size: 13px;
-}
-
-.parent-piggy-card__paid {
-  color: #4e9440 !important;
-}
-
-.parent-piggy-card__bonus-button {
-  min-width: 91px;
-  height: 38px;
-  border: 0;
-  border-radius: 10px;
-  background: #78b159;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.parent-piggy-card__bonus-button:disabled {
-  background: #dcead5;
-  box-shadow: none;
-}
-
-.parent-piggy-card__completed-message {
-  position: absolute;
-  z-index: 2;
-  top: 52%;
-  left: 50%;
-  min-width: 140px;
-  padding: 12px 15px;
-  transform: translate(-50%, -50%);
-  border-radius: 11px;
-  background: #78b159;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  text-align: center;
-  box-shadow: 0 6px 14px rgb(91 154 63 / 32%);
-}
-
-.parent-piggy-card--completed > :not(.parent-piggy-card__completed-message) {
-  opacity: 0.45;
-}
-</style>

@@ -1,10 +1,14 @@
 <template>
-  <div class="piggy-tabs" role="tablist" aria-label="저금통 상태">
+  <div
+    class="w-full h-[46px] p-1 grid grid-cols-2 rounded-[24px] bg-[#f2f3f4]"
+    role="tablist"
+    aria-label="저금통 상태"
+  >
     <button
       type="button"
       role="tab"
       :aria-selected="modelValue === 'IN_PROGRESS'"
-      :class="{ active: modelValue === 'IN_PROGRESS' }"
+      :class="tabClass('IN_PROGRESS')"
       @click="selectTab('IN_PROGRESS')"
     >
       진행중
@@ -14,7 +18,7 @@
       type="button"
       role="tab"
       :aria-selected="modelValue === 'CLOSED'"
-      :class="{ active: modelValue === 'CLOSED' }"
+      :class="tabClass('CLOSED')"
       @click="selectTab('CLOSED')"
     >
       완료
@@ -23,7 +27,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   modelValue: {
     type: String,
     required: true
@@ -35,32 +39,14 @@ const emit = defineEmits(['update:modelValue'])
 function selectTab(tab) {
   emit('update:modelValue', tab)
 }
+
+// 탭 버튼 클래스 (기본 + 활성/비활성)
+function tabClass(tab) {
+  return [
+    'border-0 rounded-[21px] text-xs font-bold cursor-pointer',
+    props.modelValue === tab
+      ? 'bg-surface text-[#252a26] shadow-[0_2px_6px_rgba(33,49,39,0.1)]'
+      : 'bg-transparent text-[var(--color-text-secondary)]'
+  ]
+}
 </script>
-
-<style scoped>
-.piggy-tabs {
-  width: 100%;
-  height: 46px;
-  padding: 4px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-radius: 24px;
-  background: #f2f3f4;
-}
-
-.piggy-tabs button {
-  border: 0;
-  border-radius: 21px;
-  background: transparent;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.piggy-tabs button.active {
-  background: #fff;
-  color: #252a26;
-  box-shadow: 0 2px 6px rgb(33 49 39 / 10%);
-}
-</style>
