@@ -20,7 +20,7 @@ async function handleSubmit() {
 
   try {
     const { data: response } = await login(form.value)
-    const user = response.data.user
+    const user = response.data
 
     authStore.setUser(user)
     router.push(resolveNextRoute(response.code, user))
