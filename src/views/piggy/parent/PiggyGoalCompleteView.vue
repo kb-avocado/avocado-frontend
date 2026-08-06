@@ -150,7 +150,7 @@ async function handleSubmit() {
     // 메세지 전송 성공 후 송금하기 페이지로 갈 때 가지고 갈 파라미터
     // 목업에 지갑ID 추가 필요
     router.push({
-      name: 'transfer',
+      name: 'transfer-recipient',
 
       // transfer.js의 검증 로직 사용
       query: createTransferQuery({

@@ -1,4 +1,4 @@
-import { TRANSFER_RECIPIENT_SEARCH_TYPE } from '../constants'
+import { TRANSFER_RECIPIENT_SEARCH_TYPE, TRANSFER_RECIPIENT_TYPE } from '../constants'
 
 const validSearchTypes = Object.values(TRANSFER_RECIPIENT_SEARCH_TYPE)
 
@@ -19,7 +19,7 @@ const validSearchTypes = Object.values(TRANSFER_RECIPIENT_SEARCH_TYPE)
  *
  * @example
  * router.push({
- *   name: 'transfer',
+ *   name: 'transfer-recipient',
  *   query: createTransferQuery({
  *     searchType: TRANSFER_RECIPIENT_SEARCH_TYPE.USER_CODE,
  *     keyword: 'AVO1234',
@@ -71,4 +71,41 @@ export function normalizeTransferRecipientKeyword(searchType, keyword) {
   }
 
   return trimmedKeyword
+}
+
+export function unwrapTransferResponse(response) {
+  const body = response?.data
+  return body?.data ?? body
+}
+
+export function normalizeTransferRecipient(data, fallback = {}) {
+  if (!data || typeof data !== 'object') return null
+
+  const name = data.recipientName ?? data.name
+  const accountNumber = data.accountNumber ?? fallback.accountNumber ?? data.maskedAccountNumber
+
+  if (!name || !accountNumber) return null
+
+  return {
+    recipientId: data.recipientId ?? data.accountId ?? data.walletId ?? data.id ?? null,
+    recipientType: data.recipientType ?? TRANSFER_RECIPIENT_TYPE.ACCOUNT,
+    name,
+    bankCode: data.bankCode ?? fallback.bankCode ?? '',
+    bankName: data.bankName ?? fallback.bankName ?? '',
+    accountNumber,
+    maskedAccountNumber: data.maskedAccountNumber ?? accountNumber,
+    userCode: data.userCode ?? ''
+  }
+}
+
+export function normalizeRecentTransferRecipients(data) {
+  const items = Array.isArray(data) ? data : (data?.content ?? data?.recipients ?? [])
+
+  return items
+    .map((item) => normalizeTransferRecipient(item))
+    .filter(Boolean)
+    .map((recipient, index) => ({
+      ...recipient,
+      key: recipient.recipientId ?? `${recipient.accountNumber}-${index}`
+    }))
 }
