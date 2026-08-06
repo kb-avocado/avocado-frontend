@@ -91,6 +91,7 @@ const routes = [
     component: () => import('@/views/wallet/common/WalletView.vue'),
     meta: { title: '결제하기' }
   },
+  //신문
   {
     path: '/newspaper',
     name: 'newspaper',
@@ -98,9 +99,15 @@ const routes = [
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
   {
-    path: '/newspaper/:newsId',
+    path: '/child/newspaper/:newsId',
     name: 'newspaper-detail',
-    component: () => import('@/views/news/common/NewsDetailView.vue'),
+    component: () => import('@/views/news/child/NewsDetailView.vue'),
+    meta: { title: '신문', showBack: true }
+  },
+  {
+    path: '/parent/newspaper/:newsId',
+    name: 'parent-newspaper-detail',
+    component: () => import('@/views/news/parent/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
   {

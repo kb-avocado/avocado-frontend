@@ -27,12 +27,7 @@
             >
               {{ item.title }}
             </p>
-            <span
-              v-if="isNewArticle(item.publishedAt)"
-              class="text-xs font-bold text-red-500 shrink-0"
-            >
-              New!!
-            </span>
+            <span v-if="item.isNew" class="text-xs font-bold text-red-500 shrink-0"> New!! </span>
           </div>
           <p class="text-xs text-muted mt-1">발행일: {{ formatDate(item.publishedAt) }}</p>
         </div>
@@ -88,7 +83,6 @@ import ch12 from '@/assets/images/ch12.png'
 import { getNewsList } from '@/api/news'
 
 const PAGE_SIZE = 8
-const NEW_BADGE_DAYS = 3 // 발행 후 3일 이내면 New!!! 표시
 
 const newsList = ref([])
 const totalCount = ref(0)
@@ -97,10 +91,7 @@ const isLoading = ref(false)
 
 const totalPages = computed(() => Math.ceil(totalCount.value / PAGE_SIZE))
 
-// "참 잘했어요" 딱지 이미지 후보 2개 - ch11, ch12 중 랜덤
 const BADGE_IMAGES = [ch11, ch12]
-
-// 같은 기사에서 리렌더링될 때마다 딱지가 바뀌지 않도록, newsId별로 한 번 뽑은 결과를 고정해서 재사용
 const badgeImageMap = new Map()
 
 function getBadgeImage(newsId) {
@@ -110,15 +101,6 @@ function getBadgeImage(newsId) {
   }
   return badgeImageMap.get(newsId)
 }
-
-// TODO(mock): 백엔드 붙으면 이 계산 없이 서버가 내려주는 isNew 필드 그대로 사용
-function isNewArticle(publishedAt) {
-  const publishedDate = new Date(publishedAt)
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - NEW_BADGE_DAYS)
-  return publishedDate > cutoff
-}
-
 
 async function fetchNews() {
   isLoading.value = true
