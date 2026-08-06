@@ -12,8 +12,8 @@
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
     </div>
 
-    <div v-else class="flex-1 p-4 space-y-6">
-      <!-- 저금통 성장 이미지 + 응원보기 -->
+    <div v-else class="flex-1 p-4 pb-24 space-y-6">
+      <!-- 성장 이미지 + 응원보기 -->
       <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[180px] p-6">
         <img :src="growthImage" alt="저금통 성장" class="max-h-40 object-contain" />
         <button
@@ -24,10 +24,10 @@
           부모님 응원보기
         </button>
       </div>
-      <!-- 추가: 성장 단계 진행률바 -->
+
       <PiggyGrowthProgressBar :progress-rate="item.progressRate" />
 
-      <!-- 남은 금액 / 목표 금액 -->
+      <!-- 남은 금액 / 목표 -->
       <div class="flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
         <div>
           <p class="text-xs text-muted">남은 금액</p>
@@ -38,12 +38,36 @@
           <p class="text-xl font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
         </div>
       </div>
+
       <!-- 입금 내역 -->
       <div>
         <p class="text-sm font-medium text-avocado-900 mb-2">입금 내역</p>
         <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" />
       </div>
+
+      <!-- 안내 문구 + 저금하기 / 삭제하기 -->
+      <div class="pt-2">
+        <p v-if="!isActive" class="text-center text-xs text-muted mb-3">
+          저금통 모으기가 완료되어 더이상 저금을 할 수 없어요!
+        </p>
+
+        <div class="space-y-3">
+          <button
+            type="button"
+            class="w-full h-14 rounded-xl bg-avocado-600 text-white text-base font-bold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+            :disabled="!isActive"
+            @click="goToDeposit"
+          >
+            <PiggyBank :size="20" />
+            저금하기
+          </button>
+
+          <!-- 삭제 컴포넌트 -->
+          <PiggyDeleteButton :piggy-bank-id="item.piggyBankId" @deleted="onDeleted" />
+        </div>
+      </div>
     </div>
+
     <BottomNavBar />
   </div>
 </template>
@@ -51,14 +75,15 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { PiggyBank } from 'lucide-vue-next'
 
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.vue'
+import PiggyGrowthProgressBar from '@/components/piggy/PiggyGrowthProgressBar.vue'
+import PiggyDeleteButton from '@/components/piggy/PiggyDeleteButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 
-import PiggyGrowthProgressBar from '@/components/piggy/PiggyGrowthProgressBar.vue'
-// 성장 단계 이미지 (5단계)
 import stage1 from '@/assets/images/ch6.png'
 import stage2 from '@/assets/images/ch7.png'
 import stage3 from '@/assets/images/ch8.png'
@@ -71,13 +96,13 @@ const store = usePiggyBankStore()
 
 const piggyBankId = computed(() => route.params.id)
 
-// 상세조회 변경: 백엔드 상세 API로 조회
 onMounted(() => {
   store.loadDetail(piggyBankId.value)
 })
 
-// 상세조회 변경: 백엔드 상세 결과 사용
 const item = computed(() => store.detail)
+
+const isActive = computed(() => item.value?.status === 'ACTIVE')
 
 const remainingAmount = computed(() =>
   Math.max(0, Number(item.value?.targetAmount || 0) - Number(item.value?.savedAmount || 0))
@@ -98,5 +123,15 @@ function formatWon(amount) {
 
 function goToCheerMessages() {
   router.push({ name: 'piggyCheerMessages', params: { id: item.value.piggyBankId } })
+}
+
+// TODO: 입금 화면 라우트에 맞게 조정
+function goToDeposit() {
+  router.push({ name: 'piggyDeposit', params: { id: piggyBankId.value } })
+}
+
+// 삭제 완료 → 목록으로
+function onDeleted() {
+  router.push({ name: 'piggy' })
 }
 </script>
