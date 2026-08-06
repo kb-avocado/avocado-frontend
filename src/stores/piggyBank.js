@@ -3,7 +3,7 @@ import { piggyBankApi } from '@/api/piggy'
 import { useAuthStore } from '@/stores/auth'
 
 // TODO: 로그인 연동 전까지 임시 walletId. DB에 존재하는 지갑 id로.
-const TEST_WALLET_ID = 1
+const TEST_WALLET_ID = 2003
 
 /**
  * 진행 중/완료 목록을 분리해서 보관할 기본 상태를 생성합니다.

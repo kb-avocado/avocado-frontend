@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Star, CreditCard, ArrowRight, Smile, Send } from 'lucide-vue-next'
 
@@ -68,7 +68,7 @@ import AppHeader from '@/components/common/AppHeader.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 
-import { sendCheerMessage } from '@/api/piggy'
+import { sendCheerMessage, getPiggyBankDetail } from '@/api/piggy'
 
 /* 보너스 -> 송금 */
 import { createTransferQuery } from '@/utils/transfer'
@@ -96,21 +96,34 @@ const quickPhrases = [
 /* 찾은 저금통 데이터 확보 */
 const { piggyBank } = usePiggyBankDetail(route.params.id)
 
+/* 보너스 정보는 상세 조회로 별도 확보 (목록 응답엔 보너스 정보가 없음) */
+const bonusInfo = ref(null)
+
+onMounted(async () => {
+  try {
+    const response = await getPiggyBankDetail(route.params.id)
+    bonusInfo.value = response.data.data
+  } catch (e) {
+    bonusInfo.value = null
+  }
+})
+
 /* name은 임시 데이터 나중에 user db에서 가져와야함 */
 const childWalletLabel = '민지의 지갑'
 
-/* 보너스 계산 */
+/* 보너스 계산 (실제 API 응답 구조: bonusType/bonusValue, flat) */
 const bonusAmount = computed(() => {
-  const bonus = piggyBank.value?.bonus
+  if (!bonusInfo.value) return 0
 
-  // 보너스가 없을경우 0 리턴
-  if (!bonus) return 0
+  const { bonusType, bonusValue } = bonusInfo.value
 
-  // RATE 타입일 경우 계산
-  if (bonus.type === 'RATE') {
-    return Math.floor(((piggyBank.value?.targetAmount ?? 0) * bonus.rate) / 100)
+  if (bonusType === 'RATE') {
+    return Math.floor(((piggyBank.value?.targetAmount ?? 0) * bonusValue) / 100)
   }
-  return bonus.amount ?? 0
+  if (bonusType === 'FIXED') {
+    return bonusValue ?? 0
+  }
+  return 0
 })
 
 /* 축하 메세지 */

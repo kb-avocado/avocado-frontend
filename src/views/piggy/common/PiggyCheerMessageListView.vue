@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UserRound, Trash2 } from 'lucide-vue-next'
 
@@ -56,27 +56,30 @@ import { UserRound, Trash2 } from 'lucide-vue-next'
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 
-import { deleteCheerMessage } from '@/api/piggy'
+import { getCheerMessages, deleteCheerMessage } from '@/api/piggy'
 import { formatMessageTime } from '@/utils/format'
 
 const route = useRoute()
 const router = useRouter()
 
-/* 테스트 데이터 */
-const messages = ref([
-  {
-    id: 1,
-    senderName: '엄마',
-    message: '정말 대단해!!! 우리 아들 조금만 더 힘내자. 멋진 우주선이 곧 네 손에 있을 거야!',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 2,
-    senderName: '엄마',
-    message: '너무 잘 하고 있어~ 오늘 저녁엔 네가 좋아하는 반찬 해줄게!',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+const messages = ref([])
+
+async function fetchMessages() {
+  try {
+    const response = await getCheerMessages(route.params.id)
+
+    messages.value = response.data.data.map((m) => ({
+      id: m.cheerMessageId,
+      senderName: m.senderName,
+      message: m.message,
+      createdAt: m.createdAt
+    }))
+  } catch (e) {
+    messages.value = []
   }
-])
+}
+
+onMounted(fetchMessages)
 
 async function handleDelete(messageId) {
   // 추후 삭제 확인 공통 모달 제작 후 바꿔지기 예정
