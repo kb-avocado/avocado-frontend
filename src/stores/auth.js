@@ -16,10 +16,5 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
-  // TODO: 회원가입 브랜치에서 SignupProfileView를 setUser로 옮긴 뒤 제거
-  function setAuth({ userInfo }) {
-    setUser(userInfo)
-  }
-
-  return { user, isAuthenticated, setUser, clear, setAuth }
+  return { user, isAuthenticated, setUser, clear }
 })

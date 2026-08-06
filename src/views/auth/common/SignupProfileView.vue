@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { signup } from '@/api/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
+import { formatPhoneNumber } from '@/utils/format'
 import BaseButton from '@/components/common/BaseButton.vue'
 
 const router = useRouter()
@@ -27,25 +28,32 @@ const submitButtonLabel = computed(() => {
   return '아보카도 시작하기'
 })
 
+// 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
+function handlePhoneInput(event) {
+  form.value.phone = formatPhoneNumber(event.target.value)
+}
+
 async function handleSubmit() {
   if (loading.value) return
   loading.value = true
   errorMessage.value = ''
 
   try {
-    const { data } = await signup({
+    // 회원가입 응답은 data가 곧 가입한 회원 정보다.
+    // (로그인은 아직 data.user로 한 겹 더 감싸져 있고, 로그인 브랜치에서 이 형태로 맞출 예정)
+    const { data: response } = await signup({
       type: signupStore.type,
-      ...form.value
+      ...form.value,
+      // 하이픈은 화면에서 보기 좋으라고 넣은 것이라, 보낼 때는 숫자만 남긴다.
+      phone: form.value.phone.replace(/\D/g, '')
     })
+    const user = response.data
 
-    authStore.setAuth({ token: data.accessToken, userInfo: data.user })
-    signupStore.$reset()
+    authStore.setUser(user)
+    signupStore.reset()
 
-    if (data.user.type === 'PARENT') {
-      router.push({ name: 'account-connect' })
-    } else {
-      router.push({ name: 'family-connect' })
-    }
+    // 가입 직후에는 부모는 계좌 등록, 아이는 가족 연결을 마쳐야 한다.
+    router.push({ name: user.type === 'PARENT' ? 'account-connect' : 'family-connect' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '회원가입 중 오류가 발생했습니다.'
   } finally {
@@ -139,11 +147,13 @@ async function handleSubmit() {
           <div class="relative">
             <input
               id="phone"
-              v-model.trim="form.phone"
+              :value="form.phone"
               type="tel"
               inputmode="numeric"
+              maxlength="13"
               placeholder="010-1234-5678"
               class="input-field pr-10"
+              @input="handlePhoneInput"
             />
             <svg
               class="absolute right-3.5 top-1/2 -translate-y-1/2"
