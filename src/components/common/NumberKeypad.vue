@@ -81,7 +81,7 @@ const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 const keyButtonClass = computed(() => [
   'flex items-center justify-center rounded-2xl text-gray-900',
-  'transition-colors hover:bg-avocado-100 active:bg-avocado-300',
+  'transition-colors duration-0 hover:bg-avocado-100 active:bg-avocado-300 active:duration-0',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600',
   'disabled:cursor-not-allowed disabled:opacity-40',
   props.mode === 'pin' ? 'h-16 text-3xl font-bold' : 'h-14 text-base font-normal'
