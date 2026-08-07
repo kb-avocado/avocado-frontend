@@ -88,7 +88,7 @@ const routes = [
   {
     path: '/wallet',
     name: 'wallet',
-    component: () => import('@/views/wallet/common/WalletView.vue'),
+    component: () => import('@/views/wallet/child/walletView.vue'),
     meta: { title: '결제하기' }
   },
   //신문
