@@ -6,7 +6,7 @@
 
       <div class="flex items-center justify-between mt-1">
         <p class="text-3xl font-bold text-gray-900">
-          {{ formatMoney(home.walletBalance) }}
+          {{ formatMoney(walletBalance) }}
           <span class="text-lg font-medium ml-0.5">원</span>
         </p>
 
@@ -177,17 +177,33 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { CreditCard, Gift, Plus, CalendarDays, Wallet, ChevronRight } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
+import { useWalletStore } from '@/stores/wallet'
 
 // 백엔드 API를 연결할 때 사용
 // import { getHome } from '@/api/home'
 
 const home = ref(null)
 const isLoading = ref(false)
+const authStore = useAuthStore()
+const walletStore = useWalletStore()
+const { wallet } = storeToRefs(walletStore)
+
+const childId = computed(
+  () =>
+    authStore.user?.childId ??
+    authStore.user?.child_id ??
+    authStore.user?.userId ??
+    authStore.user?.user_id ??
+    authStore.user?.id ??
+    ''
+)
+const walletBalance = computed(() => Number(wallet.value?.balance ?? 0))
 
 const MOCK_HOME = {
-  walletBalance: 15200,
   todaySpent: 3000,
   monthSpent: 17400,
 
@@ -236,6 +252,16 @@ async function fetchHome() {
   }
 }
 
+async function fetchWalletBalance() {
+  if (!childId.value) return
+
+  try {
+    await walletStore.fetchWallet(childId.value)
+  } catch {
+    // 지갑 조회 오류 상태는 wallet store에서 관리합니다.
+  }
+}
+
 function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
 }
@@ -261,5 +287,8 @@ function getPiggyProgress(piggy) {
   return Math.min(100, Math.max(0, progress))
 }
 
-onMounted(fetchHome)
+onMounted(() => {
+  fetchHome()
+  fetchWalletBalance()
+})
 </script>
