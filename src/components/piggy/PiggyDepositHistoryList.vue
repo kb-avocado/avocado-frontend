@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 /* piggy.js의 조회 함수 */
 import { getDeposits } from '@/api/piggy'
@@ -30,12 +30,16 @@ const props = defineProps({
     }
 })
 
-/* 테스트 데이터 */
-const deposits = ref([
-    { depositId: 3, amount: 10000, balanceAfter: 45000, depositedAt: '2026-07-27T10:00:00' },
-    { depositId: 2, amount: 10000, balanceAfter: 35000, depositedAt: '2026-07-26T10:00:00' },
-    { depositId: 1, amount: 10000, balanceAfter: 25000, depositedAt: '2026-07-25T10:00:00' }
-])
+const deposits = ref([])
+
+onMounted(async () => {
+    try {
+        const response = await getDeposits(props.piggyBankId)
+        deposits.value = response.data.data
+    } catch (e) {
+        deposits.value = []
+    }
+})
 
 /* 날짜를 00.00 형태로 변환 */
 function formatDate(dateString) {

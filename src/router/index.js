@@ -183,6 +183,13 @@ const routes = [
     component: () => import('@/views/piggy/parent/PiggyDetailView.vue'),
     meta: { hideLayout: true, title: '저금통 부모 상세' }
   },
+  //저금통 저축하기
+  {
+    path: '/child/piggy/:id/deposit',
+    name: 'piggyDeposit',
+    component: () => import('@/views/piggy/child/PiggyDepositView.vue'),
+    meta: { hideLayout: true, title: '저금하기' }
+  },
 
   // 저금통 아이 상세
   {

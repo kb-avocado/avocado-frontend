@@ -199,5 +199,9 @@ export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId
 /* 저금통 상세 조회 (보너스 정보 포함) */
 export const getPiggyBankDetail = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}`)
 
+/* 저금통 입금 실행 */
+export const depositToPiggyBank = (piggyId, payload) =>
+  axiosInstance.post(`/piggybanks/${piggyId}/deposits`, payload)
+
 /* 저금통 생성 */
 // export const createPiggyBank = (payload) => axiosInstance.post('/piggy-banks', payload)
