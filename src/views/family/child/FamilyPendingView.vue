@@ -28,13 +28,15 @@ function stopPolling() {
 
 async function pollStatus() {
   try {
-    const { data } = await getFamilyRequest(requestId.value)
+    // 응답은 { success, code, message, data } 구조라 실제 값은 한 겹 안에 있다.
+    const { data: response } = await getFamilyRequest(requestId.value)
+    const request = response.data
 
-    if (data.status === 'APPROVED') {
+    if (request.status === 'APPROVED') {
       stopPolling()
-      parentInfo.value = { name: data.parentName, image: data.parentProfileImage }
+      parentInfo.value = { name: request.parentName, image: '' }
       phase.value = 'confirm'
-    } else if (data.status === 'REJECTED') {
+    } else if (request.status === 'REJECTED') {
       stopPolling()
       phase.value = 'rejected'
     }
@@ -47,8 +49,10 @@ async function pollStatus() {
 async function sendRequest() {
   phase.value = 'sending'
   try {
-    const { data } = await requestFamilyConnect({ code })
-    requestId.value = data.requestId
+    const { data: response } = await requestFamilyConnect({ code })
+    requestId.value = response.data.requestId
+    // 재로그인으로 이 화면에 다시 들어와도 같은 요청을 이어받도록 저장해둔다.
+    familyConnectStore.setRequestId(requestId.value)
     phase.value = 'waiting'
     pollTimer = setInterval(pollStatus, POLL_INTERVAL)
   } catch (error) {
@@ -64,8 +68,9 @@ function goToCodeInput() {
 async function handleConfirm(confirm) {
   phase.value = 'confirming'
   try {
-    const { data } = await confirmFamilyRequest(requestId.value, confirm)
-    phase.value = data.status === 'CONFIRMED' ? 'done' : 'canceled'
+    const { data: response } = await confirmFamilyRequest(requestId.value, confirm)
+    // 연결이 확정되면 ACTIVE, 아이가 취소하면 CANCELED가 내려온다.
+    phase.value = response.data.status === 'ACTIVE' ? 'done' : 'canceled'
   } catch (error) {
     // 실패 시 확인 화면으로 되돌림
     phase.value = 'confirm'
@@ -78,6 +83,16 @@ function goHome() {
 }
 
 onMounted(() => {
+  // 이미 진행 중인 요청이 있으면(재로그인 등) 새로 만들지 않고 그 요청을 이어받는다.
+  // 첫 조회를 바로 해야 이미 승인된 요청이 3초를 기다리지 않고 확인 화면으로 넘어간다.
+  if (familyConnectStore.requestId) {
+    requestId.value = familyConnectStore.requestId
+    phase.value = 'waiting'
+    pollStatus()
+    pollTimer = setInterval(pollStatus, POLL_INTERVAL)
+    return
+  }
+
   if (!code) {
     phase.value = 'lost'
     setTimeout(goToCodeInput, LOST_REDIRECT_DELAY)
@@ -87,7 +102,7 @@ onMounted(() => {
 })
 
 function clearStoredCode() {
-  familyConnectStore.clearCode()
+  familyConnectStore.clear()
 }
 
 onUnmounted(() => {

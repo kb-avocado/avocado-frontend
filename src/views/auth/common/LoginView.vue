@@ -3,9 +3,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { useFamilyConnectStore } from '@/stores/signup'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const familyConnectStore = useFamilyConnectStore()
 
 const form = ref({ email: '', password: '' })
 const showPassword = ref(false)
@@ -23,7 +25,7 @@ async function handleSubmit() {
     const user = response.data
 
     authStore.setUser(user)
-    router.push(resolveNextRoute(response.code, user))
+    router.push(resolveNextRoute(user))
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '이메일 또는 비밀번호를 확인해 주세요.'
   } finally {
@@ -32,17 +34,27 @@ async function handleSubmit() {
 }
 
 // 로그인은 성공했지만 계좌/가족 연결이 안 된 계정(PENDING)은 홈이 아닌 연결 화면으로 보낸다.
-function resolveNextRoute(code, user) {
-  if (code === 'ACCOUNT_LINK_REQUIRED') {
+function resolveNextRoute(user) {
+  if (user.status !== 'PENDING') {
+    return { name: 'home' }
+  }
+
+  if (user.type === 'PARENT') {
     return { name: 'account-connect' }
   }
 
-  if (code === 'FAMILY_LINK_REQUIRED') {
-    // 연결 요청 이력이 있으면 승인 대기 화면, 없으면 코드 입력 화면
-    return { name: user.family ? 'family-pending' : 'family-connect' }
+  // 아이는 진행 중인 가족 연결 요청이 어디까지 갔는지에 따라 이어서 진행할 화면이 다르다.
+  const family = user.family
+
+  if (family?.status === 'PENDING' || family?.status === 'APPROVED') {
+    // 대기 화면이 새 요청을 만들지 않고 이 요청을 이어받도록 넘겨준다.
+    familyConnectStore.setRequestId(family.requestId)
+    return { name: 'family-pending' }
   }
 
-  return { name: 'home' }
+  // 요청이 없거나 거절·취소된 경우에는 코드부터 다시 입력한다.
+  familyConnectStore.clear()
+  return { name: 'family-connect' }
 }
 </script>
 

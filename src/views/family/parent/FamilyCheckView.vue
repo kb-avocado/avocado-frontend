@@ -16,8 +16,10 @@ const childInfo = ref({ name: '', createdAt: '' })
 async function fetchRequest() {
   phase.value = 'loading'
   try {
-    const { data } = await getFamilyRequestCheck(requestId)
-    childInfo.value = { name: data.childName, createdAt: data.createdAt }
+    const { data: response } = await getFamilyRequestCheck(requestId)
+    const request = response.data
+
+    childInfo.value = { name: request.childName, createdAt: request.createdAt }
     phase.value = 'loaded'
   } catch (error) {
     phase.value = 'load_error'
