@@ -72,7 +72,7 @@
 
     <button
       type="button"
-      class="payment-card-ratio mt-5 block w-full rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+      class="payment-card-ratio relative mt-5 block w-full rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
       :disabled="screenState !== 'ready'"
       :aria-label="isFlipped ? '카드 앞면 보기' : '결제 바코드 보기, 비밀번호 인증 필요'"
       @click="handleCardClick"
@@ -80,9 +80,18 @@
       <img
         v-if="!isFlipped"
         src="@/assets/images/card01.png"
-        alt="아보카도 선불카드 앞면, 잔액 15,200원"
+        alt="아보카도 선불카드 앞면"
         class="h-full w-full rounded-3xl object-cover shadow-sm"
       />
+      <div
+        v-if="!isFlipped"
+        class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+      >
+        <span class="text-xs text-gray-600">잔액 확인</span>
+        <strong class="mt-1 whitespace-nowrap text-lg text-gray-900">
+          {{ formatMoney(wallet?.balance) }}원
+        </strong>
+      </div>
 
       <article v-else class="h-full rounded-3xl bg-white p-5 shadow-[0_5px_20px_rgba(0,0,0,0.08)]">
         <div class="flex items-center justify-between text-xs text-gray-500">
@@ -158,7 +167,15 @@ const isFlipped = ref(false)
 const showPin = ref(false)
 const pin = ref('')
 
-const childId = computed(() => authStore.user?.childId ?? authStore.user?.child_id ?? '')
+const childId = computed(
+  () =>
+    authStore.user?.childId ??
+    authStore.user?.child_id ??
+    authStore.user?.userId ??
+    authStore.user?.user_id ??
+    authStore.user?.id ??
+    ''
+)
 const wallet = computed(() => (USE_WALLET_MOCK ? MOCK_WALLET : fetchedWallet.value))
 const normalizedStatus = computed(() => String(wallet.value?.status ?? '').toUpperCase())
 const isAvailable = computed(() => normalizedStatus.value === 'ACTIVE')
