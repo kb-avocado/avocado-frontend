@@ -40,7 +40,7 @@
 
   <div v-else class="flex min-h-full flex-col px-4 py-5">
     <div
-      v-if="screenState === 'unavailable'"
+      v-if="['unavailable', 'zeroBalance'].includes(screenState)"
       class="mb-4 flex gap-3 rounded-2xl bg-amber-50 p-4"
       role="alert"
     >
@@ -68,7 +68,9 @@
       <div class="mt-5 border-t border-avocado-300 pt-4">
         <dl class="flex items-center justify-between gap-4 text-sm">
           <dt class="text-gray-600">선불 지갑 번호</dt>
-          <dd class="font-medium text-gray-800">{{ wallet?.walletNumber || '-' }}</dd>
+          <dd class="font-medium text-gray-800" :aria-label="walletNumberAriaLabel">
+            {{ maskedWalletNumber }}
+          </dd>
         </dl>
       </div>
     </section>
@@ -81,9 +83,11 @@
         <p class="mt-2 text-sm text-gray-500">보유한 지갑 잔액 안에서 결제할 수 있어요.</p>
       </div>
 
-      <div
+      <output
         class="mt-6 flex min-h-16 items-center justify-center border-b-2 px-2 pb-3"
         :class="hasInsufficientBalance ? 'border-red-400' : 'border-avocado-300'"
+        aria-label="결제 금액"
+        aria-live="polite"
       >
         <span
           class="text-4xl font-bold tracking-tight"
@@ -92,26 +96,32 @@
           {{ formattedPaymentAmount }}
         </span>
         <span class="ml-1 text-xl font-semibold text-gray-500">원</span>
-      </div>
+      </output>
 
       <p
+        id="payment-amount-message"
         class="mt-2 min-h-5 px-2 text-center text-sm text-red-500"
         role="status"
         aria-live="polite"
       >
-        {{ hasInsufficientBalance ? '지갑 잔액보다 큰 금액은 결제할 수 없어요.' : '' }}
+        {{ paymentAmountMessage }}
       </p>
     </section>
 
     <NumberKeypad
       class="mt-3"
       mode="amount"
-      :disabled="!isWalletAvailable"
+      :disabled="!canEnterAmount"
+      aria-describedby="payment-amount-message"
       @input="appendAmount"
       @delete="deleteAmount"
     />
 
-    <BaseButton class="mt-6 h-12 w-full shrink-0 text-base" :disabled="!canPay">
+    <BaseButton
+      class="mt-6 h-12 w-full shrink-0 text-base"
+      :disabled="!canPay"
+      :aria-label="paymentButtonAriaLabel"
+    >
       {{ paymentButtonText }}
     </BaseButton>
   </div>
@@ -144,6 +154,8 @@ const formattedPaymentAmount = computed(() =>
 const walletBalance = computed(() => Number(wallet.value?.balance ?? 0))
 const normalizedWalletStatus = computed(() => String(wallet.value?.status ?? '').toUpperCase())
 const isWalletAvailable = computed(() => normalizedWalletStatus.value === 'ACTIVE')
+const hasBalance = computed(() => walletBalance.value > 0)
+const canEnterAmount = computed(() => isWalletAvailable.value && hasBalance.value)
 const hasInsufficientBalance = computed(() => paymentAmount.value > walletBalance.value)
 const canPay = computed(
   () => isWalletAvailable.value && paymentAmount.value > 0 && !hasInsufficientBalance.value
@@ -151,12 +163,27 @@ const canPay = computed(
 const paymentButtonText = computed(() =>
   paymentAmount.value ? `${formatMoney(paymentAmount.value)}원 결제하기` : '결제하기'
 )
+const paymentButtonAriaLabel = computed(() =>
+  canPay.value ? paymentButtonText.value : `${paymentButtonText.value}, 현재 이용할 수 없음`
+)
+const paymentAmountMessage = computed(() => {
+  if (!hasBalance.value) return '잔액이 없어 결제할 수 없어요.'
+  if (hasInsufficientBalance.value) return '지갑 잔액보다 큰 금액은 결제할 수 없어요.'
+  return ''
+})
+const maskedWalletNumber = computed(() => maskWalletNumber(wallet.value?.walletNumber))
+const walletNumberAriaLabel = computed(() =>
+  wallet.value?.walletNumber
+    ? `일부 가림 처리된 지갑 번호 ${maskedWalletNumber.value}`
+    : '지갑 번호 없음'
+)
 
 const screenState = computed(() => {
   if (loading.value) return 'loading'
   if (accessError.value || error.value) return 'error'
   if (!wallet.value) return 'empty'
   if (!isWalletAvailable.value) return 'unavailable'
+  if (!hasBalance.value) return 'zeroBalance'
   return 'ready'
 })
 
@@ -166,7 +193,8 @@ const stateTitle = computed(
       loading: '지갑 정보를 불러오고 있어요',
       error: '지갑 정보를 불러오지 못했어요',
       empty: '등록된 선불 지갑이 없어요',
-      unavailable: '현재 결제할 수 없는 지갑이에요'
+      unavailable: '현재 결제할 수 없는 지갑이에요',
+      zeroBalance: '결제 가능한 잔액이 없어요'
     })[screenState.value] ?? '지갑 상태를 확인해 주세요'
 )
 
@@ -183,11 +211,29 @@ const stateDescription = computed(() => {
     return getUnavailableDescription(normalizedWalletStatus.value)
   }
 
+  if (screenState.value === 'zeroBalance') {
+    return '지갑에 돈을 받은 뒤 결제를 이용할 수 있어요.'
+  }
+
   return '잠시만 기다려 주세요.'
 })
 
 function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
+}
+
+function maskWalletNumber(value) {
+  const walletNumber = String(value ?? '')
+  const digitCount = (walletNumber.match(/\d/g) ?? []).length
+  let digitIndex = 0
+
+  if (!walletNumber) return '-'
+
+  return walletNumber.replace(/\d/g, (digit) => {
+    const shouldShow = digitIndex < 3 || digitIndex >= digitCount - 4
+    digitIndex += 1
+    return shouldShow ? digit : '*'
+  })
 }
 
 function appendAmount(value) {
@@ -200,6 +246,8 @@ function deleteAmount() {
 }
 
 async function loadWallet() {
+  if (loading.value) return
+
   accessError.value = ''
 
   if (!authStore.user || !childId.value) {
@@ -211,7 +259,7 @@ async function loadWallet() {
   try {
     await walletStore.fetchWallet(childId.value)
   } catch {
-    // 조회 실패 상태는 wallet store에서 관리하고 다음 커밋에서 UI로 표시합니다.
+    // 조회 실패 메시지는 wallet store의 error 상태를 통해 표시합니다.
   }
 }
 
