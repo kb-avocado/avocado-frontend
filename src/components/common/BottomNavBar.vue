@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="flex items-end justify-between px-2 pt-2 pb-3 bg-white border-t border-gray-100"
+    class="relative z-50 flex items-end justify-between border-t border-gray-100 bg-white px-2 pb-3 pt-2"
     aria-label="하단 메뉴"
   >
     <RouterLink
