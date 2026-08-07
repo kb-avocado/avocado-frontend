@@ -12,18 +12,18 @@
     </section>
 
     <section
-      v-else-if="walletError || !wallet"
+      v-else-if="walletStatusError || !wallet"
       class="rounded-2xl bg-gray-50 p-5"
-      :role="walletError ? 'alert' : 'status'"
+      :role="walletStatusError ? 'alert' : 'status'"
     >
       <p class="text-sm font-semibold text-gray-900">
-        {{ walletError ? '지갑 잔액을 불러오지 못했어요' : '등록된 선불 지갑이 없어요' }}
+        {{ walletStatusError ? '지갑 잔액을 불러오지 못했어요' : '등록된 선불 지갑이 없어요' }}
       </p>
       <p class="mt-1 text-xs text-gray-500">
-        {{ walletError || '선불 지갑을 등록하면 홈에서 잔액을 확인할 수 있어요.' }}
+        {{ walletStatusError || '선불 지갑을 등록하면 홈에서 잔액을 확인할 수 있어요.' }}
       </p>
       <button
-        v-if="walletError"
+        v-if="walletError && !walletAccessError"
         type="button"
         class="mt-3 rounded-full bg-avocado-600 px-4 py-2 text-sm font-medium text-white"
         @click="fetchWalletBalance"
@@ -39,6 +39,9 @@
         <p class="text-3xl font-bold text-gray-900">
           {{ formatMoney(walletBalance) }}
           <span class="text-lg font-medium ml-0.5">원</span>
+        </p>
+        <p v-if="walletBalance === 0" class="mt-1 text-xs text-gray-600">
+          현재 사용할 수 있는 잔액이 없어요.
         </p>
 
         <RouterLink
@@ -223,6 +226,7 @@ const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const { wallet, loading: walletLoading, error: walletError } = storeToRefs(walletStore)
 const hasRequestedWallet = ref(false)
+const walletAccessError = ref('')
 
 const childId = computed(
   () =>
@@ -234,6 +238,7 @@ const childId = computed(
     ''
 )
 const walletBalance = computed(() => Number(wallet.value?.balance ?? 0))
+const walletStatusError = computed(() => walletAccessError.value || walletError.value)
 
 const MOCK_HOME = {
   todaySpent: 3000,
@@ -285,9 +290,16 @@ async function fetchHome() {
 }
 
 async function fetchWalletBalance() {
-  hasRequestedWallet.value = true
+  if (walletLoading.value) return
 
-  if (!childId.value) return
+  hasRequestedWallet.value = true
+  walletAccessError.value = ''
+
+  if (!authStore.user || !childId.value) {
+    walletStore.reset()
+    walletAccessError.value = '로그인 사용자 정보를 확인할 수 없어요. 다시 로그인해 주세요.'
+    return
+  }
 
   try {
     await walletStore.fetchWallet(childId.value)
