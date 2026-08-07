@@ -1,5 +1,56 @@
 <template>
-  <div class="flex min-h-full flex-col px-4 py-5">
+  <div
+    v-if="['loading', 'error', 'empty'].includes(screenState)"
+    class="flex min-h-full flex-col items-center justify-center px-6 py-12 text-center"
+    :role="screenState === 'error' ? 'alert' : 'status'"
+    aria-live="polite"
+  >
+    <LoaderCircle
+      v-if="screenState === 'loading'"
+      :size="48"
+      class="animate-spin text-avocado-600"
+      aria-hidden="true"
+    />
+    <CircleAlert
+      v-else-if="screenState === 'error'"
+      :size="52"
+      class="text-red-500"
+      aria-hidden="true"
+    />
+    <Wallet
+      v-else-if="screenState === 'empty'"
+      :size="52"
+      class="text-gray-400"
+      aria-hidden="true"
+    />
+    <h2 class="mt-5 text-xl font-bold text-gray-900">{{ stateTitle }}</h2>
+    <p class="mt-2 max-w-xs whitespace-pre-line text-sm leading-6 text-gray-500">
+      {{ stateDescription }}
+    </p>
+
+    <BaseButton
+      v-if="screenState === 'error'"
+      class="mt-6 h-11 min-w-32"
+      :disabled="loading"
+      @click="loadWallet"
+    >
+      다시 시도
+    </BaseButton>
+  </div>
+
+  <div v-else class="flex min-h-full flex-col px-4 py-5">
+    <div
+      v-if="screenState === 'unavailable'"
+      class="mb-4 flex gap-3 rounded-2xl bg-amber-50 p-4"
+      role="alert"
+    >
+      <ShieldAlert :size="22" class="shrink-0 text-amber-500" aria-hidden="true" />
+      <div>
+        <p class="text-sm font-semibold text-gray-900">{{ stateTitle }}</p>
+        <p class="mt-1 text-sm leading-5 text-gray-600">{{ stateDescription }}</p>
+      </div>
+    </div>
+
     <section class="rounded-3xl bg-avocado-100 p-5" aria-labelledby="wallet-balance-title">
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -52,7 +103,13 @@
       </p>
     </section>
 
-    <NumberKeypad class="mt-3" mode="amount" @input="appendAmount" @delete="deleteAmount" />
+    <NumberKeypad
+      class="mt-3"
+      mode="amount"
+      :disabled="!isWalletAvailable"
+      @input="appendAmount"
+      @delete="deleteAmount"
+    />
 
     <BaseButton class="mt-6 h-12 w-full shrink-0 text-base" :disabled="!canPay">
       {{ paymentButtonText }}
@@ -63,7 +120,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { WalletCards } from 'lucide-vue-next'
+import { CircleAlert, LoaderCircle, ShieldAlert, Wallet, WalletCards } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import NumberKeypad from '@/components/common/NumberKeypad.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -73,9 +130,10 @@ const MAX_PAYMENT_AMOUNT = 9999999
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
-const { wallet } = storeToRefs(walletStore)
+const { wallet, loading, error } = storeToRefs(walletStore)
 
 const paymentAmount = ref(0)
+const accessError = ref('')
 
 const childId = computed(() => authStore.user?.childId ?? authStore.user?.child_id ?? '')
 
@@ -84,13 +142,49 @@ const formattedPaymentAmount = computed(() =>
 )
 
 const walletBalance = computed(() => Number(wallet.value?.balance ?? 0))
+const normalizedWalletStatus = computed(() => String(wallet.value?.status ?? '').toUpperCase())
+const isWalletAvailable = computed(() => normalizedWalletStatus.value === 'ACTIVE')
 const hasInsufficientBalance = computed(() => paymentAmount.value > walletBalance.value)
 const canPay = computed(
-  () => Boolean(wallet.value) && paymentAmount.value > 0 && !hasInsufficientBalance.value
+  () => isWalletAvailable.value && paymentAmount.value > 0 && !hasInsufficientBalance.value
 )
 const paymentButtonText = computed(() =>
   paymentAmount.value ? `${formatMoney(paymentAmount.value)}원 결제하기` : '결제하기'
 )
+
+const screenState = computed(() => {
+  if (loading.value) return 'loading'
+  if (accessError.value || error.value) return 'error'
+  if (!wallet.value) return 'empty'
+  if (!isWalletAvailable.value) return 'unavailable'
+  return 'ready'
+})
+
+const stateTitle = computed(
+  () =>
+    ({
+      loading: '지갑 정보를 불러오고 있어요',
+      error: '지갑 정보를 불러오지 못했어요',
+      empty: '등록된 선불 지갑이 없어요',
+      unavailable: '현재 결제할 수 없는 지갑이에요'
+    })[screenState.value] ?? '지갑 상태를 확인해 주세요'
+)
+
+const stateDescription = computed(() => {
+  if (screenState.value === 'error') {
+    return accessError.value || error.value || '잠시 후 다시 시도해 주세요.'
+  }
+
+  if (screenState.value === 'empty') {
+    return '선불 지갑을 등록한 뒤 결제 기능을 이용할 수 있어요.'
+  }
+
+  if (screenState.value === 'unavailable') {
+    return getUnavailableDescription(normalizedWalletStatus.value)
+  }
+
+  return '잠시만 기다려 주세요.'
+})
 
 function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
@@ -106,8 +200,11 @@ function deleteAmount() {
 }
 
 async function loadWallet() {
+  accessError.value = ''
+
   if (!authStore.user || !childId.value) {
     walletStore.reset()
+    accessError.value = '로그인 사용자 정보를 확인할 수 없어요. 다시 로그인해 주세요.'
     return
   }
 
@@ -116,6 +213,17 @@ async function loadWallet() {
   } catch {
     // 조회 실패 상태는 wallet store에서 관리하고 다음 커밋에서 UI로 표시합니다.
   }
+}
+
+function getUnavailableDescription(status) {
+  const descriptions = {
+    INACTIVE: '사용이 중지된 지갑이에요. 보호자에게 문의해 주세요.',
+    SUSPENDED: '일시적으로 사용이 제한된 지갑이에요. 보호자에게 문의해 주세요.',
+    BLOCKED: '사용이 차단된 지갑이에요. 보호자에게 문의해 주세요.',
+    CLOSED: '해지된 지갑은 결제에 사용할 수 없어요.'
+  }
+
+  return descriptions[status] ?? '지갑 상태를 확인할 수 없어 결제를 진행할 수 없어요.'
 }
 
 onMounted(loadWallet)
