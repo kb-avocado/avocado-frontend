@@ -167,7 +167,15 @@ const isFlipped = ref(false)
 const showPin = ref(false)
 const pin = ref('')
 
-const childId = computed(() => authStore.user?.childId ?? authStore.user?.child_id ?? '')
+const childId = computed(
+  () =>
+    authStore.user?.childId ??
+    authStore.user?.child_id ??
+    authStore.user?.userId ??
+    authStore.user?.user_id ??
+    authStore.user?.id ??
+    ''
+)
 const wallet = computed(() => (USE_WALLET_MOCK ? MOCK_WALLET : fetchedWallet.value))
 const normalizedStatus = computed(() => String(wallet.value?.status ?? '').toUpperCase())
 const isAvailable = computed(() => normalizedStatus.value === 'ACTIVE')
