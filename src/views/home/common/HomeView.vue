@@ -1,7 +1,38 @@
 <template>
   <div v-if="home" class="p-4 flex flex-col gap-6">
     <!-- 내 지갑 -->
-    <section class="rounded-2xl bg-avocado-100 p-5">
+    <section
+      v-if="!hasRequestedWallet || walletLoading"
+      class="animate-pulse rounded-2xl bg-avocado-100 p-5"
+      role="status"
+      aria-label="선불 지갑 잔액을 불러오는 중"
+    >
+      <div class="h-5 w-16 rounded bg-avocado-300" />
+      <div class="mt-3 h-9 w-36 rounded bg-avocado-300" />
+    </section>
+
+    <section
+      v-else-if="walletError || !wallet"
+      class="rounded-2xl bg-gray-50 p-5"
+      :role="walletError ? 'alert' : 'status'"
+    >
+      <p class="text-sm font-semibold text-gray-900">
+        {{ walletError ? '지갑 잔액을 불러오지 못했어요' : '등록된 선불 지갑이 없어요' }}
+      </p>
+      <p class="mt-1 text-xs text-gray-500">
+        {{ walletError || '선불 지갑을 등록하면 홈에서 잔액을 확인할 수 있어요.' }}
+      </p>
+      <button
+        v-if="walletError"
+        type="button"
+        class="mt-3 rounded-full bg-avocado-600 px-4 py-2 text-sm font-medium text-white"
+        @click="fetchWalletBalance"
+      >
+        다시 시도
+      </button>
+    </section>
+
+    <section v-else class="rounded-2xl bg-avocado-100 p-5">
       <p class="text-sm text-gray-700">내 지갑</p>
 
       <div class="flex items-center justify-between mt-1">
@@ -190,7 +221,8 @@ const home = ref(null)
 const isLoading = ref(false)
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
-const { wallet } = storeToRefs(walletStore)
+const { wallet, loading: walletLoading, error: walletError } = storeToRefs(walletStore)
+const hasRequestedWallet = ref(false)
 
 const childId = computed(
   () =>
@@ -253,6 +285,8 @@ async function fetchHome() {
 }
 
 async function fetchWalletBalance() {
+  hasRequestedWallet.value = true
+
   if (!childId.value) return
 
   try {
