@@ -39,8 +39,6 @@ async function handleSubmit() {
   errorMessage.value = ''
 
   try {
-    // 회원가입 응답은 data가 곧 가입한 회원 정보다.
-    // (로그인은 아직 data.user로 한 겹 더 감싸져 있고, 로그인 브랜치에서 이 형태로 맞출 예정)
     const { data: response } = await signup({
       type: signupStore.type,
       ...form.value,
