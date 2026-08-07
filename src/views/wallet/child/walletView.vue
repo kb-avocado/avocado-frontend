@@ -85,7 +85,7 @@
       />
       <div
         v-if="!isFlipped"
-        class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-[#eef2ec] px-2"
+        class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
       >
         <span class="text-xs text-gray-600">잔액 확인</span>
         <strong class="mt-1 whitespace-nowrap text-lg text-gray-900">
