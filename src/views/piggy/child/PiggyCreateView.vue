@@ -150,12 +150,11 @@ async function handleSubmit() {
   try {
     await store.createPiggyBank({
       name: name.value.trim(),
-      targetAmount: Number(targetAmount.value)
-      // icon은 백엔드에 없어서 안 보냄 (프론트 장식용)
+      targetAmount: Number(targetAmount.value),
+      icon: selectedIcon.value // ★ 고른 아이콘 전송
     })
     router.push({ name: 'piggy' }) // 성공 → 목록으로 (목록 화면이 새로 조회함)
   } catch (e) {
-    // 백엔드 에러 메시지 그대로 표시 (예: 3개 초과 시 안내)
     errorMessage.value = e.message || '저금통 생성에 실패했어요. 다시 시도해주세요.'
   } finally {
     isSubmitting.value = false
