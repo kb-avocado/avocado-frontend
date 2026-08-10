@@ -38,25 +38,8 @@
     >
       {{ tab === 'IN_PROGRESS' ? '진행 중인 저금통이 없습니다.' : '완료된 저금통이 없습니다.' }}
     </div>
-
-    <template v-if="tab === 'IN_PROGRESS'">
-      <button
-        type="button"
-        class="w-full min-h-[76px] mt-5 grid place-items-center content-center gap-[3px] border-[1.5px] border-dashed border-[#dce5dc] rounded-[18px] bg-surface text-[#9ba49d] text-[11px]"
-        disabled
-      >
-        <span aria-hidden="true" class="text-[21px]">＋</span>
-        새로운 저금 목표 추가하기
-      </button>
-
-      <p class="mt-[25px] text-[#777f79] text-[9px] text-center">
-        저금 목표는 최대 {{ parentMaxCount }}개까지 만들 수 있어요.
-        <strong class="text-[#3d7837]">(현재 {{ parentActiveCount }}/{{ parentMaxCount }})</strong>
-      </p>
-    </template>
   </div>
 </template>
-
 <script setup>
 import { computed, ref, watch } from 'vue'
 
@@ -77,13 +60,7 @@ const tab = ref('IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
-const parentState = computed(() => store.getParentState(props.childId))
-
 const items = computed(() => store.getParentList(props.childId, tab.value))
-
-const parentActiveCount = computed(() => Number(parentState.value?.activeCount ?? 0))
-
-const parentMaxCount = computed(() => Number(parentState.value?.maxCount ?? 3))
 
 const introTitle = computed(() => (tab.value === 'CLOSED' ? '모으기 성공! 🎉' : '아이의 저금 목표'))
 
