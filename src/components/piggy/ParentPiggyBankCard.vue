@@ -141,7 +141,11 @@ const remainingAmount = computed(() =>
 )
 
 const icon = computed(() => {
-  const text = `${props.item.name ?? ''} ` + `${props.item.description ?? ''}`
+  // 백엔드에 저장된 아이콘이 있으면 그대로 사용
+  if (props.item.icon) return props.item.icon
+
+  // 없으면(아이콘 컬럼 생기기 전 저금통) 이름 기반 추론으로 폴백
+  const text = `${props.item.name ?? ''} ${props.item.description ?? ''}`
   if (text.includes('자전거')) return '🚲'
   if (text.includes('책')) return '📚'
   if (text.includes('게임')) return '🎮'
