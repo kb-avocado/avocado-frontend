@@ -67,47 +67,79 @@
 
     <section class="text-center" aria-labelledby="payment-guide-title">
       <h2 id="payment-guide-title" class="text-xl font-bold text-gray-900">스캔해서 결제하세요!</h2>
-      <p class="mt-1 text-sm text-gray-500">가맹점 단말기에 바코드를 보여주세요.</p>
+      <p class="mt-1 text-sm text-gray-500">가맹점 단말기에 QR 코드를 보여주세요.</p>
     </section>
 
-    <button
-      type="button"
-      class="payment-card-ratio relative mt-5 block w-full rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-      :disabled="screenState !== 'ready'"
-      :aria-label="isFlipped ? '카드 앞면 보기' : '결제 바코드 보기, 비밀번호 인증 필요'"
-      @click="handleCardClick"
-    >
-      <img
+    <div class="payment-card-ratio relative mt-5 w-full rounded-3xl">
+      <button
         v-if="!isFlipped"
-        src="@/assets/images/card01.png"
-        alt="아보카도 선불카드 앞면"
-        class="h-full w-full rounded-3xl object-cover shadow-sm"
-      />
-      <div
-        v-if="!isFlipped"
-        class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+        type="button"
+        class="relative block h-full w-full rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+        :disabled="screenState !== 'ready'"
+        aria-label="결제 QR 보기, 비밀번호 인증 필요"
+        @click="handleCardClick"
       >
-        <span class="text-xs text-gray-600">잔액 확인</span>
-        <strong class="mt-1 whitespace-nowrap text-lg text-gray-900">
-          {{ formatMoney(wallet?.balance) }}원
-        </strong>
-      </div>
-
-      <article v-else class="h-full rounded-3xl bg-white p-5 shadow-[0_5px_20px_rgba(0,0,0,0.08)]">
-        <div class="flex items-center justify-between text-xs text-gray-500">
-          <span>결제 바코드</span>
-          <span class="text-avocado-600">02:59</span>
+        <img
+          src="@/assets/images/card01.png"
+          alt="아보카도 선불카드 앞면"
+          class="h-full w-full rounded-3xl object-cover shadow-sm"
+        />
+        <div
+          class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+        >
+          <span class="text-xs text-gray-600">잔액 확인</span>
+          <strong class="mt-1 whitespace-nowrap text-lg text-gray-900">
+            {{ formatMoney(wallet?.balance) }}원
+          </strong>
         </div>
-        <div class="barcode mt-4 h-16 w-full" role="img" aria-label="결제용 바코드 준비 중" />
-        <p class="mt-2 text-center font-mono text-[11px] tracking-[0.18em] text-gray-500">
-          QR 발급 API 연동 예정
-        </p>
-        <div class="mt-4 flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
+      </button>
+
+      <article
+        v-else
+        class="flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_5px_20px_rgba(0,0,0,0.08)]"
+      >
+        <div class="flex items-center justify-between text-xs text-gray-500">
+          <button
+            type="button"
+            class="rounded-md px-1 py-0.5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600"
+            @click="isFlipped = false"
+          >
+            카드 앞면
+          </button>
+          <span
+            class="font-medium tabular-nums"
+            :class="isQrExpired ? 'text-red-500' : 'text-avocado-600'"
+          >
+            {{ formattedQrTime }}
+          </span>
+        </div>
+
+        <div class="flex min-h-0 flex-1 items-center justify-center py-2" aria-live="polite">
+          <LoaderCircle v-if="qrLoading" :size="40" class="animate-spin text-avocado-600" />
+          <div v-else-if="qrError" class="text-center" role="alert">
+            <CircleAlert :size="34" class="mx-auto text-red-500" />
+            <p class="mt-2 text-xs leading-5 text-gray-600">{{ qrError }}</p>
+            <BaseButton class="mt-2" size="sm" @click="retryQrToken">다시 시도</BaseButton>
+          </div>
+          <div v-else-if="isQrExpired" class="text-center" role="status">
+            <ClockAlert :size="34" class="mx-auto text-amber-500" />
+            <p class="mt-2 text-sm font-semibold text-gray-900">QR이 만료되었어요</p>
+            <BaseButton class="mt-2" size="sm" @click="reissueQrToken">재발급</BaseButton>
+          </div>
+          <img
+            v-else-if="qrDataUrl"
+            :src="qrDataUrl"
+            alt="결제용 QR 코드"
+            class="h-[132px] w-[132px] rounded-lg"
+          />
+        </div>
+
+        <div class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
           <span class="text-sm text-gray-600">현재 잔액</span>
           <strong class="text-lg text-avocado-600">{{ formatMoney(wallet?.balance) }}원</strong>
         </div>
       </article>
-    </button>
+    </div>
 
     <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
       <div class="flex items-center justify-between">
@@ -133,11 +165,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import QRCode from 'qrcode'
 import {
   ArrowLeft,
   CircleAlert,
+  ClockAlert,
   Gamepad2,
   LoaderCircle,
   ShieldAlert,
@@ -147,6 +181,7 @@ import {
 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import NumberKeypad from '@/components/common/NumberKeypad.vue'
+import { issuePaymentQr, reissuePaymentQr } from '@/api/payment'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 
@@ -166,6 +201,12 @@ const accessError = ref('')
 const isFlipped = ref(false)
 const showPin = ref(false)
 const pin = ref('')
+const qrDataUrl = ref('')
+const qrRemainingSeconds = ref(0)
+const qrLoading = ref(false)
+const qrError = ref('')
+const qrRetryAction = ref('issue')
+let qrTimer = null
 
 const childId = computed(
   () =>
@@ -180,6 +221,14 @@ const wallet = computed(() => (USE_WALLET_MOCK ? MOCK_WALLET : fetchedWallet.val
 const normalizedStatus = computed(() => String(wallet.value?.status ?? '').toUpperCase())
 const isAvailable = computed(() => normalizedStatus.value === 'ACTIVE')
 const hasBalance = computed(() => Number(wallet.value?.balance ?? 0) > 0)
+const isQrExpired = computed(
+  () => !qrLoading.value && !qrError.value && qrRemainingSeconds.value === 0
+)
+const formattedQrTime = computed(() => {
+  const minutes = Math.floor(qrRemainingSeconds.value / 60)
+  const seconds = qrRemainingSeconds.value % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
 
 const screenState = computed(() => {
   if (!USE_WALLET_MOCK) {
@@ -222,10 +271,6 @@ function formatMoney(value) {
 }
 
 function handleCardClick() {
-  if (isFlipped.value) {
-    isFlipped.value = false
-    return
-  }
   pin.value = ''
   showPin.value = true
 }
@@ -248,6 +293,80 @@ function cancelPin() {
   showPin.value = false
 }
 
+function stopQrTimer() {
+  if (qrTimer) {
+    clearInterval(qrTimer)
+    qrTimer = null
+  }
+}
+
+function startQrTimer(expiresIn) {
+  stopQrTimer()
+  const duration = Math.max(0, Math.floor(Number(expiresIn) || 0))
+  const expiresAt = Date.now() + duration * 1000
+
+  const updateRemainingTime = () => {
+    qrRemainingSeconds.value = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000))
+    if (qrRemainingSeconds.value === 0) stopQrTimer()
+  }
+
+  updateRemainingTime()
+  if (qrRemainingSeconds.value > 0) qrTimer = setInterval(updateRemainingTime, 1000)
+}
+
+function getQrErrorMessage(error) {
+  return (
+    error.response?.data?.error?.message ||
+    error.response?.data?.message ||
+    error.message ||
+    '결제 QR을 불러오지 못했어요.'
+  )
+}
+
+async function requestQrToken(request, action) {
+  if (qrLoading.value) return
+
+  qrLoading.value = true
+  qrError.value = ''
+  qrRetryAction.value = action
+
+  try {
+    const response = await request()
+    const { token, expiresIn } = response.data?.data ?? {}
+
+    if (!token || !Number.isFinite(Number(expiresIn))) {
+      throw new Error('결제 QR 응답 형식이 올바르지 않습니다.')
+    }
+
+    qrDataUrl.value = await QRCode.toDataURL(String(token), {
+      width: 264,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#111111', light: '#ffffff' }
+    })
+    startQrTimer(expiresIn)
+  } catch (error) {
+    stopQrTimer()
+    qrDataUrl.value = ''
+    qrRemainingSeconds.value = 0
+    qrError.value = getQrErrorMessage(error)
+  } finally {
+    qrLoading.value = false
+  }
+}
+
+function issueQrToken() {
+  return requestQrToken(issuePaymentQr, 'issue')
+}
+
+function reissueQrToken() {
+  return requestQrToken(reissuePaymentQr, 'reissue')
+}
+
+function retryQrToken() {
+  return qrRetryAction.value === 'reissue' ? reissueQrToken() : issueQrToken()
+}
+
 async function loadWallet() {
   if (USE_WALLET_MOCK || loading.value) return
   accessError.value = ''
@@ -263,24 +382,15 @@ async function loadWallet() {
   }
 }
 
-onMounted(loadWallet)
+onMounted(() => {
+  loadWallet()
+  issueQrToken()
+})
+
+onUnmounted(stopQrTimer)
 </script>
 
 <style scoped>
-.barcode {
-  background: repeating-linear-gradient(
-    90deg,
-    #111 0,
-    #111 2px,
-    transparent 2px,
-    transparent 4px,
-    #111 4px,
-    #111 5px,
-    transparent 5px,
-    transparent 8px
-  );
-}
-
 .payment-card-ratio {
   aspect-ratio: 1488 / 982;
 }
