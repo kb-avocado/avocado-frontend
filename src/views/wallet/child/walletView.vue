@@ -281,6 +281,7 @@ function appendPin(value) {
   if (pin.value.length === 6) {
     showPin.value = false
     isFlipped.value = true
+    issueQrToken()
   }
 }
 
@@ -307,7 +308,10 @@ function startQrTimer(expiresIn) {
 
   const updateRemainingTime = () => {
     qrRemainingSeconds.value = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000))
-    if (qrRemainingSeconds.value === 0) stopQrTimer()
+    if (qrRemainingSeconds.value === 0) {
+      stopQrTimer()
+      reissueQrToken()
+    }
   }
 
   updateRemainingTime()
@@ -382,10 +386,7 @@ async function loadWallet() {
   }
 }
 
-onMounted(() => {
-  loadWallet()
-  issueQrToken()
-})
+onMounted(loadWallet)
 
 onUnmounted(stopQrTimer)
 </script>
