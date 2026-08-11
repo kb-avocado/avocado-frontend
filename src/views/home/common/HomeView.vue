@@ -93,11 +93,13 @@
       <div class="flex items-center justify-between mb-3 pl-2">
         <h2 class="text-base font-bold text-gray-900">리포트</h2>
 
-        <RouterLink :to="{ name: 'report' }" class="text-sm text-muted"> 모두 보기 </RouterLink>
+        <RouterLink :to="{ name: 'child-report' }" class="text-sm text-muted">
+          모두 보기
+        </RouterLink>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <RouterLink :to="{ name: 'report' }" class="rounded-2xl bg-avocado-100 p-4">
+        <RouterLink :to="{ name: 'child-report' }" class="rounded-2xl bg-avocado-100 p-4">
           <span class="w-9 h-9 rounded-full bg-white flex items-center justify-center mb-3">
             <CalendarDays :size="16" class="text-avocado-600" />
           </span>
@@ -107,7 +109,7 @@
           <p class="text-lg font-bold text-gray-900 mt-1">{{ formatMoney(home.todaySpent) }}원</p>
         </RouterLink>
 
-        <RouterLink :to="{ name: 'report' }" class="rounded-2xl bg-avocado-100 p-4">
+        <RouterLink :to="{ name: 'child-report' }" class="rounded-2xl bg-avocado-100 p-4">
           <span class="w-9 h-9 rounded-full bg-white flex items-center justify-center mb-3">
             <Wallet :size="16" class="text-avocado-600" />
           </span>
