@@ -229,7 +229,21 @@ const routes = [
     name: 'piggyGoalComplete',
     component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
     meta: { hideLayout: true, title: '저금통' }
-  }
+  },
+
+  // 알림 페이지
+  {
+    path: '/child/notifications',
+    name: 'childNotifications',
+    component: () => import('@/views/notification/NotificationListView.vue'),
+    meta: { hideLayout: true, title: '알림', audience: 'child' }
+  },
+  {
+    path: '/parent/notifications',
+    name: 'parentNotifications',
+    component: () => import('@/views/notification/NotificationListView.vue'),
+    meta: { hideLayout: true, title: '알림', audience: 'parent' }
+  },
 ]
 
 const router = createRouter({
