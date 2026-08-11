@@ -33,6 +33,34 @@ function handlePhoneInput(event) {
   form.value.phone = formatPhoneNumber(event.target.value)
 }
 
+// 생년월일은 YYYY-MM-DD 형태로만 입력되도록 정규화한다.
+function handleBirthInput(event) {
+  const digits = event.target.value.replace(/\D/g, '').slice(0, 8)
+
+  if (digits.length <= 4) {
+    form.value.birth = digits
+    return
+  }
+
+  if (digits.length <= 6) {
+    form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4)}`
+    return
+  }
+
+  form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
+}
+
+function handleBirthChange(event) {
+  const value = String(event.target.value ?? '').slice(0, 10)
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    form.value.birth = ''
+    return
+  }
+
+  form.value.birth = value
+}
+
 async function handleSubmit() {
   if (loading.value) return
   loading.value = true
@@ -223,8 +251,11 @@ async function handleSubmit() {
               id="birth"
               v-model="form.birth"
               type="date"
+              min="1900-01-01"
+              max="2999-12-31"
               class="input-field pr-10"
               style="color: var(--color-text-muted)"
+              @change="handleBirthChange"
             />
           </div>
         </div>

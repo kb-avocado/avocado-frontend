@@ -6,10 +6,12 @@ import BaseButton from '@/components/common/BaseButton.vue'
 
 const router = useRouter()
 
-const BANKS = [{ value: 'KB국민은행', label: 'KB국민은행' }]
+const BANKS = [{ code: '004', name: 'KB국민은행' }]
+
+const ACCOUNT_NUMBER_MAX_LENGTH = 20
 
 const form = ref({
-  bankName: 'KB국민은행',
+  bankCode: BANKS[0].code,
   accountNumber: ''
 })
 
@@ -17,7 +19,26 @@ const agreed = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-const canSubmit = computed(() => form.value.accountNumber.trim() && agreed.value)
+const selectedBankName = computed(
+  () => BANKS.find((bank) => bank.code === form.value.bankCode)?.name ?? ''
+)
+
+const canSubmit = computed(() => {
+  const { accountNumber } = form.value
+  return (
+    /^[0-9]+$/.test(accountNumber) &&
+    accountNumber.length <= ACCOUNT_NUMBER_MAX_LENGTH &&
+    agreed.value
+  )
+})
+
+function sanitizeAccountNumber(value) {
+  return value.replace(/\D/g, '').slice(0, ACCOUNT_NUMBER_MAX_LENGTH)
+}
+
+function handleAccountNumberInput(event) {
+  form.value.accountNumber = sanitizeAccountNumber(event.target.value)
+}
 
 async function handleSubmit() {
   if (!canSubmit.value || loading.value) return
@@ -25,7 +46,10 @@ async function handleSubmit() {
   errorMessage.value = ''
 
   try {
-    await createAccount(form.value)
+    await createAccount({
+      bankCode: form.value.bankCode,
+      accountNumber: form.value.accountNumber
+    })
     router.push({ name: 'home' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '계좌 연결 중 오류가 발생했습니다.'
@@ -37,7 +61,7 @@ async function handleSubmit() {
 async function pasteAccountNumber() {
   try {
     const text = await navigator.clipboard.readText()
-    form.value.accountNumber = text.replace(/[^0-9-]/g, '')
+    form.value.accountNumber = sanitizeAccountNumber(text)
   } catch {
     // 클립보드 접근 불가 시 무시
   }
@@ -91,9 +115,9 @@ async function pasteAccountNumber() {
         <!-- 은행 선택 드롭다운 -->
         <div class="relative">
           <!-- 실제 select (투명, 클릭 영역 담당) -->
-          <select v-model="form.bankName" class="bank-select">
-            <option v-for="bank in BANKS" :key="bank.value" :value="bank.value">
-              {{ bank.label }}
+          <select v-model="form.bankCode" class="bank-select">
+            <option v-for="bank in BANKS" :key="bank.code" :value="bank.code">
+              {{ bank.name }}
             </option>
           </select>
 
@@ -104,7 +128,7 @@ async function pasteAccountNumber() {
           >
             <div class="flex items-center justify-between gap-1.5">
               <span class="text-sm font-bold" style="color: var(--color-text-primary)">
-                {{ form.bankName }}
+                {{ selectedBankName }}
               </span>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path
@@ -137,9 +161,11 @@ async function pasteAccountNumber() {
               v-model="form.accountNumber"
               type="text"
               inputmode="numeric"
+              :maxlength="ACCOUNT_NUMBER_MAX_LENGTH"
               placeholder="숫자만 입력해 주세요"
               class="flex-1 bg-transparent text-[15px] outline-none placeholder:text-sm"
               style="color: var(--color-text-primary)"
+              @input="handleAccountNumberInput"
             />
             <button
               type="button"
