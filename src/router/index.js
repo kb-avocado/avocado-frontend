@@ -229,6 +229,20 @@ const routes = [
     name: 'piggyGoalComplete',
     component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
     meta: { hideLayout: true, title: '저금통' }
+  },
+
+  // 마이페이지
+  {
+    path: '/parent/mypage',
+    name: 'mypageParent',
+    component: () => import('@/views/mypage/parent/MyPageParentView.vue'),
+    meta: { title: '부모 마이페이지' }
+  },
+  {
+    path: '/child/mypage',
+    name: 'mypageChild',
+    component: () => import('@/views/mypage/child/MyPageChildView.vue'),
+    meta: { title: '아이 마이페이지' }
   }
 ]
 
