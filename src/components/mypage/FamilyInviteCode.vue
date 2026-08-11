@@ -6,7 +6,7 @@
     </p>
 
     <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3">
-      <span class="truncate text-xl font-bold tracking-widest text-gray-900">
+      <span class="invite-code truncate text-xl font-semibold tracking-widest text-gray-900">
         {{ inviteCode }}
       </span>
 
@@ -40,3 +40,11 @@ async function copyCode() {
   setTimeout(() => (copied.value = false), 2000)
 }
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap');
+
+.invite-code {
+  font-family: 'Source Code Pro', monospace;
+}
+</style>
