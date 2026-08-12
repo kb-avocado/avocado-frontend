@@ -66,12 +66,24 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()
 
+<<<<<<< HEAD
 // 부모/아이 = 로그인 정보로 판단 (페이지 이동해도 유지)
 const isParent = computed(() => authStore.user?.type === 'PARENT')
+=======
+// route.meta.audience는 이미 부모 전용 화면(childId가 URL에 있는 화면)에 들어간 "이후"에만 채워진다.
+// /home처럼 아직 그런 화면에 들어가기 전인 곳에서 첫 진입 링크를 만들 때는
+// 로그인 응답에 실려온 실제 회원 유형(authStore.user.type)으로 판단해야 한다.
+const isParent = computed(() => authStore.user?.type === 'PARENT')
+
+// URL에 이미 childId가 있으면 그걸 우선 쓰고(아이를 여러 명 둔 부모가 특정 아이 화면에 있는 경우),
+// 없으면 로그인 시 내려온 연결된 아이 목록 중 첫 번째를 기본값으로 쓴다.
+const childId = computed(() => String(route.params.childId ?? authStore.user?.child?.[0]?.id ?? ''))
+>>>>>>> ec07983799b408404445b9ca45d2b0bfc3f6006a
 
 const childId = computed(() => {
   // 특정 아이 화면(/parent/:childId/...)이면 route에서
@@ -136,16 +148,23 @@ const centerItem = computed(() => {
     }
   }
 })
-
 const rightItems = computed(() => [
   {
     key: 'newspaper',
     menu: 'newspaper',
     label: '신문',
     icon: Newspaper,
-    to: {
-      name: 'newspaper'
-    }
+    to:
+      isParent.value && childId.value
+        ? {
+            name: 'parent-newspaper',
+            params: {
+              childId: childId.value
+            }
+          }
+        : {
+            name: 'newspaper'
+          }
   },
   {
     key: 'report',
