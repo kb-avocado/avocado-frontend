@@ -64,14 +64,22 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
-const isParent = computed(() => route.meta.audience === 'parent')
+// 부모/아이 = 로그인 정보로 판단 (페이지 이동해도 유지)
+const isParent = computed(() => authStore.user?.type === 'PARENT')
 
-const childId = computed(() => String(route.params.childId ?? ''))
-
+const childId = computed(() => {
+  // 특정 아이 화면(/parent/:childId/...)이면 route에서
+  if (route.params.childId) return String(route.params.childId)
+  // 부모인데 route에 없으면(홈 등) → 연결된 첫 아이
+  if (isParent.value) return String(authStore.user?.child?.[0]?.id ?? '')
+  return ''
+})
 const leftItems = computed(() => [
   {
     key: 'home',

@@ -154,42 +154,42 @@ const routes = [
     }
   },
 
-  /* 저금통 목록 */
+  /* 저금통 목록(아이) */
   {
-    path: '/piggy',
-    alias: '/piggy-banks',
+    path: '/child/piggy',
     name: 'piggy',
     component: () => import('@/views/piggy/common/PiggyView.vue'),
-    meta: {
-      title: '저금통',
-      menu: 'piggy',
-      audience: 'child'
-    }
+    meta: { title: '저금통', menu: 'piggy', audience: 'child' }
   },
+  /* 저금통 목록 (부모) */
   {
-    path: '/parent/children/:childId/piggy-banks',
+    path: '/parent/:childId/piggy',
     name: 'parent-piggy-list',
     component: () => import('@/views/piggy/parent/ParentPiggyBankListView.vue'),
     props: true,
-    meta: {
-      title: '저금통',
-      menu: 'piggy',
-      audience: 'parent'
-    }
+    meta: { title: '저금통', menu: 'piggy', audience: 'parent' }
   },
-  //  저금통 생성
+  /* 저금통 생성 (아이) */
   {
-    path: '/piggy/new',
+    path: '/child/piggy/new',
     name: 'piggyCreate',
     component: () => import('@/views/piggy/child/PiggyCreateView.vue'),
-    meta: { hideLayout: true, title: '새 저금 목표' }
+    meta: { hideLayout: true, title: '새 저금 목표', audience: 'child' }
   },
-  //저금통 부모 상세
+  /* 저금통 상세 (아이) */
   {
-    path: '/piggy/:id',
+    path: '/child/piggy/:id',
+    name: 'piggyChildDetail',
+    component: () => import('@/views/piggy/child/ChildPiggyDetailView.vue'),
+    meta: { hideLayout: true, title: '저금통 아이 상세', audience: 'child' }
+  },
+  /* 저금통 상세 (부모) */
+  {
+    path: '/parent/:childId/piggy/:id',
     name: 'piggyDetail',
     component: () => import('@/views/piggy/parent/PiggyDetailView.vue'),
-    meta: { hideLayout: true, title: '저금통 부모 상세' }
+    props: true,
+    meta: { hideLayout: true, title: '저금통 부모 상세', audience: 'parent' }
   },
   //저금통 저축하기
   {
@@ -197,14 +197,6 @@ const routes = [
     name: 'piggyDeposit',
     component: () => import('@/views/piggy/child/PiggyDepositView.vue'),
     meta: { hideLayout: true, title: '저금하기' }
-  },
-
-  // 저금통 아이 상세
-  {
-    path: '/piggy/:id/child',
-    name: 'piggyChildDetail',
-    component: () => import('@/views/piggy/child/ChildPiggyDetailView.vue'),
-    meta: { hideLayout: true, title: '저금통 아이 상세' }
   },
 
   // 저금통 보너스 및 응원
@@ -251,7 +243,7 @@ const routes = [
     name: 'mypageChild',
     component: () => import('@/views/mypage/child/MyPageChildView.vue'),
     meta: { title: '아이 마이페이지' }
-  }
+  },
 
   // 알림 페이지
   {
@@ -265,7 +257,7 @@ const routes = [
     name: 'parentNotifications',
     component: () => import('@/views/notification/NotificationListView.vue'),
     meta: { hideLayout: true, title: '알림', audience: 'parent' }
-  },
+  }
 ]
 
 const router = createRouter({

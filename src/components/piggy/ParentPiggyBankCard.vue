@@ -94,6 +94,10 @@ const props = defineProps({
   item: {
     type: Object,
     required: true
+  },
+  childId: {
+    type: [String, Number],
+    required: true
   }
 })
 const router = useRouter()
@@ -103,14 +107,18 @@ function goToBonusTransfer() {
 }
 
 function goToCheerMessages() {
+  // 진행중(ACTIVE/PENDING_ACHIEVE) → 응원 작성, 완료(ACHIEVE/CANCEL) → 응원 보기
+  const inProgress = ['ACTIVE', 'PENDING_ACHIEVE'].includes(normalizedStatus.value)
   router.push({
-    name: isActive.value ? 'piggyCheerCompose' : 'piggyCheerMessages',
+    name: inProgress ? 'piggyCheerCompose' : 'piggyCheerMessages',
     params: { id: props.item.piggyBankId }
   })
 }
-
 function goToDetail() {
-  router.push({ name: 'piggyDetail', params: { id: props.item.piggyBankId } })
+  router.push({
+    name: 'piggyDetail',
+    params: { childId: props.childId, id: props.item.piggyBankId } // ★ childId 추가
+  })
 }
 
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
