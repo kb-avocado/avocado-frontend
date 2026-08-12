@@ -92,12 +92,14 @@ const routes = [
     meta: { title: '결제하기' }
   },
   //신문
+  //아이용 신문 리스트화면
   {
     path: '/newspaper',
     name: 'newspaper',
-    component: () => import('@/views/news/common/NewspaperView.vue'),
+    component: () => import('@/views/news/child/NewspaperView.vue'),
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
   },
+  //아이용 신문 세부화면
   {
     path: '/child/newspaper/:newsId',
     name: 'newspaper-detail',
@@ -105,10 +107,20 @@ const routes = [
     meta: { title: '신문', showBack: true }
   },
   {
-    path: '/parent/newspaper/:newsId',
+    //부모용 신문 리스트화면
+    path: '/parent/:childId/newspaper',
+    name: 'parent-newspaper',
+    component: () => import('@/views/news/parent/NewspaperListView.vue'),
+    props: true,
+    meta: { title: '경제가 쏙쏙! 아보카도 신문', audience: 'parent', menu: 'newspaper' }
+  },
+  //부모용 신문 세부화면
+  {
+    path: '/parent/:childId/newspaper/:newsId',
     name: 'parent-newspaper-detail',
     component: () => import('@/views/news/parent/NewsDetailView.vue'),
-    meta: { title: '신문', showBack: true }
+    props: true,
+    meta: { title: '신문', showBack: true, audience: 'parent' }
   },
   //리포트
   {
@@ -251,7 +263,7 @@ const routes = [
     name: 'parentNotifications',
     component: () => import('@/views/notification/NotificationListView.vue'),
     meta: { hideLayout: true, title: '알림', audience: 'parent' }
-  },
+  }
 ]
 
 const router = createRouter({
