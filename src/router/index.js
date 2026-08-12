@@ -274,8 +274,32 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach(async () => {
-  await useAuthStore().restore()
+// 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 홈으로 돌린다.
+const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
+
+function isGuestOnlyRoute(to) {
+  return GUEST_ONLY_ROUTE_NAMES.includes(to.name) || to.path.startsWith('/signup')
+}
+
+// 로그인 없이 볼 수 있는 화면. 여기 없는 화면은 전부 인증이 필요하다.
+function isPublicRoute(to) {
+  return to.name === 'splash' || isGuestOnlyRoute(to)
+}
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  await authStore.restore()
+
+  if (authStore.isAuthenticated && isGuestOnlyRoute(to)) {
+    return { name: 'home' }
+  }
+
+  if (isPublicRoute(to)) return
+
+  if (!authStore.isAuthenticated) {
+    return { name: 'login' }
+  }
 })
 
 export default router
