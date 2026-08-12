@@ -274,32 +274,43 @@ const router = createRouter({
   routes
 })
 
-// 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 홈으로 돌린다.
-const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
+/*
+ *
+ * TODO: 로그인 인증 시 주석 해제하기
+ *
+ * 인증 가드 (비활성화)
+ *
+ * 활성화하면 로그인하지 않은 접근이 모두 로그인 화면으로 간다.
+ * 개발을 위해 비활성화한다.
+ * 
+ */
 
-function isGuestOnlyRoute(to) {
-  return GUEST_ONLY_ROUTE_NAMES.includes(to.name) || to.path.startsWith('/signup')
-}
+// // 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 홈으로 돌린다.
+// const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
 
-// 로그인 없이 볼 수 있는 화면. 여기 없는 화면은 전부 인증이 필요하다.
-function isPublicRoute(to) {
-  return to.name === 'splash' || isGuestOnlyRoute(to)
-}
+// function isGuestOnlyRoute(to) {
+//   return GUEST_ONLY_ROUTE_NAMES.includes(to.name) || to.path.startsWith('/signup')
+// }
+
+// // 로그인 없이 볼 수 있는 화면. 여기 없는 화면은 전부 인증이 필요하다.
+// function isPublicRoute(to) {
+//   return to.name === 'splash' || isGuestOnlyRoute(to)
+// }
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   await authStore.restore()
 
-  if (authStore.isAuthenticated && isGuestOnlyRoute(to)) {
-    return { name: 'home' }
-  }
+  // if (authStore.isAuthenticated && isGuestOnlyRoute(to)) {
+  //   return { name: 'home' }
+  // }
 
-  if (isPublicRoute(to)) return
+  // if (isPublicRoute(to)) return
 
-  if (!authStore.isAuthenticated) {
-    return { name: 'login' }
-  }
+  // if (!authStore.isAuthenticated) {
+  //   return { name: 'login' }
+  // }
 })
 
 export default router
