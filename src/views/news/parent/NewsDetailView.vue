@@ -47,13 +47,19 @@
 
   <div v-else class="p-4 text-center text-muted text-sm py-10">불러오는 중...</div>
 </template>
-
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ExternalLink, Rocket } from 'lucide-vue-next'
 import { usePageTitle } from '@/composables/usePageTitle'
 import { getNewsDetail } from '@/api/news'
+
+const props = defineProps({
+  childId: {
+    type: [String, Number],
+    required: true
+  }
+})
 
 const route = useRoute()
 const { setPageTitle, clearPageTitle } = usePageTitle()
@@ -62,7 +68,7 @@ const news = ref(null)
 
 async function fetchDetail() {
   try {
-    const { data } = await getNewsDetail(route.params.newsId)
+    const { data } = await getNewsDetail(route.params.newsId, props.childId)
     news.value = data.data
     setPageTitle('경제가 쏙쏙! 아보카도 신문')
   } catch (error) {
