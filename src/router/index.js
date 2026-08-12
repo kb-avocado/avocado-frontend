@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
 
@@ -251,7 +252,7 @@ const routes = [
     name: 'mypageChild',
     component: () => import('@/views/mypage/child/MyPageChildView.vue'),
     meta: { title: '아이 마이페이지' }
-  }
+  },
 
   // 알림 페이지
   {
@@ -273,13 +274,8 @@ const router = createRouter({
   routes
 })
 
-// TODO: 로그인 기능 붙이면 아래처럼 인증 가드 원복
-// import { useAuthStore } from '@/stores/auth'
-// router.beforeEach((to) => {
-//   const authStore = useAuthStore()
-//   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-//     return { name: 'login', query: { redirect: to.fullPath } }
-//   }
-// })
+router.beforeEach(async () => {
+  await useAuthStore().restore()
+})
 
 export default router

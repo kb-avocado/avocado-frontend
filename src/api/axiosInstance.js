@@ -16,7 +16,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const isLoginRequest = error.config?.url?.includes('/auth/login')
 
-    if (error.response?.status === 401 && !isLoginRequest) {
+    const isMeRequest = error.config?.url?.includes('/auth/me')
+
+    if (error.response?.status === 401 && !isLoginRequest && !isMeRequest) {
       useAuthStore().clear()
       window.location.href = '/login'
     }
