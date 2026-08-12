@@ -30,37 +30,26 @@
       </div>
 
       <!-- 소비 스타일 -->
-      <div class="flex flex-col items-center gap-5 text-center">
-        <img
-          src="@/assets/images/ch2.png"
-          alt="방앗간 못 지나가는 참새"
-          class="w-56 h-40 object-contain"
-        />
+      <div v-if="spendingType" class="flex flex-col items-center gap-5 text-center">
+        <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-40 object-contain" />
 
         <p class="leading-snug">
           <span class="block text-xl font-bold text-gray-900"> 지우는 {{ monthLabel }} </span>
 
           <span class="block text-2xl font-extrabold text-avocado-600 my-1">
-            '{{ report.style.title }}'
+            '{{ spendingType.name }}'
           </span>
 
           <span class="block text-xl font-bold text-gray-900"> 스타일이었어요! </span>
         </p>
 
-        <span
-          class="inline-block bg-gray-50 text-[#4C6B3A] font-bold text-base px-6 py-3 rounded-full"
-        >
-          아보카도 사용자 중 {{ report.style.userPercentage }}%가 이 유형이에요
-        </span>
+        <!-- TODO(backend): 유형별 사용자 비율 통계 API 없음. 나오면 뱃지 복원 -->
 
         <p class="text-sm text-gray-900 text-center leading-relaxed px-2">
-          <template v-if="isParentView"> *{{ report.style.parentDescription }} </template>
-
-          <template v-else>
-            {{ report.style.childDescription }}
-          </template>
+          {{ spendingType.childDescription }}
         </p>
       </div>
+      <div v-else class="text-sm text-muted py-4">소비 유형을 불러오는 중...</div>
     </div>
 
     <!-- 이번 달 소비 금액 -->
@@ -97,7 +86,7 @@
       <p class="text-base font-bold text-gray-900 mb-4">{{ monthLabel }} 지출 Top 5</p>
 
       <div class="flex flex-col gap-4">
-        <div v-for="spot in report.topSpots" :key="spot.rank" class="flex flex-col gap-1.5">
+        <div v-for="spot in coloredTopSpots" :key="spot.rank" class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between text-sm">
             <span class="flex items-center gap-1.5 text-gray-900">
               <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: spot.color }" />
@@ -131,8 +120,8 @@
 
       <div class="flex items-end justify-around h-32">
         <div
-          v-for="month in report.monthlyComparison"
-          :key="month.month"
+          v-for="month in coloredMonthlyComparison"
+          :key="month.yearMonth"
           class="flex flex-col items-center gap-2"
         >
           <span class="text-sm font-semibold" style="color: #4c6b3a">
@@ -174,7 +163,9 @@
       <p class="text-sm mt-4 mb-2">
         이번 달 용돈 대비 저축률
 
-        <span class="font-semibold text-progress-value"> {{ report.savings.savingsRate }}% </span>
+        <span class="font-semibold text-progress-value">
+          {{ report.savings.savingsRate != null ? `${report.savings.savingsRate}%` : '집계 중' }}
+        </span>
       </p>
 
       <!-- 공통 프로그레스 바 색상 적용 -->
@@ -189,7 +180,9 @@
     </div>
 
     <!-- 아보카도 씨의 한마디 -->
+    <!-- TODO(backend): AI 조언 API 아직 없음. 생기면 report.advice로 연결 -->
     <div
+      v-if="report.advice"
       class="rounded-3xl shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] p-5 flex items-center gap-4"
       style="background-color: #f8dcae"
     >
@@ -215,20 +208,48 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ChevronLeft, ChevronRight, Wallet, PiggyBank } from 'lucide-vue-next'
-import { useAuthStore } from '@/stores/auth'
+import { getReport, getSpendingType } from '@/api/report'
+import ch3 from '@/assets/images/ch3.png'
+import ch13 from '@/assets/images/ch13.png'
+import ch14 from '@/assets/images/ch14.png'
+import ch15 from '@/assets/images/ch15.png'
+import ch16 from '@/assets/images/ch16.png'
+import ch18 from '@/assets/images/ch18.png'
+import ch19 from '@/assets/images/ch19.png'
+import ch21 from '@/assets/images/ch21.png'
+import ch23 from '@/assets/images/ch23.png'
 
-// TODO(mock): 백엔드 붙으면 아래 주석 풀고 mock 코드 지우기
-// import { getReport } from '@/api/report'
+const TOP_SPOT_COLORS = ['#3f6b22', '#78B159', '#f59e0b', '#b8d98c', '#d1d5db']
+const MONTH_COLORS = ['#59B17F', '#9CB159', '#59A2B1']
 
-const authStore = useAuthStore()
+const SPENDING_TYPE_IMAGES = {
+  SAVING_DREAMER: ch13, // 꿈꾸는 꿈돌이
+  ZERO_SPENDING: ch14, // 겨울잠 소비
+  ONE_STORE_SNIPER: ch15, // 하나만 노리는 저격수
+  BIG_SPENDER: ch16, // 큰 거 한방
+  ROLLER_COASTER: ch18, // 롤러코스터 소비
+  CAREFUL_OWL: ch19, // 생각하고 쓰는 부엉이
+  SMALL_SAVER: ch21, // 티끌모아 부자
+  FREQUENT_SPARROW: ch23, // 방앗간 못 지나가는 참새
+  SPROUT: ch3 // 씨앗형
+}
 
-// TODO: 로그인 붙으면 authStore.user.role === 'PARENT'로 정확히 판단
-const isParentView = computed(() => {
-  return authStore.user?.role === 'PARENT'
-})
+function getLastMonth() {
+  const now = new Date()
+  const date = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
 
-const currentYearMonth = ref('2026-06')
+// TODO: 로그인 붙으면 authStore.user.id로 교체
+const CHILD_ID = 103
+
+const currentYearMonth = ref(getLastMonth())
 const report = ref(null)
+const spendingType = ref(null)
+
+const spendingTypeImage = computed(() => {
+  return SPENDING_TYPE_IMAGES[spendingType.value?.code] ?? ch3
+})
 
 const monthLabel = computed(() => {
   if (!report.value) {
@@ -238,6 +259,22 @@ const monthLabel = computed(() => {
   const [, month] = report.value.yearMonth.split('-')
 
   return `${Number(month)}월`
+})
+
+const coloredTopSpots = computed(() => {
+  if (!report.value) return []
+  return report.value.topSpots.map((spot, index) => ({
+    ...spot,
+    color: TOP_SPOT_COLORS[index % TOP_SPOT_COLORS.length]
+  }))
+})
+
+const coloredMonthlyComparison = computed(() => {
+  if (!report.value) return []
+  return report.value.monthlyComparison.map((month, index) => ({
+    ...month,
+    color: MONTH_COLORS[index % MONTH_COLORS.length]
+  }))
 })
 
 function barHeight(amount) {
@@ -260,102 +297,22 @@ function getPercentage(value) {
   return Math.min(100, Math.max(0, percentage))
 }
 
-// TODO(mock): 백엔드 붙으면 이 목업 데이터 삭제
-function buildMockReport(yearMonth) {
-  return {
-    yearMonth,
-
-    style: {
-      type: 'SPARROW',
-      title: '방앗간 못 지나가는 참새',
-      childDescription: '용돈 쓰는 날이 많았어요! 다음 달엔 하루쯤 쉬어가는 소비도 도전해 보세요.',
-      parentDescription:
-        '방앗간 못 지나가는 참새는 한 달 중 용돈을 소비한 날이 25일 이상일 때 나오는 유형이에요',
-      userPercentage: 12
-    },
-
-    summary: {
-      totalSpent: 42500,
-      comparedToLastMonth: -5000,
-      transactionCount: 18
-    },
-
-    topSpots: [
-      {
-        rank: 1,
-        category: '다이소',
-        amount: 19125,
-        percentage: 45,
-        color: '#3f6b22'
-      },
-      {
-        rank: 2,
-        category: '아맛나 떡볶이집',
-        amount: 12750,
-        percentage: 30,
-        color: '#78B159'
-      },
-      {
-        rank: 3,
-        category: 'GS25',
-        amount: 6375,
-        percentage: 15,
-        color: '#f59e0b'
-      },
-      {
-        rank: 4,
-        category: '와와 피시방',
-        amount: 2550,
-        percentage: 6,
-        color: '#b8d98c'
-      },
-      {
-        rank: 5,
-        category: '기타',
-        amount: 1700,
-        percentage: 4,
-        color: '#d1d5db'
-      }
-    ],
-
-    monthlyComparison: [
-      {
-        month: '4월',
-        amount: 20000,
-        color: '#59B17F'
-      },
-      {
-        month: '5월',
-        amount: 28000,
-        color: '#9CB159'
-      },
-      {
-        month: '6월',
-        amount: 23000,
-        color: '#59A2B1'
-      }
-    ],
-
-    savings: {
-      totalSaved: 25000,
-      savingsRate: 50
-    },
-
-    advice: '아이에게 이번 주에 먹은 간식 중 어떤 게 가장 뿌듯했는지 물어보며 칭찬해 주세요.',
-
-    navigation: {
-      hasPrevious: true,
-      hasNext: true
-    }
+async function fetchReport() {
+  try {
+    const { data } = await getReport(currentYearMonth.value, CHILD_ID)
+    report.value = data.data
+  } catch (error) {
+    console.error('리포트 조회 실패:', error)
   }
 }
 
-async function fetchReport() {
-  // TODO(mock): 백엔드 붙으면 아래로 교체
-  // const { data } = await getReport(currentYearMonth.value)
-  // report.value = data
-
-  report.value = buildMockReport(currentYearMonth.value)
+async function fetchSpendingType() {
+  try {
+    const { data } = await getSpendingType(currentYearMonth.value, CHILD_ID)
+    spendingType.value = data.data
+  } catch (error) {
+    console.error('소비 유형 조회 실패:', error)
+  }
 }
 
 function goToMonth(diff) {
@@ -366,8 +323,13 @@ function goToMonth(diff) {
   currentYearMonth.value =
     `${date.getFullYear()}-` + `${String(date.getMonth() + 1).padStart(2, '0')}`
 
+  // 새 데이터 도착 전까지 이전 값을 그대로 보여줘서 로딩 중 깜빡임을 없앰
   fetchReport()
+  fetchSpendingType()
 }
 
-onMounted(fetchReport)
+onMounted(() => {
+  fetchReport()
+  fetchSpendingType()
+})
 </script>

@@ -110,11 +110,19 @@ const routes = [
     component: () => import('@/views/news/parent/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
+  //리포트
   {
-    path: '/report',
-    name: 'report',
-    component: () => import('@/views/report/common/ReportView.vue'),
+    path: '/child/report',
+    name: 'child-report',
+    component: () => import('@/views/report/child/ReportView.vue'),
     meta: { title: '과카몰리 리포트' }
+  },
+  {
+    path: '/parent/:childId/report',
+    name: 'parent-report',
+    component: () => import('@/views/report/parent/ReportView.vue'),
+    props: true, // ← 이 줄이 있는지 확인
+    meta: { title: '과카몰리 리포트', audience: 'parent', menu: 'report' }
   },
 
   // 송금

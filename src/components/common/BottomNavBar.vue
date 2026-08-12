@@ -144,9 +144,17 @@ const rightItems = computed(() => [
     menu: 'report',
     label: '리포트',
     icon: PieChart,
-    to: {
-      name: 'report'
-    }
+    to:
+      isParent.value && childId.value
+        ? {
+            name: 'parent-report',
+            params: {
+              childId: childId.value
+            }
+          }
+        : {
+            name: 'child-report'
+          }
   }
 ])
 
