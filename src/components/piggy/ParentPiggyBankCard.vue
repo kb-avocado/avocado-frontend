@@ -69,7 +69,7 @@
       <button
         type="button"
         class="min-w-[91px] h-[38px] border-0 rounded-[10px] bg-avocado-600 text-white text-[11px] font-bold disabled:bg-[#dcead5] disabled:shadow-none"
-        :disabled="isBonusPaid || isAbandoned"
+        :disabled="!isCompleted || isBonusPaid"
         @click.stop="goToBonusTransfer"
       >
         보너스 송금
