@@ -87,7 +87,7 @@ const routes = [
 
   // 하단 네비게이션 바 5개 탭
   {
-    path: '/wallet',
+    path: '/child/wallet',
     name: 'wallet',
     component: () => import('@/views/wallet/child/walletView.vue'),
     meta: { title: '결제하기' }
@@ -95,7 +95,7 @@ const routes = [
   //신문
   //아이용 신문 리스트화면
   {
-    path: '/newspaper',
+    path: '/child/newspaper',
     name: 'newspaper',
     component: () => import('@/views/news/child/NewspaperView.vue'),
     meta: { title: '경제가 쏙쏙! 아보카도 신문' }
