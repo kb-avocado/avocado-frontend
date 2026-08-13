@@ -107,20 +107,29 @@ export const usePiggyBankStore = defineStore('piggyBank', {
 
   actions: {
     /**
-     * 즐겨찾기 상태를 토글합니다.
+     * 즐겨찾기 상태를 토글합니다. (백엔드 반영 + 아이당 1개 보장)
      */
-    toggleFavorite(piggyBankId) {
+    async toggleFavorite(piggyBankId) {
+      // 백엔드가 토글 후 최종 즐겨찾기 상태(boolean)를 돌려줌
+      const next = await piggyBankApi.toggleFavorite(piggyBankId)
+
+      // 1개 제한 반영: 모든 목록에서 해제 후 대상만 설정
+      for (const tab of Object.keys(this.childLists)) {
+        for (const item of this.childLists[tab]) {
+          item.favorite = false
+        }
+      }
       for (const tab of Object.keys(this.childLists)) {
         const target = this.childLists[tab].find(
           (item) => String(item.piggyBankId) === String(piggyBankId)
         )
         if (target) {
-          target.favorite = !target.favorite
-          // TODO: 백엔드 즐겨찾기 API 생기면 여기서 호출
-          return
+          target.favorite = next
+          break
         }
       }
     },
+
     /**
      * 보호자가 처음 해당 아이의 목록을 조회할 때
      * 기본 상태를 생성합니다.

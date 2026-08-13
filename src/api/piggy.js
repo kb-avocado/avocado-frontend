@@ -173,6 +173,13 @@ export const piggyBankApi = {
       method: 'POST',
       url: `/piggybanks/${piggyId}/close`
     })
+  },
+  // 저금통 즐겨찾기 토글 (아이당 1개)
+  async toggleFavorite(piggyId) {
+    return request({
+      method: 'PATCH',
+      url: `/piggybanks/${piggyId}/favorite`
+    })
   }
 }
 
