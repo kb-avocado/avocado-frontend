@@ -103,17 +103,21 @@ const props = defineProps({
 const router = useRouter()
 
 function goToBonusTransfer() {
-  router.push({ name: 'piggyGoalComplete', params: { id: props.item.piggyBankId } })
+  router.push({
+    name: 'piggyGoalComplete',
+    params: { childId: props.childId, id: props.item.piggyBankId }
+  })
 }
 
 function goToCheerMessages() {
-  // 진행중(ACTIVE/PENDING_ACHIEVE) → 응원 작성, 완료(ACHIEVE/CANCEL) → 응원 보기
+  // 진행중(ACTIVE/PENDING_ACHIEVE) → 응원 작성, 완료(ACHIEVE/CANCEL) → 응원 보기(부모용 관리 화면)
   const inProgress = ['ACTIVE', 'PENDING_ACHIEVE'].includes(normalizedStatus.value)
   router.push({
-    name: inProgress ? 'piggyCheerCompose' : 'piggyCheerMessages',
-    params: { id: props.item.piggyBankId }
+    name: inProgress ? 'piggyCheerCompose' : 'piggyCheerMessagesManage',
+    params: { childId: props.childId, id: props.item.piggyBankId }
   })
 }
+
 function goToDetail() {
   router.push({
     name: 'piggyDetail',

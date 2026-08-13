@@ -54,6 +54,11 @@ const props = defineProps({
     targetAmount: {
         type: Number,
         default: 0
+    },
+    // 아이 ID
+    childId: {
+        type: [String, Number],
+        required: true
     }
 })
 
@@ -83,6 +88,6 @@ const bonusAmount = computed(() => {
 /* 보너스 송금 버튼 클릭시 축하 및 보너스 송금 화면으로 이동 */
 function goToPayment() {
     if (!canPay.value) return
-    router.push({ name: 'piggyGoalComplete', params: { id: props.piggyBankId } })
+    router.push({ name: 'piggyGoalComplete', params: { childId: props.childId, id: props.piggyBankId } })
 }
 </script>
