@@ -48,10 +48,17 @@ const routes = [
   },
   // 홈 (아이 / 부모 분리)
   {
-    path: '/home',
+    path: '/child/home',
     name: 'home',
-    component: () => import('@/views/home/common/HomeView.vue'),
+    component: () => import('@/views/home/child/HomeView.vue'),
     meta: { title: '아보카도 홈' }
+  },
+  {
+    path: '/parent/:childId/home',
+    name: 'parent-home',
+    component: () => import('@/views/home/parent/HomeView.vue'),
+    props: true,
+    meta: { title: '아보카도 홈', audience: 'parent', menu: 'home' }
   },
   // 가족 연결
   {
@@ -79,12 +86,6 @@ const routes = [
   },
 
   // 하단 네비게이션 바 5개 탭
-  {
-    path: '/home',
-    name: 'home',
-    component: () => import('@/views/home/common/HomeView.vue'),
-    meta: { title: '아보카도 홈' }
-  },
   {
     path: '/wallet',
     name: 'wallet',

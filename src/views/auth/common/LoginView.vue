@@ -36,6 +36,14 @@ async function handleSubmit() {
 // 로그인은 성공했지만 계좌/가족 연결이 안 된 계정(PENDING)은 홈이 아닌 연결 화면으로 보낸다.
 function resolveNextRoute(user) {
   if (user.status !== 'PENDING') {
+    // 부모는 로그인 응답에 실려온 연결된 아이 중 첫 번째 아이의 홈으로 보낸다.
+    if (user.type === 'PARENT') {
+      const firstChildId = user.child?.[0]?.id
+      if (firstChildId) {
+        return { name: 'parent-home', params: { childId: firstChildId } }
+      }
+    }
+    // 아이는 별도 childId 없이 본인 홈으로 보낸다.
     return { name: 'home' }
   }
 
