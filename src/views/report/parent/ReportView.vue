@@ -1,20 +1,5 @@
 <template>
   <div v-if="report" class="p-4 pb-8 flex flex-col gap-5">
-    <!-- 아이 선택 -->
-    <!-- TODO: 로그인/홈 화면 아이 선택 연동되면 이 드롭다운은 제거하고 홈에서 선택한 아이를 따라가도록 변경 -->
-    <div class="rounded-2xl bg-white border border-gray-200 p-3 flex items-center gap-2 text-sm">
-      <span class="font-medium text-gray-700">아이 선택</span>
-      <select
-        :value="childId"
-        class="rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white"
-        @change="onChildChange"
-      >
-        <option :value="102">102 - 김지원</option>
-        <option :value="103">103 - 김지호</option>
-        <option :value="202">202 - 이유나</option>
-      </select>
-    </div>
-
     <!-- 분석 결과 카드 (네비게이션 + 소비 스타일) -->
     <div
       class="rounded-3xl bg-white shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] px-5 py-6 flex flex-col items-center gap-5"
@@ -49,16 +34,22 @@
         <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-40 object-contain" />
 
         <p class="leading-snug">
-          <span class="block text-xl font-bold text-gray-900"> 우리 아이의 {{ monthLabel }} </span>
+          <span class="block text-xl font-bold text-gray-900"> 우리 아이는 </span>
 
           <span class="block text-2xl font-extrabold text-avocado-600 my-1">
             '{{ spendingType.name }}'
           </span>
 
-          <span class="block text-xl font-bold text-gray-900"> 스타일이었어요! </span>
+          <span class="block text-xl font-bold text-gray-900"> 유형이었어요! </span>
         </p>
 
-        <!-- TODO(backend): 유형별 사용자 비율 통계 API 없음. 나오면 뱃지 복원 -->
+        <!-- 같은 달, 같은 유형 아이 비율 -->
+        <span
+          v-if="spendingType.percentage != null"
+          class="inline-block bg-avocado-100 text-avocado-600 text-xs font-semibold px-3 py-1 rounded-full"
+        >
+          전체 아이 중 {{ spendingType.percentage }}%가 같은 유형이에요
+        </span>
 
         <p class="text-sm text-gray-900 text-center leading-relaxed px-2">
           *{{ spendingType.parentDescription }}
@@ -222,7 +213,6 @@
 
 <script setup>
 import { computed, onMounted, watch, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { ChevronLeft, ChevronRight, Wallet, PiggyBank } from 'lucide-vue-next'
 import { getReport, getSpendingType } from '@/api/report'
 import ch3 from '@/assets/images/ch3.png'
@@ -234,6 +224,7 @@ import ch18 from '@/assets/images/ch18.png'
 import ch19 from '@/assets/images/ch19.png'
 import ch21 from '@/assets/images/ch21.png'
 import ch23 from '@/assets/images/ch23.png'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   childId: {
@@ -241,8 +232,11 @@ const props = defineProps({
     required: true
   }
 })
-
-const router = useRouter()
+const authStore = useAuthStore()
+const children = computed(() => authStore.user?.child ?? [])
+const selectedChildName = computed(
+  () => children.value.find((child) => String(child.id) === String(props.childId))?.name ?? '아이'
+)
 
 const TOP_SPOT_COLORS = ['#3f6b22', '#78B159', '#f59e0b', '#b8d98c', '#d1d5db']
 const MONTH_COLORS = ['#59B17F', '#9CB159', '#59A2B1']
@@ -350,11 +344,7 @@ function goToMonth(diff) {
   fetchSpendingType()
 }
 
-function onChildChange(event) {
-  router.push({ name: 'parent-report', params: { childId: event.target.value } })
-}
-
-// childId가 URL 파라미터라 라우트가 바뀔 때(드롭다운 선택 시) 다시 불러와야 함
+// childId가 URL 파라미터라 라우트가 바뀔 때(홈에서 다른 아이로 전환 시) 다시 불러와야 함
 watch(
   () => props.childId,
   () => {

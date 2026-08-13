@@ -34,16 +34,22 @@
         <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-40 object-contain" />
 
         <p class="leading-snug">
-          <span class="block text-xl font-bold text-gray-900"> 지우는 {{ monthLabel }} </span>
+          <span class="block text-xl font-bold text-gray-900"> 나의 유형은 </span>
 
           <span class="block text-2xl font-extrabold text-avocado-600 my-1">
             '{{ spendingType.name }}'
           </span>
 
-          <span class="block text-xl font-bold text-gray-900"> 스타일이었어요! </span>
+          <span class="block text-xl font-bold text-gray-900"> 이었어요! </span>
         </p>
 
-        <!-- TODO(backend): 유형별 사용자 비율 통계 API 없음. 나오면 뱃지 복원 -->
+        <!-- 같은 달, 같은 유형 아이 비율 -->
+        <span
+          v-if="spendingType.percentage != null"
+          class="inline-block bg-avocado-100 text-avocado-600 text-xs font-semibold px-3 py-1 rounded-full"
+        >
+          전체 친구 중 {{ spendingType.percentage }}%가 같은 유형이에요
+        </span>
 
         <p class="text-sm text-gray-900 text-center leading-relaxed px-2">
           {{ spendingType.childDescription }}
@@ -218,6 +224,7 @@ import ch18 from '@/assets/images/ch18.png'
 import ch19 from '@/assets/images/ch19.png'
 import ch21 from '@/assets/images/ch21.png'
 import ch23 from '@/assets/images/ch23.png'
+import { useAuthStore } from '@/stores/auth'
 
 const TOP_SPOT_COLORS = ['#3f6b22', '#78B159', '#f59e0b', '#b8d98c', '#d1d5db']
 const MONTH_COLORS = ['#59B17F', '#9CB159', '#59A2B1']
@@ -234,14 +241,13 @@ const SPENDING_TYPE_IMAGES = {
   SPROUT: ch3 // 씨앗형
 }
 
+const authStore = useAuthStore()
+const myName = computed(() => authStore.user?.name ?? '나')
 function getLastMonth() {
   const now = new Date()
   const date = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
-
-// TODO: 로그인 붙으면 authStore.user.id로 교체
-const CHILD_ID = 103
 
 const currentYearMonth = ref(getLastMonth())
 const report = ref(null)
@@ -299,7 +305,7 @@ function getPercentage(value) {
 
 async function fetchReport() {
   try {
-    const { data } = await getReport(currentYearMonth.value, CHILD_ID)
+    const { data } = await getReport(currentYearMonth.value)
     report.value = data.data
   } catch (error) {
     console.error('리포트 조회 실패:', error)
@@ -308,7 +314,7 @@ async function fetchReport() {
 
 async function fetchSpendingType() {
   try {
-    const { data } = await getSpendingType(currentYearMonth.value, CHILD_ID)
+    const { data } = await getSpendingType(currentYearMonth.value)
     spendingType.value = data.data
   } catch (error) {
     console.error('소비 유형 조회 실패:', error)
