@@ -85,9 +85,17 @@ const leftItems = computed(() => [
     menu: 'home',
     label: '홈',
     icon: Home,
-    to: {
-      name: 'home'
-    }
+    to:
+      isParent.value && childId.value
+        ? {
+            name: 'parent-home',
+            params: {
+              childId: childId.value
+            }
+          }
+        : {
+            name: 'home'
+          }
   },
   {
     key: 'piggy',
