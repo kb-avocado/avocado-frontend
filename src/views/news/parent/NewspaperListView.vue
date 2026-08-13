@@ -1,21 +1,5 @@
 <template>
   <div class="p-4">
-    <!-- 아이 선택 -->
-    <div
-      class="rounded-2xl bg-white border border-gray-200 p-3 flex items-center gap-2 text-sm mb-4"
-    >
-      <span class="font-medium text-gray-700">아이 선택</span>
-      <select
-        :value="childId"
-        class="rounded-lg border border-gray-300 px-2 py-1 text-sm bg-white"
-        @change="onChildChange"
-      >
-        <option v-for="child in children" :key="child.id" :value="child.id">
-          {{ child.id }} - {{ child.name }}
-        </option>
-      </select>
-    </div>
-
     <div class="flex items-center justify-between mb-3">
       <h1 class="text-lg font-bold text-gray-900">어린이 경제 신문</h1>
       <CalendarDays :size="20" class="text-gray-400" />
@@ -99,12 +83,10 @@
 </template>
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import ch11 from '@/assets/images/ch11.png'
 import ch12 from '@/assets/images/ch12.png'
 import { getNewsList } from '@/api/news'
-import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   childId: {
@@ -112,12 +94,6 @@ const props = defineProps({
     required: true
   }
 })
-
-const router = useRouter()
-const authStore = useAuthStore()
-// 로그인 응답(authStore.user.child)에 실려온, 실제로 이 부모와 연결된 아이 목록.
-// 더 이상 102/103/202를 하드코딩하지 않는다.
-const children = computed(() => authStore.user?.child ?? [])
 
 const PAGE_SIZE = 8
 
@@ -169,10 +145,6 @@ function goToPage(nextPage) {
   if (nextPage < 0 || nextPage > totalPages.value - 1) return
   page.value = nextPage
   fetchNews()
-}
-
-function onChildChange(event) {
-  router.push({ name: 'parent-newspaper', params: { childId: event.target.value } })
 }
 
 function formatDate(dateValue) {
