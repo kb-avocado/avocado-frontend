@@ -7,26 +7,6 @@
       <p class="text-[#4b534e] text-[13px] leading-[1.55]">{{ introDescription }}</p>
     </section>
 
-    <!-- 즐겨찾기 북마크 -->
-    <button
-      v-if="tab === 'IN_PROGRESS'"
-      type="button"
-      class="inline-flex items-center py-[6px] px-2 mb-3 border rounded-[10px] cursor-pointer"
-      :class="showFavoritesOnly ? 'bg-[#eef8e5] border-[#cfe6bd]' : 'bg-surface border-[#edf0ed]'"
-      :aria-pressed="showFavoritesOnly"
-      @click="showFavoritesOnly = !showFavoritesOnly"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1z"
-          :fill="showFavoritesOnly ? '#78B159' : 'none'"
-          stroke="#78B159"
-          stroke-width="2"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </button>
-
     <section
       v-if="error"
       class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
@@ -62,13 +42,7 @@
       v-else
       class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
-      {{
-        showFavoritesOnly
-          ? '즐겨찾기한 저금통이 없습니다.'
-          : tab === 'IN_PROGRESS'
-            ? '진행 중인 저금통이 없습니다.'
-            : '완료된 저금통이 없습니다.'
-      }}
+      {{ tab === 'IN_PROGRESS' ? '진행 중인 저금통이 없습니다.' : '완료된 저금통이 없습니다.' }}
     </div>
 
     <template v-if="tab === 'IN_PROGRESS'">
@@ -109,20 +83,18 @@ const tab = ref('IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
-const showFavoritesOnly = ref(false)
-
-const displayedItems = computed(() =>
-  showFavoritesOnly.value && tab.value === 'IN_PROGRESS'
-    ? items.value.filter((i) => i.favorite)
-    : items.value
-)
+const displayedItems = computed(() => items.value)
 
 function goToCreate() {
   router.push({ name: 'piggyCreate' })
 }
 
-function onToggleFavorite(item) {
-  store.toggleFavorite(item.piggyBankId)
+async function onToggleFavorite(item) {
+  try {
+    await store.toggleFavorite(item.piggyBankId)
+  } catch {
+    // 즐겨찾기 토글 실패는 목록 에러와 분리해 조용히 무시
+  }
 }
 
 const items = computed(() => store.getChildList(tab.value))
