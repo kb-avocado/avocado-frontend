@@ -73,13 +73,13 @@ import { usePiggyBankStore } from '@/stores/piggyBank'
 import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
 import ChildPiggyBankCard from '@/components/piggy/ChildPiggyBankCard.vue'
 
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const store = usePiggyBankStore()
-
+const route = useRoute()
 const router = useRouter()
 
-const tab = ref('IN_PROGRESS')
+const tab = ref(route.query.tab === 'CLOSED' ? 'CLOSED' : 'IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
@@ -119,6 +119,11 @@ async function load() {
     loading.value = false
   }
 }
+
+// 탭 바뀌면 URL 반영
+watch(tab, (val) => {
+  router.replace({ query: { ...route.query, tab: val } })
+})
 
 watch(tab, load, {
   immediate: true
