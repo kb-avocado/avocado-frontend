@@ -64,8 +64,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
 
 const route = useRoute()
 const authStore = useAuthStore()

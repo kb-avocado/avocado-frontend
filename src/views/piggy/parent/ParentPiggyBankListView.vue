@@ -29,7 +29,12 @@
     </div>
 
     <section v-else-if="items.length > 0" class="grid gap-[18px]">
-      <ParentPiggyBankCard v-for="item in items" :key="item.piggyBankId" :item="item" />
+      <ParentPiggyBankCard
+        v-for="item in items"
+        :key="item.piggyBankId"
+        :item="item"
+        :child-id="childId"
+      />
     </section>
 
     <div

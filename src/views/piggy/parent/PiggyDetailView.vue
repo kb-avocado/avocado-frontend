@@ -1,7 +1,12 @@
 <template>
   <div class="min-h-screen flex flex-col bg-surface">
-    <AppHeader :title="item?.name || '저금통'" show-back :show-bell="false" :show-avatar="false"
-      @click-back="router.back()" />
+    <AppHeader
+      :title="item?.name || '저금통'"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
     <div v-if="!item" class="flex-1 grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
@@ -11,9 +16,11 @@
       <!-- 저금통 성장 이미지 + 응원보기 -->
       <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[180px] p-6">
         <img :src="growthImage" alt="저금통 성장" class="max-h-40 object-contain" />
-        <button type="button"
+        <button
+          type="button"
           class="absolute bottom-3 right-3 bg-avocado-100 text-avocado-600 text-xs font-semibold rounded-full px-3 py-1"
-          @click="goToCheerMessages">
+          @click="goToCheerMessages"
+        >
           보호자님 응원보기
         </button>
       </div>
@@ -37,8 +44,14 @@
         <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" />
       </div>
       <!-- 보너스 지급 배너 (팀원 컴포넌트) -->
-      <PiggyBonusPayoutBanner :piggy-bank-id="item.piggyBankId" :status="item.status" :bonus-type="item.bonusType"
-        :bonus-value="item.bonusValue" :bonus-paid-at="item.bonusPaidAt" :target-amount="item.targetAmount" />
+      <PiggyBonusPayoutBanner
+        :piggy-bank-id="item.piggyBankId"
+        :status="item.status"
+        :bonus-type="item.bonusType"
+        :bonus-value="item.bonusValue"
+        :bonus-paid-at="item.bonusPaidAt"
+        :target-amount="item.targetAmount"
+      />
     </div>
 
     <BottomNavBar />
@@ -70,10 +83,11 @@ const router = useRouter()
 const store = usePiggyBankStore()
 
 const piggyBankId = computed(() => route.params.id)
+const childId = computed(() => route.params.childId)
 
-// 상세조회 변경: 스토어를 뒤지지 않고, 백엔드 상세 API로 조회
+// 상세조회: childId까지 넘겨서 부모 소유권 검증 통과
 onMounted(() => {
-  store.loadDetail(piggyBankId.value)
+  store.loadDetail(piggyBankId.value, childId.value) // ★ childId 전달
 })
 
 // 상세조회 변경: 백엔드 상세 결과 사용
