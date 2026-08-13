@@ -100,7 +100,7 @@ export const piggyBankApi = {
    * 실제 API 모드:
    * GET /api/piggy-banks
    */
-  async getChildList(tab = 'IN_PROGRESS', walletId) {
+  async getChildList(tab = 'IN_PROGRESS') {
     if (useMockData) {
       await wait(400)
 
@@ -111,8 +111,7 @@ export const piggyBankApi = {
       method: 'GET',
       url: '/piggybanks', // piggy-banks → piggybanks
       params: {
-        status: tab, // tab → status
-        walletId // walletId 추가
+        status: tab // tab → status
       }
     })
   },
@@ -127,11 +126,11 @@ export const piggyBankApi = {
    * GET
    * /api/parent/children/{childId}/piggy-banks
    */
-  async getParentList(walletId, tab = 'IN_PROGRESS') {
+  async getParentList(childId, tab = 'IN_PROGRESS') {
     if (useMockData) {
       await wait(400)
 
-      return getParentMockList(walletId, tab)
+      return getParentMockList(childId, tab)
     }
 
     return request({
@@ -139,7 +138,7 @@ export const piggyBankApi = {
       url: '/piggybanks', //  공통 엔드포인트로 변경
       params: {
         status: tab, //  tab → status
-        walletId //  childId 대신 walletId
+        childId
       }
     })
   },
@@ -149,10 +148,11 @@ export const piggyBankApi = {
    * 실제 API 모드:
    * GET /api/piggybanks/{id}
    */
-  async getDetail(piggyId) {
+  async getDetail(piggyId, childId) {
     return request({
       method: 'GET',
-      url: `/piggybanks/${piggyId}`
+      url: `/piggybanks/${piggyId}`,
+      params: childId != null ? { childId } : {} // 부모가 아이 저금통 볼 때만 childId
     })
   },
   // 추가: 저금통 생성
@@ -160,11 +160,10 @@ export const piggyBankApi = {
    * [생성 핵심 함수]
    * POST /api/piggybanks?walletId=  body { name, targetAmount }
    */
-  async createPiggyBank(payload, walletId) {
+  async createPiggyBank(payload) {
     return request({
       method: 'POST',
       url: '/piggybanks',
-      params: { walletId },
       data: payload
     })
   },
@@ -173,6 +172,13 @@ export const piggyBankApi = {
     return request({
       method: 'POST',
       url: `/piggybanks/${piggyId}/close`
+    })
+  },
+  // 저금통 즐겨찾기 토글 (아이당 1개)
+  async toggleFavorite(piggyId) {
+    return request({
+      method: 'PATCH',
+      url: `/piggybanks/${piggyId}/favorite`
     })
   }
 }
@@ -197,7 +203,13 @@ export const deleteCheerMessage = (piggyId, messageId) =>
 export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
 
 /* 저금통 상세 조회 (보너스 정보 포함) */
-export const getPiggyBankDetail = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}`)
+export const getPiggyBankDetail = (piggyId, childId) =>
+  axiosInstance.get(`/piggybanks/${piggyId}`, {
+    params: childId != null ? { childId } : {}
+  })
+
+/* 저금통 보너스 지급완료 */
+export const payBonus = (piggyId) => axiosInstance.post(`/piggybanks/${piggyId}/bonus/pay`)
 
 /* 저금통 입금 실행 */
 export const depositToPiggyBank = (piggyId, payload) =>

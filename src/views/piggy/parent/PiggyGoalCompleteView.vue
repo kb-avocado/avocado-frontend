@@ -68,7 +68,7 @@ import AppHeader from '@/components/common/AppHeader.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 
-import { sendCheerMessage, getPiggyBankDetail } from '@/api/piggy'
+import { sendCheerMessage, getPiggyBankDetail, payBonus } from '@/api/piggy'
 
 /* 보너스 -> 송금 */
 import { createTransferQuery } from '@/utils/transfer'
@@ -94,14 +94,14 @@ const quickPhrases = [
 ]
 
 /* 찾은 저금통 데이터 확보 */
-const { piggyBank } = usePiggyBankDetail(route.params.id)
+const { piggyBank } = usePiggyBankDetail(route.params.id, route.params.childId)
 
 /* 보너스 정보는 상세 조회로 별도 확보 (목록 응답엔 보너스 정보가 없음) */
 const bonusInfo = ref(null)
 
 onMounted(async () => {
   try {
-    const response = await getPiggyBankDetail(route.params.id)
+    const response = await getPiggyBankDetail(route.params.id, route.params.childId)
     bonusInfo.value = response.data.data
   } catch (e) {
     bonusInfo.value = null
@@ -159,21 +159,12 @@ async function handleSubmit() {
   try {
     // 응원 메세지 보내기 함수 활용
     await sendCheerMessage(piggyBank.value.piggyBankId, { message: message.value })
+    await payBonus(piggyBank.value.piggyBankId)
 
     // 메세지 전송 성공 후 송금하기 페이지로 갈 때 가지고 갈 파라미터
-    // 목업에 지갑ID 추가 필요
-    router.push({
-      name: 'transfer-recipient',
-
-      // transfer.js의 검증 로직 사용
-      query: createTransferQuery({
-        recipientType: TRANSFER_RECIPIENT_TYPE.WALLET,
-        recipientId: piggyBank.value.walletId,
-        amount: bonusAmount.value
-      })
-    })
+    router.push({ name: 'transfer-recipient' })
   } catch (e) {
-    submitError.value = '축하 메시지 전송에 실패했어요. 다시 시도해주세요.'
+    submitError.value = '보너스 지급 처리에 실패했어요. 다시 시도해주세요.'
   } finally {
     isSubmitting.value = false
   }

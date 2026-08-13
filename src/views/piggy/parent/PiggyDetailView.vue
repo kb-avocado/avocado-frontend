@@ -38,7 +38,8 @@
       </div>
       <!-- 보너스 지급 배너 (팀원 컴포넌트) -->
       <PiggyBonusPayoutBanner :piggy-bank-id="item.piggyBankId" :status="item.status" :bonus-type="item.bonusType"
-        :bonus-value="item.bonusValue" :bonus-paid-at="item.bonusPaidAt" :target-amount="item.targetAmount" />
+        :bonus-value="item.bonusValue" :bonus-paid-at="item.bonusPaidAt" :target-amount="item.targetAmount"
+        :child-id="childId" />
     </div>
 
     <BottomNavBar />
@@ -70,10 +71,11 @@ const router = useRouter()
 const store = usePiggyBankStore()
 
 const piggyBankId = computed(() => route.params.id)
+const childId = computed(() => route.params.childId)
 
-// 상세조회 변경: 스토어를 뒤지지 않고, 백엔드 상세 API로 조회
+// 상세조회: childId까지 넘겨서 부모 소유권 검증 통과
 onMounted(() => {
-  store.loadDetail(piggyBankId.value)
+  store.loadDetail(piggyBankId.value, childId.value) // ★ childId 전달
 })
 
 // 상세조회 변경: 백엔드 상세 결과 사용
@@ -97,6 +99,6 @@ function formatWon(amount) {
 }
 
 function goToCheerMessages() {
-  router.push({ name: 'piggyCheerMessages', params: { id: item.value.piggyBankId } })
+  router.push({ name: 'piggyCheerMessagesManage', params: { childId: childId.value, id: item.value.piggyBankId } })
 }
 </script>

@@ -2,9 +2,6 @@ import { defineStore } from 'pinia'
 import { piggyBankApi } from '@/api/piggy'
 import { useAuthStore } from '@/stores/auth'
 
-// TODO: 로그인 연동 전까지 임시 walletId. DB에 존재하는 지갑 id로.
-const TEST_WALLET_ID = 2003
-
 /**
  * 진행 중/완료 목록을 분리해서 보관할 기본 상태를 생성합니다.
  */
@@ -110,20 +107,29 @@ export const usePiggyBankStore = defineStore('piggyBank', {
 
   actions: {
     /**
-     * 즐겨찾기 상태를 토글합니다.
+     * 즐겨찾기 상태를 토글합니다. (백엔드 반영 + 아이당 1개 보장)
      */
-    toggleFavorite(piggyBankId) {
+    async toggleFavorite(piggyBankId) {
+      // 백엔드가 토글 후 최종 즐겨찾기 상태(boolean)를 돌려줌
+      const next = await piggyBankApi.toggleFavorite(piggyBankId)
+
+      // 1개 제한 반영: 모든 목록에서 해제 후 대상만 설정
+      for (const tab of Object.keys(this.childLists)) {
+        for (const item of this.childLists[tab]) {
+          item.favorite = false
+        }
+      }
       for (const tab of Object.keys(this.childLists)) {
         const target = this.childLists[tab].find(
           (item) => String(item.piggyBankId) === String(piggyBankId)
         )
         if (target) {
-          target.favorite = !target.favorite
-          // TODO: 백엔드 즐겨찾기 API 생기면 여기서 호출
-          return
+          target.favorite = next
+          break
         }
       }
     },
+
     /**
      * 보호자가 처음 해당 아이의 목록을 조회할 때
      * 기본 상태를 생성합니다.
@@ -154,10 +160,7 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       this.error = ''
 
       try {
-        // TODO: 로그인 붙으면 로그인 사용자 walletId로 교체
-        const walletId = useAuthStore().user?.walletId ?? TEST_WALLET_ID
-
-        const result = await piggyBankApi.getChildList(tab, walletId)
+        const result = await piggyBankApi.getChildList(tab)
 
         const normalized = normalizeListResponse(result)
 
@@ -193,12 +196,7 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       const parentState = this.ensureParentState(childId)
 
       try {
-        //  childId로 그 아이의 walletId를 구한다.
-        // TODO: 로그인 붙으면 authStore.user.child[]에서 childId에 해당하는 walletId 사용
-        //       지금은 로그인 전이라 테스트 지갑으로 조회
-        const walletId = TEST_WALLET_ID
-
-        const result = await piggyBankApi.getParentList(walletId, tab) // ★ walletId 넘김
+        const result = await piggyBankApi.getParentList(childId, tab)
 
         const normalized = normalizeListResponse(result)
 
@@ -220,12 +218,12 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       }
     },
     // 추가 : 상세 조회
-    async loadDetail(piggyBankId) {
+    async loadDetail(piggyBankId, childId) {
       this.loading = true
       this.error = ''
 
       try {
-        this.detail = await piggyBankApi.getDetail(piggyBankId)
+        this.detail = await piggyBankApi.getDetail(piggyBankId, childId)
 
         return this.detail
       } catch (error) {
@@ -242,10 +240,7 @@ export const usePiggyBankStore = defineStore('piggyBank', {
       this.error = ''
 
       try {
-        // TODO: 로그인 붙으면 로그인 사용자 walletId로 교체
-        const walletId = useAuthStore().user?.walletId ?? TEST_WALLET_ID
-
-        return await piggyBankApi.createPiggyBank(payload, walletId)
+        return await piggyBankApi.createPiggyBank(payload)
       } catch (error) {
         this.error = error.message || '저금통 생성에 실패했습니다.'
 
