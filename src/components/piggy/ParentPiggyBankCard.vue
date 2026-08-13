@@ -27,7 +27,7 @@
         class="py-[7px] px-[10px] border-0 rounded-full bg-[#eef8e5] text-[#68a34d] text-[9px] font-bold whitespace-nowrap"
         @click.stop="goToCheerMessages"
       >
-        보호자님 응원보기
+        {{ cheerLabel }}
       </button>
     </header>
 
@@ -102,6 +102,18 @@ const props = defineProps({
 })
 const router = useRouter()
 
+const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
+
+// 응원 버튼의 진행중 여부 공통 조건 (라벨 + 라우팅이 항상 일치하도록)
+const isCheerInProgress = computed(() =>
+  ['ACTIVE', 'PENDING_ACHIEVE'].includes(normalizedStatus.value)
+)
+
+// 진행중 → 응원보내기, 완료 → 응원보기
+const cheerLabel = computed(() =>
+  isCheerInProgress.value ? '보호자님 응원보내기' : '보호자님 응원보기'
+)
+
 function goToBonusTransfer() {
   router.push({
     name: 'piggyGoalComplete',
@@ -121,11 +133,9 @@ function goToCheerMessages() {
 function goToDetail() {
   router.push({
     name: 'piggyDetail',
-    params: { childId: props.childId, id: props.item.piggyBankId } // ★ childId 추가
+    params: { childId: props.childId, id: props.item.piggyBankId } // childId 추가
   })
 }
-
-const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
 
 const isActive = computed(() => normalizedStatus.value === 'ACTIVE')
 
