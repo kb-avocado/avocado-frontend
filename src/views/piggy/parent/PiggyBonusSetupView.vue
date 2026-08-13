@@ -145,7 +145,7 @@ const route = useRoute()
 const router = useRouter()
 
 /* 가져온 저금통의 데이터 */
-const { piggyBank } = usePiggyBankDetail(route.params.id)
+const { piggyBank } = usePiggyBankDetail(route.params.id, route.params.childId)
 
 /* 추후 사용자 db를 통해 가져올 예정 */
 const childName = '민준'

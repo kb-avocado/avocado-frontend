@@ -213,10 +213,10 @@ const routes = [
 
   // 저금통 보너스 및 응원
   {
-    path: '/parent/piggy/:id/bonus',
+    path: '/parent/:childId/piggy/:id/bonus',
     name: 'piggyBonus',
     component: () => import('@/views/piggy/parent/PiggyBonusSetupView.vue'),
-    meta: { hideLayout: true, title: '보너스 설정하기' }
+    meta: { hideLayout: true, title: '보너스 설정하기', audience: 'parent' }
   },
   {
     path: '/child/piggy/:id/cheer-messages',
@@ -225,22 +225,22 @@ const routes = [
     meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: false }
   },
   {
-    path: '/parent/piggy/:id/cheer-messages/manage',
+    path: '/parent/:childId/piggy/:id/cheer-messages/manage',
     name: 'piggyCheerMessagesManage',
     component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
-    meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true }
+    meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true, audience: 'parent' }
   },
   {
-    path: '/parent/piggy/:id/cheer-messages/new',
+    path: '/parent/:childId/piggy/:id/cheer-messages/new',
     name: 'piggyCheerCompose',
     component: () => import('@/views/piggy/parent/PiggyCheerMessageComposeView.vue'),
-    meta: { hideLayout: true, title: '응원 보내기' }
+    meta: { hideLayout: true, title: '응원 보내기', audience: 'parent' }
   },
   {
-    path: '/parent/piggy/:id/complete',
+    path: '/parent/:childId/piggy/:id/complete',
     name: 'piggyGoalComplete',
     component: () => import('@/views/piggy/parent/PiggyGoalCompleteView.vue'),
-    meta: { hideLayout: true, title: '저금통' }
+    meta: { hideLayout: true, title: '저금통', audience: 'parent' }
   },
 
   // 마이페이지

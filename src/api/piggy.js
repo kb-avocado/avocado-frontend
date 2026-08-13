@@ -196,7 +196,13 @@ export const deleteCheerMessage = (piggyId, messageId) =>
 export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
 
 /* 저금통 상세 조회 (보너스 정보 포함) */
-export const getPiggyBankDetail = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}`)
+export const getPiggyBankDetail = (piggyId, childId) =>
+  axiosInstance.get(`/piggybanks/${piggyId}`, {
+    params: childId != null ? { childId } : {}
+  })
+
+/* 저금통 보너스 지급완료 */
+export const payBonus = (piggyId) => axiosInstance.post(`/piggybanks/${piggyId}/bonus/pay`)
 
 /* 저금통 입금 실행 */
 export const depositToPiggyBank = (piggyId, payload) =>
