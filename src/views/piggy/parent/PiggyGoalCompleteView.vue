@@ -159,7 +159,7 @@ async function handleSubmit() {
   try {
     // 응원 메세지 보내기 함수 활용
     await sendCheerMessage(piggyBank.value.piggyBankId, { message: message.value })
-    await payBonus(piggyBank.value.piggyBankId)
+    await payBonus(piggyBank.value.piggyBankId, route.params.childId)
 
     // 메세지 전송 성공 후 송금하기 페이지로 갈 때 가지고 갈 파라미터
     router.push({ name: 'transfer-recipient' })

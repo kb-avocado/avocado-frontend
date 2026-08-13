@@ -1,13 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white">
     <!-- 뒤로가기 버튼 설정을 위해 헤더와 Nav import -->
-    <AppHeader
-      title="보상 설정"
-      show-back
-      :show-bell="false"
-      :show-avatar="false"
-      @click-back="router.back()"
-    />
+    <AppHeader title="보상 설정" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
 
     <div class="flex-1 p-4 space-y-6">
       <!-- 목표 정보 -->
@@ -45,24 +39,12 @@
       <div>
         <p class="text-sm font-medium text-avocado-900 mb-2">보너스 방식 선택</p>
         <div class="flex rounded-full bg-avocado-50 border border-avocado-300 p-1">
-          <button
-            type="button"
-            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors"
-            :class="
-              bonusType === BONUS_TYPE.RATE ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
-            "
-            @click="selectBonusType(BONUS_TYPE.RATE)"
-          >
+          <button type="button" class="flex-1 h-9 rounded-full text-sm font-medium transition-colors" :class="bonusType === BONUS_TYPE.RATE ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
+            " @click="selectBonusType(BONUS_TYPE.RATE)">
             응원 보너스 설정
           </button>
-          <button
-            type="button"
-            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors"
-            :class="
-              bonusType === BONUS_TYPE.FIXED ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
-            "
-            @click="selectBonusType(BONUS_TYPE.FIXED)"
-          >
+          <button type="button" class="flex-1 h-9 rounded-full text-sm font-medium transition-colors" :class="bonusType === BONUS_TYPE.FIXED ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
+            " @click="selectBonusType(BONUS_TYPE.FIXED)">
             추가 지원금
           </button>
         </div>
@@ -73,13 +55,8 @@
           {{ bonusType === BONUS_TYPE.RATE ? '응원 보너스 설정 (연율 %)' : '추가 지원금 (정액)' }}
         </label>
         <div class="flex items-center border border-avocado-300 rounded-xl px-3 h-11">
-          <input
-            v-model="bonusValue"
-            type="number"
-            inputmode="numeric"
-            class="flex-1 outline-none text-[15px]"
-            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'"
-          />
+          <input v-model="bonusValue" type="number" inputmode="numeric" class="flex-1 outline-none text-[15px]"
+            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'" />
           <span class="text-sm text-muted">{{ bonusType === BONUS_TYPE.RATE ? '%' : '원' }}</span>
         </div>
         <p v-if="bonusValue && !isValueValid" class="text-xs text-red-500 mt-1">
@@ -104,12 +81,7 @@
     </div>
 
     <div class="p-4">
-      <BaseButton
-        variant="primary"
-        class="w-full gap-2"
-        :disabled="!canSubmit"
-        @click="handleSubmit"
-      >
+      <BaseButton variant="primary" class="w-full gap-2" :disabled="!canSubmit" @click="handleSubmit">
         <span>{{ isSubmitting ? '설정 중...' : '승인하기' }}</span>
         <CircleCheck v-if="!isSubmitting" :size="18" />
       </BaseButton>
@@ -202,10 +174,17 @@ async function handleSubmit() {
   submitError.value = ''
   try {
     // setBonus의 piggyBankId와 payload 파라미터에 들어갈 값
-    await setBonus(piggyBank.value.piggyBankId, {
-      bonusType: bonusType.value,
-      bonusValue: Number(bonusValue.value)
-    })
+    await setBonus(
+      piggyBank.value.piggyBankId,
+      {
+        bonusType: bonusType.value,
+        bonusValue: Number(bonusValue.value)
+      },
+      route.params.childId
+    )
+
+    alert('보너스 설정이 완료됐어요!')
+    router.push({ name: 'parent-piggy-list', params: { childId: route.params.childId } })
   } catch (e) {
     // try 실패 시 submiError에 에러 메세지
     submitError.value = '보너스 설정에 실패했어요. 다시 시도해주세요.'

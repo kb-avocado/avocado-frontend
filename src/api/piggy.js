@@ -184,8 +184,10 @@ export const piggyBankApi = {
 }
 
 /* 해당 저금통에 보너스 설정 put */
-export const setBonus = (piggyId, payload) =>
-  axiosInstance.put(`/piggybanks/${piggyId}/bonus`, payload)
+export const setBonus = (piggyId, payload, childId) =>
+  axiosInstance.put(`/piggybanks/${piggyId}/bonus`, payload, {
+    params: childId != null ? { childId } : {}
+  })
 
 /* 저금통 응원 메시지 조회 */
 export const getCheerMessages = (piggyId) =>
@@ -209,7 +211,10 @@ export const getPiggyBankDetail = (piggyId, childId) =>
   })
 
 /* 저금통 보너스 지급완료 */
-export const payBonus = (piggyId) => axiosInstance.post(`/piggybanks/${piggyId}/bonus/pay`)
+export const payBonus = (piggyId, childId) =>
+  axiosInstance.post(`/piggybanks/${piggyId}/bonus/pay`, null, {
+    params: childId != null ? { childId } : {}
+  })
 
 /* 저금통 입금 실행 */
 export const depositToPiggyBank = (piggyId, payload) =>
