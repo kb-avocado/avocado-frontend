@@ -29,8 +29,12 @@
           name: 'parent-newspaper-detail',
           params: { childId: childId, newsId: item.newsId }
         }"
-        class="relative flex items-center justify-between h-20 pl-7 pr-4 rounded-2xl overflow-visible bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]"
-        :class="item.isRead ? 'opacity-50' : ''"
+        class="relative flex items-center justify-between h-20 pl-7 pr-4 rounded-2xl overflow-visible"
+        :class="[
+          item.isNew ? '' : 'bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]',
+          item.isRead ? 'opacity-70' : ''
+        ]"
+        :style="item.isNew ? { backgroundColor: '#EBF4DD' } : undefined"
       >
         <!-- 티켓 탭 -->
         <span
@@ -151,7 +155,6 @@ async function fetchNews() {
     totalCount.value = data.data.totalCount
   } catch (error) {
     console.error('신문 목록 조회 실패:', error)
-    // 실패한 아이의 목록이 이전 아이 데이터로 잘못 보이지 않도록 비워준다
     newsList.value = []
     totalCount.value = 0
     errorMessage.value =
