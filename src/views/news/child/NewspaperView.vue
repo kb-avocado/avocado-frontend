@@ -9,6 +9,12 @@
       실제 어린이 경제 신문의 최신 기사를 매주 업데이트하여 제공합니다.
     </p>
 
+    <!-- 정렬 기준 구분선 -->
+    <div class="relative flex items-center justify-center mb-4">
+      <div class="absolute inset-x-0 top-1/2 h-px bg-gray-200" />
+      <span class="relative bg-white px-3 text-xs text-muted">최신 발행 순</span>
+    </div>
+
     <div v-if="isLoading" class="text-center text-muted text-sm py-10">불러오는 중...</div>
 
     <div v-else class="flex flex-col gap-3">
@@ -16,18 +22,34 @@
         v-for="item in newsList"
         :key="item.newsId"
         :to="{ name: 'newspaper-detail', params: { newsId: item.newsId } }"
-        class="flex items-center justify-between rounded-2xl px-4 py-4"
-        :style="{ backgroundColor: item.isRead ? 'rgba(235, 244, 221, 0.5)' : '#EBF4DD' }"
+        class="relative flex items-center justify-between h-20 pl-7 pr-4 rounded-2xl overflow-visible"
+        :class="item.isNew ? '' : 'bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]'"
+        :style="item.isNew ? { backgroundColor: '#EBF4DD' } : undefined"
       >
-        <div>
+        <!-- 티켓 탭 -->
+        <span
+          class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-10 rounded-full"
+          style="background-color: #bfbfbf"
+        />
+
+        <div class="min-w-0 flex-1 pr-3">
           <div class="flex items-center gap-2">
             <p
-              class="font-semibold"
+              class="font-semibold truncate"
               :class="item.isRead ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'"
             >
               {{ item.title }}
             </p>
-            <span v-if="item.isNew" class="text-xs font-bold text-red-500 shrink-0"> New!! </span>
+            <span
+              v-if="item.isNew"
+              class="text-[10px] font-bold text-white rounded-full px-2 py-0.5 shrink-0"
+              style="
+                background-color: #c97474;
+                box-shadow: inset 0 -1px 2px 0 rgba(255, 255, 255, 0.45);
+              "
+            >
+              NEW
+            </span>
           </div>
           <p class="text-xs text-muted mt-1">발행일: {{ formatDate(item.publishedAt) }}</p>
         </div>
@@ -36,9 +58,9 @@
           v-if="item.isCompleted"
           :src="getBadgeImage(item.newsId)"
           alt="참 잘했어요"
-          class="object-contain shrink-0"
-          style="width: 56px; height: 56px; transform: translateX(-20px)"
+          class="w-11 h-11 rounded-full bg-white object-contain shrink-0"
         />
+        <ChevronRight v-else :size="18" style="color: #bfbfbf" class="shrink-0" />
       </RouterLink>
     </div>
 
@@ -82,7 +104,7 @@ import ch11 from '@/assets/images/ch11.png'
 import ch12 from '@/assets/images/ch12.png'
 import { getNewsList } from '@/api/news'
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 6
 
 const newsList = ref([])
 const totalCount = ref(0)
