@@ -1,11 +1,10 @@
 <template>
   <div class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
-    <PiggyBankTabs v-model="tab" />
+    <CurrentChildBadge :name="currentChildName" :avatar-image="currentChildAvatarImage" />
 
-    <section class="mt-[26px] mb-5">
-      <h1 class="mb-[7px] text-[#252a26] text-[22px] tracking-[-0.7px]">{{ introTitle }}</h1>
-      <p class="text-[#4b534e] text-[13px] leading-[1.55]">{{ introDescription }}</p>
-    </section>
+    <div class="mt-[26px] mb-5">
+      <PiggyBankTabs v-model="tab" />
+    </div>
 
     <section
       v-if="error"
@@ -30,9 +29,10 @@
 
     <section v-else-if="items.length > 0" class="grid gap-[18px]">
       <ParentPiggyBankCard
-        v-for="item in items"
+        v-for="(item, index) in items"
         :key="item.piggyBankId"
         :item="item"
+        :index="index"
         :child-id="childId"
       />
     </section>
@@ -52,6 +52,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
 import ParentPiggyBankCard from '@/components/piggy/ParentPiggyBankCard.vue'
+import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
+import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
 
 const props = defineProps({
   childId: {
@@ -59,6 +61,10 @@ const props = defineProps({
     required: true
   }
 })
+
+const { name: currentChildName, avatarImage: currentChildAvatarImage } = useCurrentChildInfo(
+  computed(() => props.childId)
+)
 
 const store = usePiggyBankStore()
 const route = useRoute()
@@ -69,14 +75,6 @@ const loading = ref(false)
 const error = ref('')
 
 const items = computed(() => store.getParentList(props.childId, tab.value))
-
-const introTitle = computed(() => (tab.value === 'CLOSED' ? '모으기 성공! 🎉' : '아이의 저금 목표'))
-
-const introDescription = computed(() =>
-  tab.value === 'CLOSED'
-    ? '정말 멋져요, 목표를 다 달성했어요.'
-    : '아이의 목표 달성을 응원하는 특별한 선물을 준비해 보세요!'
-)
 
 async function load() {
   loading.value = true

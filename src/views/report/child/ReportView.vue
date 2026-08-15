@@ -18,7 +18,7 @@
       style="background-color: #f8dcae"
     >
       <img
-        src="@/assets/images/ch3.png"
+        src="@/assets/images/cadoseed.png"
         alt="아보카도 캐릭터"
         class="w-32 h-40 object-contain shrink-0"
       />
