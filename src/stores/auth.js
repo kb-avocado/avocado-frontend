@@ -41,5 +41,27 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { user, isAuthenticated, setUser, clear, restore }
+  /**
+   * 서버에서 로그인 정보를 다시 받아온다.
+   *
+   * restore()는 앱을 여는 동안 한 번만 물어보지만, 가족 연결이나 계좌 등록처럼
+   * 서버가 계정 상태를 바꾸는 시점에는 그때그때 다시 받아와야 한다.
+   *
+   * 실패해도 user를 비우지 않는다. 여기서의 실패는 로그아웃이 아니라 갱신 실패라
+   * 어떻게 처리할지는 부른 쪽이 정한다.
+   */
+  async function refresh() {
+    try {
+      const { data: response } = await getMe()
+      user.value = response.data
+      restored.value = true
+    } catch (error) {
+      // 실패한 채로 두면 낡은 정보가 그대로 굳는다.
+      // 복원 표시를 지워 다음 화면 이동 때 가드의 restore()가 다시 물어보게 한다.
+      restored.value = false
+      throw error
+    }
+  }
+
+  return { user, isAuthenticated, setUser, clear, restore, refresh }
 })
