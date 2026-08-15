@@ -1,5 +1,7 @@
 <template>
   <div v-if="report" class="p-4 pb-8 flex flex-col gap-5">
+    <CurrentChildBadge :name="selectedChildName" :avatar-image="spendingTypeImage" />
+
     <ReportBody
       :report="report"
       :spending-type="spendingType"
@@ -18,7 +20,7 @@
       style="background-color: #f8dcae"
     >
       <img
-        src="@/assets/images/ch3.png"
+        src="@/assets/images/cadoseed.png"
         alt="아보카도 캐릭터"
         class="w-32 h-40 object-contain shrink-0"
       />
@@ -39,6 +41,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import ReportBody from '@/components/report/ReportBody.vue'
+import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
 import { getReport, getSpendingType } from '@/api/report'
 import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 import { useAuthStore } from '@/stores/auth'

@@ -69,16 +69,15 @@ function resolveNextRoute(user) {
 <template>
   <main class="grid min-h-screen place-items-center bg-avocado-50 px-5 py-12">
     <section class="rise w-full max-w-[350px]">
-      <p class="mt-6 text-[11px] font-semibold tracking-[0.22em] text-avocado-600">AVOCADO</p>
       <h1
-        class="mt-2 mb-10 text-[27px] font-bold leading-[1.35] tracking-[-0.02em] text-[var(--color-avocado-900)]"
+        class="mt-6 mb-7 text-[22px] font-bold leading-[1.35] tracking-[-0.02em] text-[var(--color-avocado-900)]"
       >
         반가워요!<br />
         <span class="text-avocado-600 text-4xl">아보카도</span>에 로그인하세요
       </h1>
 
       <form class="flex flex-col gap-4" novalidate @submit.prevent="handleSubmit">
-        <div class="flex flex-col gap-1.5">
+             <div class="flex flex-col gap-1.5">
           <label for="email" class="text-[13px] font-medium text-avocado-secondary">이메일</label>
           <input
             id="email"

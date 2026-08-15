@@ -1,4 +1,4 @@
-import ch3 from '@/assets/images/ch3.png'
+import ch3 from '@/assets/images/cadoseed.png'
 import ch13 from '@/assets/images/ch13.png'
 import ch14 from '@/assets/images/ch14.png'
 import ch15 from '@/assets/images/ch15.png'

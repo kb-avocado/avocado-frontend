@@ -1,14 +1,11 @@
 <template>
-  <div
-    class="w-full h-[46px] p-1 grid grid-cols-2 rounded-[24px] bg-[#f2f3f4]"
-    role="tablist"
-    aria-label="저금통 상태"
-  >
+  <div class="flex items-center gap-2" role="tablist" aria-label="저금통 상태">
     <button
       type="button"
       role="tab"
       :aria-selected="modelValue === 'IN_PROGRESS'"
-      :class="tabClass('IN_PROGRESS')"
+      class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+      :style="tabStyle('IN_PROGRESS')"
       @click="selectTab('IN_PROGRESS')"
     >
       진행중
@@ -18,7 +15,8 @@
       type="button"
       role="tab"
       :aria-selected="modelValue === 'CLOSED'"
-      :class="tabClass('CLOSED')"
+      class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
+      :style="tabStyle('CLOSED')"
       @click="selectTab('CLOSED')"
     >
       완료
@@ -40,13 +38,9 @@ function selectTab(tab) {
   emit('update:modelValue', tab)
 }
 
-// 탭 버튼 클래스 (기본 + 활성/비활성)
-function tabClass(tab) {
-  return [
-    'border-0 rounded-[21px] text-xs font-bold cursor-pointer',
-    props.modelValue === tab
-      ? 'bg-surface text-[#252a26] shadow-[0_2px_6px_rgba(33,49,39,0.1)]'
-      : 'bg-transparent text-[var(--color-text-secondary)]'
-  ]
+function tabStyle(tab) {
+  return props.modelValue === tab
+    ? { backgroundColor: '#4C4C4C', border: '1.5px solid #5F5F5F', color: '#FFFFFF' }
+    : { backgroundColor: '#FFFFFF', border: '1.5px solid #D1D5DB', color: '#72796B' }
 }
 </script>

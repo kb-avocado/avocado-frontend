@@ -1,11 +1,8 @@
 <template>
   <div class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
-    <PiggyBankTabs v-model="tab" />
-
-    <section class="mt-[26px] mb-5">
-      <h1 class="mb-[7px] text-[#252a26] text-[22px] tracking-[-0.7px]">{{ introTitle }}</h1>
-      <p class="text-[#4b534e] text-[13px] leading-[1.55]">{{ introDescription }}</p>
-    </section>
+    <div class="mb-5">
+      <PiggyBankTabs v-model="tab" />
+    </div>
 
     <section
       v-if="error"
@@ -31,9 +28,10 @@
 
     <section v-else-if="displayedItems.length > 0" class="grid gap-[18px]">
       <ChildPiggyBankCard
-        v-for="item in displayedItems"
+        v-for="(item, index) in displayedItems"
         :key="item.piggyBankId"
         :item="item"
+        :index="index"
         @toggle-favorite="onToggleFavorite"
       />
     </section>
@@ -98,14 +96,6 @@ async function onToggleFavorite(item) {
 }
 
 const items = computed(() => store.getChildList(tab.value))
-
-const introTitle = computed(() => (tab.value === 'CLOSED' ? '모으기 성공! 🎉' : '나의 저금 목표'))
-
-const introDescription = computed(() =>
-  tab.value === 'CLOSED'
-    ? '정말 멋져요, 목표를 다 달성했어요.'
-    : '보호자님이 목표 달성을 응원하는 특별한 선물을 준비했어요!'
-)
 
 async function load() {
   loading.value = true

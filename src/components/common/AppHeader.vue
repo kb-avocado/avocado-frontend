@@ -1,6 +1,6 @@
 <template>
   <header
-    class="relative flex items-center justify-between h-14 px-4 bg-white border-b border-gray-100"
+    class="relative flex items-center justify-between h-16 px-4 bg-white border-b border-gray-100"
   >
     <div class="flex items-center w-8">
       <button

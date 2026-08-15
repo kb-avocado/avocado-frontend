@@ -1,29 +1,30 @@
 <template>
-  <article :class="articleClass" @click="goToDetail">
+  <article
+    class="relative p-[16px] grid gap-[13px] rounded-[20px] shadow-[0_7px_19px_rgba(37,54,42,0.08)] cursor-pointer"
+    style="background-color: #f5faff"
+    @click="goToDetail"
+  >
     <header
       class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
       :class="{ 'opacity-[0.42]': isCompleted }"
     >
       <span
-        class="w-[46px] h-[46px] grid place-items-center rounded-[14px] bg-[#edf7e5] text-[21px]"
+        class="w-[46px] h-[46px] grid place-items-center rounded-[14px] text-[21px]"
+        style="background-color: #f3f3f3"
         aria-hidden="true"
       >
         {{ icon }}
       </span>
 
-      <div class="min-w-0">
-        <h2 class="mb-1 overflow-hidden text-[#252a26] text-base text-ellipsis whitespace-nowrap">
-          {{ item.name }}
-        </h2>
-        <small
-          class="block overflow-hidden text-[#9ca29e] text-[10px] text-ellipsis whitespace-nowrap"
-        >
-          {{ category }}
-        </small>
-      </div>
+      <h2
+        class="min-w-0 overflow-hidden text-lg font-bold text-ellipsis whitespace-nowrap"
+        style="color: #1d1b16"
+      >
+        {{ item.name }}
+      </h2>
 
+      <!-- 아이 화면: 즐겨찾기(하트) 토글 -->
       <button
-        v-if="isActive"
         type="button"
         class="p-[7px] border-0 bg-transparent cursor-pointer"
         :aria-pressed="Boolean(item.favorite)"
@@ -44,35 +45,35 @@
           />
         </svg>
       </button>
-
-      <button
-        v-else
-        type="button"
-        class="py-[7px] px-[10px] border-0 rounded-full bg-[#eef8e5] text-[#68a34d] text-[9px] font-bold whitespace-nowrap"
-        @click.stop="goToCheerMessages"
-      >
-        부모님 응원보기
-      </button>
     </header>
 
-    <PiggyBankProgressBar
-      :rate="item.progressRate"
-      :abandoned="isAbandoned"
-      :class="{ 'opacity-[0.42]': isCompleted }"
-    />
+    <!-- 진행률 -->
+    <div class="grid gap-[9px]" :class="{ 'opacity-[0.42]': isCompleted }">
+      <div class="flex items-center justify-between">
+        <small class="text-sm" style="color: #72796b">진행률</small>
+        <strong class="text-xl" style="color: #000000">{{ safeRate }}%</strong>
+      </div>
+
+      <div class="w-full h-2.5 overflow-hidden rounded-full" style="background-color: #ebebeb">
+        <div
+          class="h-full rounded-full transition-[width] duration-700 ease-out"
+          :style="{ width: revealed ? `${safeRate}%` : '0%', backgroundColor: progressColor }"
+        ></div>
+      </div>
+    </div>
 
     <section
-      class="min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-[#f6f8f4]"
+      class="min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
       :class="{ 'opacity-[0.42]': isCompleted }"
     >
       <div class="grid gap-[5px]">
-        <small class="text-[#e47c24] text-[9px] font-bold">보호자님 추가 보너스</small>
-        <strong class="text-[#e47c24] text-[13px]">{{ bonusText }}</strong>
+        <small class="text-[11px] font-bold" style="color: #939393">보호자님 추가 보너스</small>
+        <strong class="text-[13px]" style="color: #e1585a">{{ bonusText }}</strong>
       </div>
 
       <div class="grid gap-[5px] text-right">
-        <small class="text-[#a3a9a4] text-[9px] font-bold">목표</small>
-        <strong class="text-[#252a26] text-[13px]">{{ won(item.targetAmount) }}</strong>
+        <small class="text-[11px] font-bold" style="color: #939393">목표</small>
+        <strong class="text-[13px]" style="color: #000000">{{ won(item.targetAmount) }}</strong>
       </div>
     </section>
 
@@ -86,20 +87,31 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import PiggyBankProgressBar from '@/components/piggy/PiggyBankProgressBar.vue'
 
 const props = defineProps({
   item: {
     type: Object,
     required: true
+  },
+  index: {
+    type: Number,
+    default: 0
   }
 })
 
 const emit = defineEmits(['toggle-favorite'])
 
 const router = useRouter()
+
+// 화면 진입 시 0% → 실제 진행률로 슈욱 차오르는 연출
+const revealed = ref(false)
+onMounted(() => {
+  requestAnimationFrame(() => {
+    revealed.value = true
+  })
+})
 
 function goToDetail() {
   router.push({ name: 'piggyChildDetail', params: { id: props.item.piggyBankId } })
@@ -109,36 +121,17 @@ function toggleFavorite() {
   emit('toggle-favorite', props.item)
 }
 
-function goToCheerMessages() {
-  router.push({ name: 'piggyCheerMessages', params: { id: props.item.piggyBankId } })
-}
-
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
-
-const isActive = computed(() => normalizedStatus.value === 'ACTIVE')
 
 const isCompleted = computed(() =>
   ['ACHIEVE', 'ACHIEVED', 'COMPLETED'].includes(normalizedStatus.value)
 )
 
-const isAbandoned = computed(() =>
-  ['CANCEL', 'CANCELLED', 'CANCELED', 'ABANDONED'].includes(normalizedStatus.value)
-)
-
-// 카드 컨테이너 클래스 (기본 + 상태별)
-const articleClass = computed(() => [
-  'relative p-[18px] grid gap-[15px] border rounded-[20px]',
-  'shadow-[0_7px_19px_rgba(37,54,42,0.08)]',
-  isAbandoned.value ? 'border-[#f1dfcd] bg-[#fffcf8]' : 'border-[#edf0ed] bg-surface'
-])
-
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
 
 const icon = computed(() => {
-  // 백엔드에 저장된 아이콘이 있으면 그대로 사용
   if (props.item.icon) return props.item.icon
 
-  // 없으면(아이콘 컬럼 생기기 전 저금통) 이름 기반 추론으로 폴백
   const text = `${props.item.name ?? ''} ${props.item.description ?? ''}`
   if (text.includes('자전거')) return '🚲'
   if (text.includes('책')) return '📚'
@@ -147,8 +140,6 @@ const icon = computed(() => {
   if (text.includes('선물')) return '🎁'
   return '🚀'
 })
-
-const category = computed(() => props.item.description || '저금 목표')
 
 const bonusText = computed(() => {
   const bonus = props.item.bonus
@@ -171,4 +162,12 @@ function calculateRateBonus(bonus) {
 function won(amount) {
   return `${Number(amount || 0).toLocaleString('ko-KR')}원`
 }
+
+const safeRate = computed(() => {
+  const value = Number(props.item.progressRate || 0)
+  return Math.min(100, Math.max(0, value))
+})
+
+const PROGRESS_COLORS = ['#FF8C69', '#7BC8F5', '#B39DDB']
+const progressColor = computed(() => PROGRESS_COLORS[props.index % PROGRESS_COLORS.length])
 </script>
