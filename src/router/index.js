@@ -9,7 +9,8 @@ import {
   isPublicRoute,
   resolveHomeRoute,
   resolveLandingRoute,
-  resolveOnboardingRoute
+  resolveOnboardingRoute,
+  restoreFamilyRequest
 } from './landing'
 
 const routes = [
@@ -317,6 +318,12 @@ router.beforeEach(async (to) => {
   // 가입 절차가 끝나지 않았으면 남은 연결 화면에만 머물 수 있다.
   if (user.status === 'PENDING' && !isOnboardingRoute(to)) {
     return resolveOnboardingRoute(user)
+  }
+
+  // 새로고침하면 메모리의 스토어가 비어 대기 화면이 진행 중인 요청을 잃는다.
+  // 화면을 옮기지는 않고 요청 ID만 다시 심어준다.
+  if (user.status === 'PENDING' && isFamilyConnectRoute(to)) {
+    restoreFamilyRequest(user)
   }
 
   // 연결을 마친 아이가 가족 연결 화면으로 되돌아오면 홈으로 보낸다.

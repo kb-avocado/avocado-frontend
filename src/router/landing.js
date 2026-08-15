@@ -30,6 +30,11 @@ export function isFamilyConnectRoute(to) {
   return FAMILY_CONNECT_ROUTE_NAMES.includes(to.name)
 }
 
+// 보호자의 응답을 기다리는 중이거나, 아이의 확정만 남은 요청.
+function hasRequestInProgress(family) {
+  return family?.status === 'PENDING' || family?.status === 'APPROVED'
+}
+
 /**
  * 가입 절차가 남은(PENDING) 계정이 이어서 밟아야 할 화면.
  * 부모는 계좌 등록, 아이는 가족 연결이며, 아이는 요청이 어디까지 갔는지에 따라 갈 곳이 다르다.
@@ -40,17 +45,36 @@ export function resolveOnboardingRoute(user) {
   }
 
   const familyConnectStore = useFamilyConnectStore()
-  const family = user.family
 
-  if (family?.status === 'PENDING' || family?.status === 'APPROVED') {
+  if (hasRequestInProgress(user.family)) {
     // 대기 화면이 새 요청을 만들지 않고 진행 중인 요청을 이어받도록 넘겨준다.
-    familyConnectStore.setRequestId(family.requestId)
+    familyConnectStore.setRequestId(user.family.requestId)
     return { name: 'family-pending' }
   }
 
   // 요청이 없거나 거절·취소됐으면 코드부터 다시 입력한다.
   familyConnectStore.clear()
   return { name: 'family-connect' }
+}
+
+/**
+ * 대기 화면이 잃어버린 요청 ID를 다시 심어준다.
+ *
+ * 보호자 요청 대기/아이 승인 대기 중 새로고침하면 스토어가 비워진다.
+ * 서버에 요청이 살아 있는데도 대기 화면이 그것을 찾지 못하고 
+ * 코드 입력부터 다시 시작하게 된다.
+ */
+export function restoreFamilyRequest(user) {
+  if (user.type === 'PARENT') return
+
+  const familyConnectStore = useFamilyConnectStore()
+
+  // 코드를 직접 입력하고 들어온 경우처럼 이미 값이 있으면 건드리지 않는다.
+  if (familyConnectStore.requestId) return
+
+  if (!hasRequestInProgress(user.family)) return
+
+  familyConnectStore.setRequestId(user.family.requestId)
 }
 
 /**
