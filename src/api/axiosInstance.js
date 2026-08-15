@@ -6,24 +6,76 @@ const axiosInstance = axios.create({
   // 그래야 브라우저 입장에서 같은 출처가 되어 CORS 없이 쿠키가 오간다.
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 10000,
-  // Access Token이 HttpOnly 쿠키로 오가므로 쿠키를 함께 실어 보낸다.
+  // 토큰이 HttpOnly 쿠키로 오가므로 쿠키를 함께 실어 보낸다.
   withCredentials: true
 })
 
-// 응답 인터셉터: 인증 만료(401) 처리
+// 진행 중인 재발급 요청. 여러 요청이 동시에 401을 받아도 재발급은 한 번만 나가야 한다.
+// 리프레시 토큰을 두 번 보내면 탈취로 오인해 전 기기가 로그아웃된다.
+let refreshRequest = null
+
+function requestRefresh() {
+  if (!refreshRequest) {
+    refreshRequest = axiosInstance
+      .post('/auth/refresh')
+      .then((response) => {
+        useAuthStore().setUser(response.data.data)
+        return response
+      })
+      .finally(() => {
+        refreshRequest = null
+      })
+  }
+
+  return refreshRequest
+}
+
+function goToLogin() {
+  useAuthStore().clear()
+
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+// 응답 인터셉터: 액세스 토큰이 만료되면 조용히 재발급하고 원래 요청을 다시 보낸다.
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const isLoginRequest = error.config?.url?.includes('/auth/login')
+  async (error) => {
+    const request = error.config
 
-    const isMeRequest = error.config?.url?.includes('/auth/me')
-
-    if (error.response?.status === 401 && !isLoginRequest && !isMeRequest) {
-      useAuthStore().clear()
-      window.location.href = '/login'
+    if (error.response?.status !== 401 || !request) {
+      return Promise.reject(error)
     }
 
-    return Promise.reject(error)
+    const url = request.url ?? ''
+
+    if (url.includes('/auth/login')) {
+      return Promise.reject(error)
+    }
+
+    if (url.includes('/auth/refresh')) {
+      return Promise.reject(error)
+    }
+
+    if (request.retriedAfterRefresh) {
+      goToLogin()
+      return Promise.reject(error)
+    }
+
+    request.retriedAfterRefresh = true
+
+    try {
+      await requestRefresh()
+
+      return axiosInstance(request)
+    } catch (refreshError) {
+      if (!url.includes('/auth/me')) {
+        goToLogin()
+      }
+
+      return Promise.reject(refreshError)
+    }
   }
 )
 
