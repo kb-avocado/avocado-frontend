@@ -248,7 +248,12 @@ onUnmounted(() => {
           </p>
         </div>
 
+        <!--
+          코드는 이 화면에 직접 코드를 입력하고 들어왔을 때만 갖고 있다.
+          재로그인으로 요청을 이어받은 경우에는 값이 없어 카드째 숨긴다.
+        -->
         <div
+          v-if="code"
           class="flex w-full items-center justify-between rounded-2xl px-4 py-4"
           style="background-color: var(--color-surface); border: 1px solid var(--color-border)"
         >
