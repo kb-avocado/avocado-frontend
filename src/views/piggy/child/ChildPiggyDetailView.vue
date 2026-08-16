@@ -125,7 +125,6 @@ function goToCheerMessages() {
   router.push({ name: 'piggyCheerMessages', params: { id: item.value.piggyBankId } })
 }
 
-// TODO: 입금 화면 라우트에 맞게 조정
 function goToDeposit() {
   router.push({ name: 'piggyDeposit', params: { id: piggyBankId.value } })
 }
