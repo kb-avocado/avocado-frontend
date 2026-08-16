@@ -69,6 +69,7 @@ import BaseButton from '@/components/common/BaseButton.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 
 import { sendCheerMessage, getPiggyBankDetail, payBonus } from '@/api/piggy'
+import { useAuthStore } from '@/stores/auth'
 
 /* 보너스 -> 송금 */
 import { createTransferQuery } from '@/utils/transfer'
@@ -108,8 +109,15 @@ onMounted(async () => {
   }
 })
 
-/* name은 임시 데이터 나중에 user db에서 가져와야함 */
-const childWalletLabel = '민지의 지갑'
+/* 사용자 정보 */
+const authStore = useAuthStore()
+
+const childWalletLabel = computed(() => {
+  const child = authStore.user?.child?.find(
+    (c) => String(c.id) === String(route.params.childId)
+  )
+  return `${child?.name ?? '아이'}의 지갑`
+})
 
 /* 보너스 계산 (실제 API 응답 구조: bonusType/bonusValue, flat) */
 const bonusAmount = computed(() => {
