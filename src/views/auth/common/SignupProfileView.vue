@@ -79,7 +79,8 @@ async function handleSubmit() {
     signupStore.reset()
 
     // 가입 직후에는 부모는 계좌 등록, 아이는 가족 연결을 마쳐야 한다.
-    router.push({ name: user.type === 'PARENT' ? 'account-connect' : 'family-connect' })
+    // 어느 화면인지는 라우터 가드가 계정 상태를 보고 정한다.
+    router.push({ name: 'home' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '회원가입 중 오류가 발생했습니다.'
   } finally {

@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router'
 import { requestFamilyConnect, getFamilyRequest, confirmFamilyRequest } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
 import { useFamilyConnectStore } from '@/stores/signup'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const familyConnectStore = useFamilyConnectStore()
+const authStore = useAuthStore()
 
 const POLL_INTERVAL = 3000
 const LOST_REDIRECT_DELAY = 2500
@@ -70,7 +72,20 @@ async function handleConfirm(confirm) {
   try {
     const { data: response } = await confirmFamilyRequest(requestId.value, confirm)
     // 연결이 확정되면 ACTIVE, 아이가 취소하면 CANCELED가 내려온다.
-    phase.value = response.data.status === 'ACTIVE' ? 'done' : 'canceled'
+    const connected = response.data.status === 'ACTIVE'
+
+    if (connected) {
+      // 연결이 확정되면 서버가 계정을 ACTIVE로 바꾸고 지갑도 만든다.
+      // 메모리의 로그인 정보는 아직 가입 절차 중이라 최신 정보로 맞춘다.
+      try {
+        await authStore.refresh()
+      } catch {
+        // 연결은 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
+        // 갱신에 실패해도 완료 화면은 그대로 보여준다. 홈으로 갈 때 가드가 다시 물어본다.
+      }
+    }
+
+    phase.value = connected ? 'done' : 'canceled'
   } catch (error) {
     // 실패 시 확인 화면으로 되돌림
     phase.value = 'confirm'
@@ -233,7 +248,12 @@ onUnmounted(() => {
           </p>
         </div>
 
+        <!--
+          코드는 이 화면에 직접 코드를 입력하고 들어왔을 때만 갖고 있다.
+          재로그인으로 요청을 이어받은 경우에는 값이 없어 카드째 숨긴다.
+        -->
         <div
+          v-if="code"
           class="flex w-full items-center justify-between rounded-2xl px-4 py-4"
           style="background-color: var(--color-surface); border: 1px solid var(--color-border)"
         >

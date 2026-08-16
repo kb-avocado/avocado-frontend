@@ -1,5 +1,13 @@
 <template>
-  <div class="p-4 flex flex-col gap-6">
+  <!--
+    TODO: 연결된 아이가 없는 부모 홈. 지금은 안내 문구만 있다.
+    초대 코드 안내나 아이 연결 유도 등 실제 화면은 따로 구현해야 한다.
+  -->
+  <div v-if="!hasChildren" class="p-4">
+    <p class="text-sm text-gray-500">연결된 아이가 없습니다.</p>
+  </div>
+
+  <div v-else class="p-4 flex flex-col gap-6">
     <!-- 아이 전환 -->
     <div class="flex gap-4 px-1">
       <button
@@ -319,9 +327,10 @@ import { getHome } from '@/api/home'
 import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 
 const props = defineProps({
+  // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
   childId: {
     type: [String, Number],
-    required: true
+    default: ''
   }
 })
 
@@ -332,6 +341,7 @@ const { wallet, loading: walletLoading, error: walletError } = storeToRefs(walle
 
 // 로그인 응답(authStore.user.child)에 실려온, 실제로 이 부모와 연결된 아이 목록.
 const children = computed(() => authStore.user?.child ?? [])
+const hasChildren = computed(() => children.value.length > 0)
 const selectedChildName = computed(
   () => children.value.find((child) => String(child.id) === String(props.childId))?.name ?? '아이'
 )
@@ -509,6 +519,9 @@ watch(
 )
 
 onMounted(() => {
+  // 연결된 아이가 없으면 조회할 대상도 없다.
+  if (!hasChildren.value) return
+
   fetchHome()
   fetchWalletBalance()
   fetchChildrenTypeImages().then(fetchWalletTypeImage)

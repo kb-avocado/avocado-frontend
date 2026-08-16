@@ -2,6 +2,16 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
+import {
+  isFamilyConnectRoute,
+  isGuestOnlyRoute,
+  isOnboardingRoute,
+  isPublicRoute,
+  resolveHomeRoute,
+  resolveLandingRoute,
+  resolveOnboardingRoute,
+  restoreFamilyRequest
+} from './landing'
 
 const routes = [
   {
@@ -55,7 +65,8 @@ const routes = [
     meta: { title: '아보카도 홈' }
   },
   {
-    path: '/parent/:childId/home',
+    // 연결된 아이가 없는 부모도 홈에는 들어와야 해서 childId를 선택 파라미터로 둔다.
+    path: '/parent/:childId?/home',
     name: 'parent-home',
     component: () => import('@/views/home/parent/HomeView.vue'),
     props: true,
@@ -279,47 +290,52 @@ const router = createRouter({
   routes
 })
 
-/*
+/* 인증 가드
  *
- * TODO: 로그인 인증 시 주석 해제하기
+ * 로그인하지 않은 접근은 모두 로그인 화면으로 보낸다.
+ * 가입 절차가 남은(PENDING) 계정은 남은 연결 화면 밖으로 나가지 못하게 막는다.
  *
- * 인증 가드 (비활성화)
- *
- * 활성화하면 로그인하지 않은 접근이 모두 로그인 화면으로 간다.
- * 개발을 위해 비활성화한다.
- *
- * TODO: 활성화할 때 함께 고칠 것
- * PENDING 계정이 /login으로 들어오면 홈이 아니라 연결 화면으로 가야 한다. 
- * PENDING 판단을 가드로 몰기
- * 
+ * 갈 화면을 정하는 규칙은 landing.js에 모여 있다.
  */
-
-// // 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 홈으로 돌린다.
-// const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
-
-// function isGuestOnlyRoute(to) {
-//   return GUEST_ONLY_ROUTE_NAMES.includes(to.name) || to.path.startsWith('/signup')
-// }
-
-// // 로그인 없이 볼 수 있는 화면. 여기 없는 화면은 전부 인증이 필요하다.
-// function isPublicRoute(to) {
-//   return to.name === 'splash' || isGuestOnlyRoute(to)
-// }
-
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   await authStore.restore()
 
-  // if (authStore.isAuthenticated && isGuestOnlyRoute(to)) {
-  //   return { name: 'home' }
-  // }
+  const user = authStore.user
 
-  // if (isPublicRoute(to)) return
+  // 로그인한 사람이 로그인·회원가입 화면에 오면 계정 상태에 맞는 화면으로 되돌린다.
+  if (user && isGuestOnlyRoute(to)) {
+    return resolveLandingRoute(user)
+  }
 
-  // if (!authStore.isAuthenticated) {
-  //   return { name: 'login' }
-  // }
+  if (isPublicRoute(to)) return
+
+  if (!user) {
+    return { name: 'login' }
+  }
+
+  // 가입 절차가 끝나지 않았으면 남은 연결 화면에만 머물 수 있다.
+  if (user.status === 'PENDING' && !isOnboardingRoute(to)) {
+    return resolveOnboardingRoute(user)
+  }
+
+  // 새로고침하면 메모리의 스토어가 비어 대기 화면이 진행 중인 요청을 잃는다.
+  // 화면을 옮기지는 않고 요청 ID만 다시 심어준다.
+  if (user.status === 'PENDING' && isFamilyConnectRoute(to)) {
+    restoreFamilyRequest(user)
+  }
+
+  // 연결을 마친 아이가 가족 연결 화면으로 되돌아오면 홈으로 보낸다.
+  // 다시 요청하면 서버가 이미 연결됐다며 막는다.
+  if (user.status !== 'PENDING' && isFamilyConnectRoute(to)) {
+    return resolveHomeRoute(user)
+  }
+
+  // 로그인·회원가입 화면이 홈으로만 밀어넣고 나머지를 여기 맡긴다.
+  if (user.type === 'PARENT' && to.name === 'home') {
+    return resolveHomeRoute(user)
+  }
 })
 
 export default router
