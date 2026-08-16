@@ -116,10 +116,6 @@ const centerItem = computed(() => {
       menu: 'transfer',
       label: '송금하기',
       icon: Send,
-      to: {
-        name: 'transfer-recipient',
-        query: childId.value ? { childId: childId.value } : {}
-      }
       to: childId.value
         ? {
             name: 'parent-transfer',
