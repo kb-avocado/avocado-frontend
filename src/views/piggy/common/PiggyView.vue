@@ -54,9 +54,9 @@
         새로운 저금 목표 추가하기
       </button>
 
-      <p class="mt-[25px] text-[#777f79] text-[9px] text-center">
+      <p class="mt-[25px] text-xs text-muted leading-relaxed text-center">
         저금 목표는 최대 {{ store.childMaxCount }}개까지 만들 수 있어요.
-        <strong class="text-[#3d7837]"
+        <strong class="text-gray-600"
           >(현재 {{ store.childActiveCount }}/{{ store.childMaxCount }})</strong
         >
       </p>

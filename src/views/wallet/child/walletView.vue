@@ -31,7 +31,7 @@
     </button>
 
     <div class="flex min-h-0 flex-1 flex-col items-center justify-center py-3 text-center">
-      <img src="@/assets/images/card01.png" alt="" class="h-[180px] w-[180px] object-contain" />
+      <img src="@/assets/images/cadoseed.png" alt="" class="h-[180px] w-[180px] object-contain" />
       <h2 class="mt-3 text-base font-bold text-gray-900">비밀번호 6자리를 입력해 주세요.</h2>
       <div class="mt-4 flex gap-3" aria-label="비밀번호 입력 상태" aria-live="polite">
         <span

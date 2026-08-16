@@ -1,15 +1,18 @@
 <template>
-  <div class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
+  <NoChildConnected v-if="!hasChildren" />
+
+  <div v-else class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
     <CurrentChildBadge :name="currentChildName" :avatar-image="currentChildAvatarImage" />
 
     <div class="mt-[26px] mb-5">
       <PiggyBankTabs v-model="tab" />
     </div>
 
-    <section
+<section
       v-if="error"
-      class="p-[14px] flex items-center justify-between gap-3 rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
     >
+      <span aria-hidden="true">!</span>
       <p class="text-xs">{{ error }}</p>
       <button
         type="button"
@@ -53,14 +56,20 @@ import { usePiggyBankStore } from '@/stores/piggyBank'
 import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
 import ParentPiggyBankCard from '@/components/piggy/ParentPiggyBankCard.vue'
 import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
+import NoChildConnected from '@/components/common/NoChildConnected.vue'
 import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
+  // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
   childId: {
     type: [String, Number],
-    required: true
+    default: ''
   }
 })
+
+const authStore = useAuthStore()
+const hasChildren = computed(() => (authStore.user?.child ?? []).length > 0)
 
 const { name: currentChildName, avatarImage: currentChildAvatarImage } = useCurrentChildInfo(
   computed(() => props.childId)
@@ -77,6 +86,8 @@ const error = ref('')
 const items = computed(() => store.getParentList(props.childId, tab.value))
 
 async function load() {
+  if (!hasChildren.value) return
+
   loading.value = true
   error.value = ''
 

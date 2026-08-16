@@ -17,13 +17,13 @@
       </span>
 
       <h2
-        class="min-w-0 overflow-hidden text-lg font-bold text-ellipsis whitespace-nowrap"
+        class="min-w-0 overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap"
         style="color: #1d1b16"
       >
         {{ item.name }}
       </h2>
 
-      <!-- 부모 화면: 응원보내기 -->
+      <!-- 부모 화면: 응원보내기. click.stop 필수 — 안 그러면 카드 클릭(goToDetail)까지 같이 실행됨 -->
       <button
         type="button"
         class="py-[7px] px-[12px] border-0 rounded-full text-xs font-bold whitespace-nowrap"
@@ -90,7 +90,8 @@
 
     <div
       v-if="isCompleted"
-      class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] bg-avocado-600 text-white text-[13px] font-extrabold text-center shadow-[0_6px_14px_rgba(91,154,63,0.32)]"
+      class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] text-white text-[15px] text-center shadow-[0_6px_14px_rgba(89,121,177,0.32)]"
+      style="background-color: #71A0EF"
     >
       저금통 깨기 완료!
     </div>
@@ -117,7 +118,6 @@ const props = defineProps({
 })
 const router = useRouter()
 
-// 화면 진입 시 0% → 실제 진행률로 슈욱 차오르는 연출
 const revealed = ref(false)
 onMounted(() => {
   requestAnimationFrame(() => {
@@ -135,13 +135,11 @@ function goToBonusTransfer() {
 }
 
 function goToCheerMessages() {
-  const inProgress = ['ACTIVE', 'PENDING_ACHIEVE'].includes(normalizedStatus.value)
   router.push({
-    name: inProgress ? 'piggyCheerCompose' : 'piggyCheerMessagesManage',
+    name: 'piggyCheerCompose',
     params: { childId: props.childId, id: props.item.piggyBankId }
   })
 }
-
 function goToDetail() {
   router.push({
     name: 'piggyDetail',
