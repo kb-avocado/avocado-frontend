@@ -136,7 +136,7 @@ const routes = [
     meta: { title: '신문', showBack: true, audience: 'parent' }
   },
   //리포트
-{
+  {
     path: '/child/report',
     name: 'child-report',
     component: () => import('@/views/report/child/ReportView.vue'),
@@ -155,6 +155,19 @@ const routes = [
     path: '/transfer',
     name: 'transfer',
     redirect: { name: 'transfer-recipient' }
+  },
+  // 보호자 용돈 보내기 (보호자 계좌 -> 아이 선불지갑)
+  {
+    path: '/parent/:childId/transfer',
+    name: 'parent-transfer',
+    component: () => import('@/views/transfer/parent/ParentTransferView.vue'),
+    props: true,
+    meta: {
+      title: '용돈 보내기',
+      showBack: true,
+      audience: 'parent',
+      menu: 'transfer'
+    }
   },
   {
     path: '/transfer/recipient',

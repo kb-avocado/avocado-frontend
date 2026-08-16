@@ -120,16 +120,19 @@ const centerItem = computed(() => {
   if (isParent.value) {
     return {
       key: 'transfer',
-      menu: 'wallet',
+      menu: 'transfer',
       label: '송금하기',
       icon: Send,
-      to: {
-        name: 'wallet',
-        query: {
-          mode: 'transfer',
-          childId: childId.value || undefined
-        }
-      }
+      to: childId.value
+        ? {
+            name: 'parent-transfer',
+            params: {
+              childId: childId.value
+            }
+          }
+        : {
+            name: 'home'
+          }
     }
   }
 

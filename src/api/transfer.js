@@ -31,3 +31,15 @@ export function getRecentTransferRecipients(config = {}) {
     signal: config.signal
   })
 }
+
+/**
+ * 로그인한 보호자의 계좌에서 연결된 아이의 선불지갑으로 송금합니다.
+ *
+ * @param {{ childId: string | number, amount: number }} payload
+ */
+export function transferAccountToWallet({ childId, amount }) {
+  return api.post('/transfers/account-to-wallet', {
+    childId: Number(childId),
+    amount: Number(amount)
+  })
+}
