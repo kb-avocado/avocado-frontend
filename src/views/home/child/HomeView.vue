@@ -32,22 +32,49 @@
       </button>
     </section>
 
-    <!-- 지갑 카드: 피그마 스펙(padding 32/24/28/24, gap 20, radius 24) 반영 -->
+   <!-- 지갑 카드: 피그마 스펙(padding 32/24/28/24, gap 20, radius 24) 반영 -->
     <section
       v-else
-      class="flex flex-col items-center text-center"
+      class="relative flex flex-col items-center text-center overflow-visible"
       style="
-        padding: 32px 24px 28px 24px;
-        gap: 20px;
+        padding: 26px 24px 22px 24px;
+        gap: 18px;
         border-radius: 24px;
         background-color: #ebf4dd;
         box-shadow: 0 4px 12px 0 rgba(54, 106, 27, 0.12);
       "
     >
+      <!-- 박음질(스티치) 테두리 -->
+      <svg
+        class="absolute inset-0 w-full h-full pointer-events-none"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+     <rect
+          x="8"
+          y="8"
+          width="calc(100% - 16px)"
+          height="calc(100% - 16px)"
+          rx="18"
+          fill="none"
+          stroke="#B9D69A"
+          stroke-width="1.5"
+          stroke-dasharray="14 8"
+        />
+      </svg>
+
+  <!-- 지갑 잠금 탭(똑딱이): 카드 오른쪽 옆면에 붙임 -->
+      <div
+        class="absolute top-1/2 -right-[14px] -translate-y-1/2 w-7 h-16 rounded-full flex items-center justify-center"
+        style="background-color: #cfe4b3; box-shadow: 0 2px 4px rgba(54, 106, 27, 0.18)"
+        aria-hidden="true"
+      >
+        <span class="w-3.5 h-3.5 rounded-full" style="background-color: #f0c948" />
+      </div>
       <img
         :src="walletTypeImage"
         alt="저번달 소비 유형 캐릭터"
-        class="w-36 h-36 object-contain"
+        class="relative w-36 h-36 object-contain mt-2"
       />
       <div>
         <p class="text-lg font-bold text-gray-900">내 아보카도 지갑</p>
@@ -163,7 +190,7 @@
 
     <!-- 소비 / 신문 토글 -->
     <section>
-      <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <button
             v-for="tabOption in HOME_TAB_OPTIONS"
@@ -173,8 +200,8 @@
             :style="
               activeHomeTab === tabOption.key
                 ? {
-                    backgroundColor: '#A0A0A0',
-                    border: '1.5px solid #A0A0A0',
+                    backgroundColor: '#4C4C4C',
+                    border: '1.5px solid #5F5F5F',
                     color: '#FFFFFF'
                   }
                 : {

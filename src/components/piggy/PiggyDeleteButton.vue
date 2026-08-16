@@ -1,14 +1,14 @@
 <template>
   <div>
-    <!-- 삭제하기 버튼 -->
-    <button
-      type="button"
-      class="w-full h-12 rounded-xl border-2 border-[#C2C9B8] text-[#42493C] text-sm font-medium flex items-center justify-center gap-2"
+    <!-- 삭제하기 버튼: 기본 outline 색상(text-avocado-600 등)을 !important로 확실히 덮어씀 -->
+    <BaseButton
+      variant="outline"
+      class="w-full !text-[#F34242] !border-[#F34242]"
       @click="showModal = true"
     >
-      <Trash2 :size="18" />
+      <Trash2 :size="18" class="mr-1" />
       저금통 삭제하기
-    </button>
+    </BaseButton>
 
     <!-- 삭제 확인 모달 -->
     <div
@@ -50,6 +50,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Trash2 } from 'lucide-vue-next'
+import BaseButton from '@/components/common/BaseButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 
 const props = defineProps({

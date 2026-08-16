@@ -1,5 +1,7 @@
 <template>
-  <main class="flex min-h-full flex-col bg-white px-4 pb-5 pt-6">
+  <NoChildConnected v-if="isParentWithNoChild" />
+
+  <main v-else class="flex min-h-full flex-col bg-white px-4 pb-5 pt-6">
     <div>
       <h1 class="text-xl font-bold text-gray-900">누구에게 송금할까요?</h1>
       <p class="mt-2 text-sm text-gray-500">은행과 계좌번호를 입력해주세요.</p>
@@ -59,17 +61,25 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/components/common/BaseButton.vue'
+import NoChildConnected from '@/components/common/NoChildConnected.vue'
 import AccountNumberInput from '@/components/transfer/AccountNumberInput.vue'
 import BankSelect from '@/components/transfer/BankSelect.vue'
 import RecentRecipientList from '@/components/transfer/RecentRecipientList.vue'
 import { useRecentTransferRecipients } from '@/composables/transfer/useRecentTransferRecipients'
 import { useTransferRecipientSearch } from '@/composables/transfer/useTransferRecipientSearch'
 import { useTransferStore } from '@/stores/transfer'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const transferStore = useTransferStore()
+const authStore = useAuthStore()
+
+const isParentWithNoChild = computed(
+  () => authStore.user?.type === 'PARENT' && (authStore.user?.child ?? []).length === 0
+)
 
 async function selectRecentRecipient(recipient) {
   transferStore.setRecipient(recipient)
