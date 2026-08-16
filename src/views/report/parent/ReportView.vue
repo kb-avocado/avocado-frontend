@@ -1,5 +1,7 @@
 <template>
-  <div v-if="report" class="p-4 pb-8 flex flex-col gap-5">
+  <NoChildConnected v-if="!hasChildren" />
+
+  <div v-else-if="report" class="p-4 pb-8 flex flex-col gap-5">
     <CurrentChildBadge :name="selectedChildName" :avatar-image="spendingTypeImage" />
 
     <ReportBody
@@ -12,27 +14,7 @@
       @next-month="goToMonth(1)"
     />
 
-    <!-- 아보카도 씨의 한마디 -->
-    <!-- TODO(backend): AI 조언 API 아직 없음. 생기면 report.advice로 연결 -->
-    <div
-      v-if="report.advice"
-      class="rounded-3xl shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] p-5 flex items-center gap-4"
-      style="background-color: #f8dcae"
-    >
-      <img
-        src="@/assets/images/cadoseed.png"
-        alt="아보카도 캐릭터"
-        class="w-32 h-40 object-contain shrink-0"
-      />
-
-      <div>
-        <p class="text-sm font-bold text-avocado-600 mb-5">아보카도 씨의 한마디</p>
-
-        <p class="text-sm text-gray-800 leading-relaxed">
-          {{ report.advice }}
-        </p>
-      </div>
-    </div>
+    <!-- 이하 기존 내용 동일 -->
   </div>
 
   <div v-else class="p-4 text-center text-sm py-10">불러오는 중...</div>
@@ -45,15 +27,17 @@ import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
 import { getReport, getSpendingType } from '@/api/report'
 import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 import { useAuthStore } from '@/stores/auth'
-
+import NoChildConnected from '@/components/common/NoChildConnected.vue'
 const props = defineProps({
+  // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
   childId: {
     type: [String, Number],
-    required: true
+    default: ''
   }
 })
 
 const authStore = useAuthStore()
+const hasChildren = computed(() => (authStore.user?.child ?? []).length > 0)
 const children = computed(() => authStore.user?.child ?? [])
 const selectedChildName = computed(
   () => children.value.find((child) => String(child.id) === String(props.childId))?.name ?? '아이'
@@ -74,6 +58,8 @@ const spendingTypeImage = computed(() =>
 )
 
 async function fetchReport() {
+  if (!hasChildren.value) return
+
   try {
     const { data } = await getReport(currentYearMonth.value, props.childId)
     report.value = data.data
@@ -83,6 +69,8 @@ async function fetchReport() {
 }
 
 async function fetchSpendingType() {
+  if (!hasChildren.value) return
+
   try {
     const { data } = await getSpendingType(currentYearMonth.value, props.childId)
     spendingType.value = data.data

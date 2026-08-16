@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-surface">
+  <div class="h-screen overflow-hidden flex flex-col bg-surface">
     <AppHeader
       :title="item?.name || '저금통'"
       show-back
@@ -8,27 +8,51 @@
       @click-back="router.back()"
     />
 
-    <div v-if="!item" class="flex-1 grid place-items-center p-4">
+    <div v-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
     </div>
 
-    <div v-else class="flex-1 p-4 pb-24 space-y-6">
-      <!-- 성장 이미지 + 응원보기 -->
-      <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[180px] p-6">
-        <img :src="growthImage" alt="저금통 성장" class="max-h-40 object-contain" />
-        <button
-          type="button"
-          class="absolute bottom-3 right-3 bg-avocado-100 text-avocado-600 text-xs font-semibold rounded-full px-3 py-1"
-          @click="goToCheerMessages"
-        >
-          부모님 응원보기
-        </button>
+    <div v-else class="flex-1 min-h-0 overflow-y-auto p-4 pb-24 space-y-6">
+      <!-- 성장 이미지 + 단계 프로그레스바: 한 그룹으로 묶어서 간격을 좁게 -->
+      <div class="mx-2 flex flex-col gap-1">
+        <!-- 성장 이미지 + 응원보기 -->
+        <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[220px] p-6">
+          <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
+          <div class="w-40 h-40 overflow-hidden grid place-items-center">
+            <img
+              :src="growthImage"
+              alt="저금통 성장"
+              class="w-full h-full object-contain scale-125"
+            />
+          </div>
+
+          <!-- 단계가 오르면 5초간 이미지 위에 느낌표 배지 표시 -->
+          <Transition name="fade">
+            <span
+              v-if="showLevelUpBadge"
+              class="absolute top-6 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white grid place-items-center text-xl shadow-md animate-bounce"
+              aria-hidden="true"
+            >
+              ❗️
+            </span>
+          </Transition>
+
+          <!-- 부모 화면 '응원보내기' 버튼과 동일한 스타일 -->
+          <button
+            type="button"
+            class="absolute bottom-3 right-4 py-[7px] px-[12px] border-0 rounded-full text-xs font-bold whitespace-nowrap"
+            style="background-color: #fcf7c2; color: #555353"
+            @click="goToCheerMessages"
+          >
+            부모님 응원보기
+          </button>
+        </div>
+
+        <PiggyGrowthProgressBar :progress-rate="item.progressRate" />
       </div>
 
-      <PiggyGrowthProgressBar :progress-rate="item.progressRate" />
-
       <!-- 남은 금액 / 목표 -->
-      <div class="flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
+      <div class="mx-2 flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
         <div>
           <p class="text-xs text-muted">남은 금액</p>
           <p class="text-xl font-bold text-avocado-900">{{ formatWon(remainingAmount) }}</p>
@@ -41,7 +65,7 @@
 
       <!-- 입금 내역 -->
       <div>
-        <p class="text-sm font-medium text-avocado-900 mb-2">입금 내역</p>
+        <p class="mx-2 text-sm font-medium text-avocado-900 mb-2">입금 내역</p>
         <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" />
       </div>
 
@@ -52,15 +76,10 @@
         </p>
 
         <div class="space-y-3">
-          <button
-            type="button"
-            class="w-full h-14 rounded-xl bg-avocado-600 text-white text-base font-bold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
-            :disabled="!isActive"
-            @click="goToDeposit"
-          >
-            <PiggyBank :size="20" />
+          <BaseButton variant="primary" class="w-full" :disabled="!isActive" @click="goToDeposit">
+            <PiggyBank :size="20" class="mr-1" />
             저금하기
-          </button>
+          </BaseButton>
 
           <!-- 삭제 컴포넌트 -->
           <PiggyDeleteButton :piggy-bank-id="item.piggyBankId" @deleted="onDeleted" />
@@ -73,22 +92,46 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PiggyBank } from 'lucide-vue-next'
 
 import AppHeader from '@/components/common/AppHeader.vue'
+import BaseButton from '@/components/common/BaseButton.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.vue'
 import PiggyGrowthProgressBar from '@/components/piggy/PiggyGrowthProgressBar.vue'
 import PiggyDeleteButton from '@/components/piggy/PiggyDeleteButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 
-import stage1 from '@/assets/images/ch6.png'
-import stage2 from '@/assets/images/ch7.png'
-import stage3 from '@/assets/images/ch8.png'
-import stage4 from '@/assets/images/ch9.png'
-import stage5 from '@/assets/images/ch10.png'
+import stage1 from '@/assets/images/seed1.png'
+import stage2 from '@/assets/images/seed2.png'
+import stage3 from '@/assets/images/seed3.png'
+import stage4 from '@/assets/images/seed4.png'
+import stage5 from '@/assets/images/seed5.png'
+
+const LEVEL_UP_BADGE_DURATION_MS = 5000
+// 저금통별 마지막으로 확인한 단계를 세션 동안 기억해두는 키.
+// '저금하기' 화면으로 이동했다가 돌아오면 이 컴포넌트가 새로 mount되기 때문에,
+// 컴포넌트 안의 변수만으로는 "이전 단계"를 알 수 없어 sessionStorage에 저장해둔다.
+const STAGE_STORAGE_PREFIX = 'piggyStage:'
+
+function readStoredStage(id) {
+  try {
+    const raw = sessionStorage.getItem(STAGE_STORAGE_PREFIX + id)
+    return raw ? Number(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function writeStoredStage(id, stage) {
+  try {
+    sessionStorage.setItem(STAGE_STORAGE_PREFIX + id, String(stage))
+  } catch {
+    // 저장 실패해도 화면 동작에는 지장 없음
+  }
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -108,13 +151,42 @@ const remainingAmount = computed(() =>
   Math.max(0, Number(item.value?.targetAmount || 0) - Number(item.value?.savedAmount || 0))
 )
 
-const growthImage = computed(() => {
+// 진행률(rate)에 따른 성장 단계(1~5)
+const stageLevel = computed(() => {
   const rate = Number(item.value?.progressRate || 0)
-  if (rate < 20) return stage1
-  if (rate < 40) return stage2
-  if (rate < 60) return stage3
-  if (rate < 80) return stage4
-  return stage5
+  if (rate < 20) return 1
+  if (rate < 40) return 2
+  if (rate < 60) return 3
+  if (rate < 80) return 4
+  return 5
+})
+
+const STAGE_IMAGES = [stage1, stage2, stage3, stage4, stage5]
+const growthImage = computed(() => STAGE_IMAGES[stageLevel.value - 1])
+
+const showLevelUpBadge = ref(false)
+let levelUpTimer = null
+
+// item이 새로 채워질 때마다(첫 로드든, 저금하기 후 다시 돌아온 재조회든) 실행된다.
+// sessionStorage에 저장된 이전 단계보다 지금 단계가 높으면 방금 레벨업한 거라 배지를 띄운다.
+watch(item, (newItem) => {
+  if (!newItem) return
+
+  const id = String(newItem.piggyBankId ?? piggyBankId.value)
+  const rate = Number(newItem.progressRate || 0)
+  const newStage = Math.min(5, Math.floor(rate / 20) + 1)
+  const storedStage = readStoredStage(id)
+
+  if (storedStage !== null && newStage > storedStage) {
+    showLevelUpBadge.value = true
+
+    if (levelUpTimer) clearTimeout(levelUpTimer)
+    levelUpTimer = setTimeout(() => {
+      showLevelUpBadge.value = false
+    }, LEVEL_UP_BADGE_DURATION_MS)
+  }
+
+  writeStoredStage(id, newStage)
 })
 
 function formatWon(amount) {
@@ -134,3 +206,14 @@ function onDeleted() {
   router.push({ name: 'piggy' })
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

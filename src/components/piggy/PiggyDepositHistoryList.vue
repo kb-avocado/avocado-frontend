@@ -1,5 +1,5 @@
 <template>
-    <div class="rounded-2xl border border-avocado-100 shadow-sm p-4">
+   <div class="mx-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-4">
         <p v-if="deposits.length === 0" class="text-sm text-muted text-center py-6">
             아직 입금 내역이 없어요.
         </p>
@@ -41,10 +41,10 @@ onMounted(async () => {
     }
 })
 
-/* 날짜를 00.00 형태로 변환 */
+/* 날짜를 0000.00.00 형태로 변환 */
 function formatDate(dateString) {
     const date = new Date(dateString)
-    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
 }
 
 /* 원화 포맷 */

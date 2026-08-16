@@ -64,8 +64,7 @@ const routes = [
     component: () => import('@/views/home/child/HomeView.vue'),
     meta: { title: '아보카도 홈' }
   },
-  {
-    // 연결된 아이가 없는 부모도 홈에는 들어와야 해서 childId를 선택 파라미터로 둔다.
+ {
     path: '/parent/:childId?/home',
     name: 'parent-home',
     component: () => import('@/views/home/parent/HomeView.vue'),
@@ -119,9 +118,8 @@ const routes = [
     component: () => import('@/views/news/child/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
-  {
-    //부모용 신문 리스트화면
-    path: '/parent/:childId/newspaper',
+{
+    path: '/parent/:childId?/newspaper',
     name: 'parent-newspaper',
     component: () => import('@/views/news/parent/NewspaperListView.vue'),
     props: true,
@@ -142,11 +140,11 @@ const routes = [
     component: () => import('@/views/report/child/ReportView.vue'),
     meta: { title: '맛있는 과카몰리 리포트' }
   },
-  {
-    path: '/parent/:childId/report',
+{
+    path: '/parent/:childId?/report',
     name: 'parent-report',
     component: () => import('@/views/report/parent/ReportView.vue'),
-    props: true, // ← 이 줄이 있는지 확인
+    props: true,
     meta: { title: '맛있는 과카몰리 리포트', audience: 'parent', menu: 'report' }
   },
 
@@ -184,15 +182,15 @@ const routes = [
     path: '/child/piggy',
     name: 'piggy',
     component: () => import('@/views/piggy/common/PiggyView.vue'),
-    meta: { title: '저금통', menu: 'piggy', audience: 'child' }
+    meta: { title: '티끌모아 태산! 아보카도 저금통', menu: 'piggy', audience: 'child' }
   },
   /* 저금통 목록 (부모) */
-  {
-    path: '/parent/:childId/piggy',
+{
+    path: '/parent/:childId?/piggy',
     name: 'parent-piggy-list',
     component: () => import('@/views/piggy/parent/ParentPiggyBankListView.vue'),
     props: true,
-    meta: { title: '저금통', menu: 'piggy', audience: 'parent' }
+    meta: { title: '티끌모아 태산! 아보카도 저금통', audience: 'parent', menu: 'piggy' }
   },
   /* 저금통 생성 (아이) */
   {
@@ -241,7 +239,7 @@ const routes = [
     path: '/parent/:childId/piggy/:id/cheer-messages/manage',
     name: 'piggyCheerMessagesManage',
     component: () => import('@/views/piggy/common/PiggyCheerMessageListView.vue'),
-    meta: { hideLayout: true, title: '부모님 응원 보기', cheerDeletable: true, audience: 'parent' }
+    meta: { hideLayout: true, title: '보냈던 응원 보기', cheerDeletable: true, audience: 'parent' }
   },
   {
     path: '/parent/:childId/piggy/:id/cheer-messages/new',

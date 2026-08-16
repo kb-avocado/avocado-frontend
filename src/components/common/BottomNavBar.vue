@@ -77,7 +77,20 @@ const isParent = computed(() => authStore.user?.type === 'PARENT')
 
 // URL에 이미 childId가 있으면 그걸 우선 쓰고(아이를 여러 명 둔 부모가 특정 아이 화면에 있는 경우),
 // 없으면 로그인 시 내려온 연결된 아이 목록 중 첫 번째를 기본값으로 쓴다.
+// 연결된 아이가 아예 없으면 빈 문자열 → 부모용 라우트에 childId 없이 진입(각 화면이 "연결된 아이 없음"을 보여줌).
 const childId = computed(() => String(route.params.childId ?? authStore.user?.child?.[0]?.id ?? ''))
+
+// 부모이면서 아이가 없을 때도, "아이용 화면"이 아니라 "부모용 화면(연결된 아이 없음 안내)"으로 보내야 한다.
+// 그래서 폴백을 { name: 'piggy' } 같은 아이 전용 라우트가 아니라, childId 없는 parent-* 라우트로 바꾼다.
+function parentOrChildTarget(parentName, childName) {
+  if (!isParent.value) {
+    return { name: childName }
+  }
+
+  return childId.value
+    ? { name: parentName, params: { childId: childId.value } }
+    : { name: parentName }
+}
 
 const leftItems = computed(() => [
   {
@@ -85,34 +98,14 @@ const leftItems = computed(() => [
     menu: 'home',
     label: '홈',
     icon: Home,
-    to:
-      isParent.value && childId.value
-        ? {
-            name: 'parent-home',
-            params: {
-              childId: childId.value
-            }
-          }
-        : {
-            name: 'home'
-          }
+    to: parentOrChildTarget('parent-home', 'home')
   },
   {
     key: 'piggy',
     menu: 'piggy',
     label: '저금통',
     icon: PiggyBank,
-    to:
-      isParent.value && childId.value
-        ? {
-            name: 'parent-piggy-list',
-            params: {
-              childId: childId.value
-            }
-          }
-        : {
-            name: 'piggy'
-          }
+    to: parentOrChildTarget('parent-piggy-list', 'piggy')
   }
 ])
 
@@ -124,11 +117,8 @@ const centerItem = computed(() => {
       label: '송금하기',
       icon: Send,
       to: {
-        name: 'wallet',
-        query: {
-          mode: 'transfer',
-          childId: childId.value || undefined
-        }
+        name: 'transfer-recipient',
+        query: childId.value ? { childId: childId.value } : {}
       }
     }
   }
@@ -143,40 +133,21 @@ const centerItem = computed(() => {
     }
   }
 })
+
 const rightItems = computed(() => [
   {
     key: 'newspaper',
     menu: 'newspaper',
     label: '신문',
     icon: Newspaper,
-    to:
-      isParent.value && childId.value
-        ? {
-            name: 'parent-newspaper',
-            params: {
-              childId: childId.value
-            }
-          }
-        : {
-            name: 'newspaper'
-          }
+    to: parentOrChildTarget('parent-newspaper', 'newspaper')
   },
   {
     key: 'report',
     menu: 'report',
     label: '리포트',
     icon: PieChart,
-    to:
-      isParent.value && childId.value
-        ? {
-            name: 'parent-report',
-            params: {
-              childId: childId.value
-            }
-          }
-        : {
-            name: 'child-report'
-          }
+    to: parentOrChildTarget('parent-report', 'child-report')
   }
 ])
 
