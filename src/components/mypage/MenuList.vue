@@ -1,7 +1,6 @@
 <template>
   <ul class="overflow-hidden rounded-2xl bg-white shadow-sm">
     <li v-for="(item, index) in items" :key="item.key">
-      <!-- TODO: 각 메뉴 화면이 생기면 router-link 로 교체 -->
       <button
         type="button"
         class="flex w-full items-center gap-3 px-5 py-4 text-left"

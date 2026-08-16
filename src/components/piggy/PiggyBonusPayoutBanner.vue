@@ -14,6 +14,17 @@
             <span>{{ isPaid ? '지급 완료' : '보너스 지급하기' }}</span>
         </BaseButton>
     </div>
+
+    <!-- 아직 보너스를 설정하지 않은 저금통: 설정 화면으로 보낸다 -->
+    <div v-else class="space-y-2">
+        <p class="text-xs text-muted text-center">
+            아직 응원 보너스를 설정하지 않았어요. 목표를 달성하면 보너스를 받을 수 있어요!
+        </p>
+        <BaseButton variant="outline" class="w-full gap-2" @click="goToSetup">
+            <PiggyBank :size="18" />
+            <span>보너스 설정하기</span>
+        </BaseButton>
+    </div>
 </template>
 
 
@@ -89,5 +100,10 @@ const bonusAmount = computed(() => {
 function goToPayment() {
     if (!canPay.value) return
     router.push({ name: 'piggyGoalComplete', params: { childId: props.childId, id: props.piggyBankId } })
+}
+
+/* 보너스 설정 버튼 클릭시 설정 화면으로 이동. 보너스는 저금통당 한 번만 설정할 수 있다. */
+function goToSetup() {
+    router.push({ name: 'piggyBonus', params: { childId: props.childId, id: props.piggyBankId } })
 }
 </script>

@@ -96,7 +96,7 @@
         </p>
 
         <RouterLink
-          :to="{ name: 'wallet', query: { mode: 'transfer', childId } }"
+          :to="{ name: 'parent-transfer', params: { childId } }"
           class="w-full text-center bg-white text-avocado-600 text-sm font-medium py-3 rounded-full flex items-center justify-center gap-1"
         >
           <CreditCard :size="14" />
