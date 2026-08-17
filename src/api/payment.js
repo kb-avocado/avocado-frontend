@@ -15,6 +15,13 @@ export function reissuePaymentQr() {
 }
 
 /**
+ * 로그인 사용자의 현재 결제 QR 토큰을 무효화합니다.
+ */
+export function invalidatePaymentQr() {
+  return axiosInstance.delete('/payments/qr')
+}
+
+/**
  * 결제 QR의 현재 처리 상태를 조회합니다.
  *
  * @param {string} token QR 토큰
