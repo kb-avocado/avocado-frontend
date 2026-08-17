@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { signup } from '@/api/auth'
+import { checkEmail, signup } from '@/api/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
 import { formatPhoneNumber } from '@/utils/format'
@@ -64,7 +64,7 @@ const validators = {
   },
   birth(value) {
     if (!value) return '생년월일을 선택해주세요.'
-    if (value > todayISO) return '생년월일은 오늘 이후로 선택할 수 없습니다.'
+    if (value > todayISO) return '생년월일은 이전 날짜만 선택할 수 있습니다.'
     return ''
   },
   phone(value) {
@@ -75,10 +75,23 @@ const validators = {
   }
 }
 
+const DUPLICATE_EMAIL_CODE = 'USR-006'
+const DUPLICATE_PHONE_CODE = 'USR-007'
+const DUPLICATE_EMAIL_MESSAGE = '이미 가입된 이메일입니다.'
+const DUPLICATE_PHONE_MESSAGE = '이미 가입된 전화번호입니다.'
+
+function normalizeEmail(value) {
+  return value.trim().toLowerCase()
+}
+
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
+
+const emailCheckStatus = ref('')
+
+let latestEmailCheckId = 0
 const submitButtonLabel = computed(() => {
   if (signupStore.type === 'CHILD') return '회원가입'
   if (signupStore.type === 'PARENT') return '계좌 등록하기'
@@ -99,6 +112,48 @@ function validateField(field) {
 function clearFieldErrorIfFixed(field) {
   if (!fieldErrors.value[field]) return
   if (!validators[field](form.value[field])) fieldErrors.value[field] = ''
+}
+
+// 중복 확인은 자동이 아니라 사용자가 버튼을 눌렀을 때만 한다.
+async function handleEmailCheck() {
+  if (emailCheckStatus.value === 'checking') return
+
+  validateField('email')
+
+  // 형식이 틀렸을 경우
+  if (fieldErrors.value.email) return
+
+  const email = normalizeEmail(form.value.email)
+  const requestId = (latestEmailCheckId += 1)
+  emailCheckStatus.value = 'checking'
+
+  try {
+    const { data: response } = await checkEmail(email)
+
+    if (requestId !== latestEmailCheckId) return
+
+    if (response.data.email !== normalizeEmail(form.value.email)) return
+
+    if (response.data.available) {
+      emailCheckStatus.value = 'available'
+      return
+    }
+
+    emailCheckStatus.value = ''
+    fieldErrors.value.email = DUPLICATE_EMAIL_MESSAGE
+  } catch {
+    // 직접 누른 버튼이라 조용히 넘어가면 눌리지 않은 것처럼 보인다. 실패했다고 알려준다.
+    if (requestId === latestEmailCheckId) emailCheckStatus.value = 'failed'
+  }
+}
+
+function handleEmailInput() {
+  latestEmailCheckId += 1
+  emailCheckStatus.value = ''
+
+  if (fieldErrors.value.email === DUPLICATE_EMAIL_MESSAGE) fieldErrors.value.email = ''
+
+  clearFieldErrorIfFixed('email')
 }
 
 // 하이픈을 뺀 '숫자 몇 개째 뒤'라는 기준으로 커서 위치를 다시 찾는다.
@@ -127,6 +182,9 @@ async function handlePhoneInput(event) {
 
   const formatted = formatPhoneNumber(raw)
   form.value.phone = formatted
+
+  if (fieldErrors.value.phone === DUPLICATE_PHONE_MESSAGE) fieldErrors.value.phone = ''
+
   clearFieldErrorIfFixed('phone')
 
   await nextTick()
@@ -152,6 +210,12 @@ async function handleSubmit() {
 
   // 제출 시점에는 아직 건드리지 않은 필드까지 한 번에 훑는다.
   Object.keys(validators).forEach(validateField)
+
+  // 버튼으로 중복 확인을 마친 이메일만 가입시킨다.
+  if (!fieldErrors.value.email && emailCheckStatus.value !== 'available') {
+    fieldErrors.value.email = '이메일 중복 확인을 해주세요.'
+  }
+
   if (Object.values(fieldErrors.value).some(Boolean)) {
     errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
     return
@@ -165,7 +229,7 @@ async function handleSubmit() {
     const { email, password, name, birth, phone } = form.value
     const { data: response } = await signup({
       type: signupStore.type,
-      email,
+      email: normalizeEmail(email),
       password,
       name,
       birth,
@@ -181,7 +245,19 @@ async function handleSubmit() {
     // 어느 화면인지는 라우터 가드가 계정 상태를 보고 정한다.
     router.push({ name: 'home' })
   } catch (error) {
-    errorMessage.value = error?.response?.data?.message ?? '회원가입 중 오류가 발생했습니다.'
+    const code = error?.response?.data?.code
+    const message = error?.response?.data?.message
+
+    if (code === DUPLICATE_EMAIL_CODE) {
+      emailCheckStatus.value = ''
+      fieldErrors.value.email = message ?? DUPLICATE_EMAIL_MESSAGE
+      errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
+    } else if (code === DUPLICATE_PHONE_CODE) {
+      fieldErrors.value.phone = message ?? DUPLICATE_PHONE_MESSAGE
+      errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
+    } else {
+      errorMessage.value = message ?? '회원가입 중 오류가 발생했습니다.'
+    }
   } finally {
     loading.value = false
   }
@@ -256,48 +332,64 @@ async function handleSubmit() {
           <label for="email" class="text-sm font-medium" style="color: var(--color-text-primary)">
             이메일
           </label>
-          <div class="relative">
-            <input
-              id="email"
-              v-model.trim="form.email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              placeholder="abc1234@naver.com"
-              class="input-field pr-10"
-              :class="{ 'input-field--error': fieldErrors.email }"
-              :aria-invalid="Boolean(fieldErrors.email)"
-              aria-describedby="email-error"
-              @blur="validateField('email')"
-              @input="clearFieldErrorIfFixed('email')"
-            />
-            <svg
-              class="absolute right-3.5 top-1/2 -translate-y-1/2"
-              style="color: var(--color-text-muted)"
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
+          <div class="flex items-start gap-2">
+            <div class="relative flex-1">
+              <input
+                id="email"
+                v-model.trim="form.email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="abc1234@naver.com"
+                class="input-field pr-10"
+                :class="{ 'input-field--error': fieldErrors.email }"
+                :aria-invalid="Boolean(fieldErrors.email)"
+                aria-describedby="email-error"
+                @blur="validateField('email')"
+                @input="handleEmailInput"
+              />
+              <svg
+                class="absolute right-3.5 top-1/2 -translate-y-1/2"
+                style="color: var(--color-text-muted)"
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+              >
+                <rect
+                  x="1"
+                  y="3"
+                  width="16"
+                  height="12"
+                  rx="2"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                />
+                <path
+                  d="M1 6l8 5 8-5"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <button
+              type="button"
+              class="email-check-button"
+              :disabled="!form.email || emailCheckStatus === 'checking'"
+              @click="handleEmailCheck"
             >
-              <rect
-                x="1"
-                y="3"
-                width="16"
-                height="12"
-                rx="2"
-                stroke="currentColor"
-                stroke-width="1.3"
-              />
-              <path
-                d="M1 6l8 5 8-5"
-                stroke="currentColor"
-                stroke-width="1.3"
-                stroke-linecap="round"
-              />
-            </svg>
+              {{ emailCheckStatus === 'checking' ? '확인 중' : '중복 확인' }}
+            </button>
           </div>
           <p v-if="fieldErrors.email" id="email-error" class="field-error">
             {{ fieldErrors.email }}
+          </p>
+          <p v-else-if="emailCheckStatus === 'available'" class="field-hint field-hint--ok">
+            사용 가능한 이메일입니다.
+          </p>
+          <p v-else-if="emailCheckStatus === 'failed'" class="field-error">
+            중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.
           </p>
         </div>
 
@@ -525,5 +617,47 @@ async function handleSubmit() {
   font-size: 12px;
   line-height: 1.4;
   color: #dc2626;
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.field-hint--ok {
+  color: var(--color-avocado-600);
+}
+
+/* 입력창과 같은 높이로 나란히 서도록 padding과 radius를 input-field에 맞춘다. */
+.email-check-button {
+  flex-shrink: 0;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-avocado-600);
+  background-color: var(--color-avocado-600);
+  padding: 0.75rem 0.875rem;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-surface);
+  transition:
+    background-color 0.15s,
+    opacity 0.15s;
+}
+
+.email-check-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.email-check-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-avocado-300) 50%, transparent);
+}
+
+.email-check-button:disabled {
+  cursor: not-allowed;
+  border-color: var(--color-avocado-300);
+  background-color: var(--color-avocado-300);
+  color: var(--color-surface);
 }
 </style>
