@@ -100,9 +100,14 @@
 
                 <span class="min-w-0 flex-1">
                   <span class="flex items-center justify-between gap-3">
-                    <strong class="text-sm text-gray-900"
-                      >사용자 ID {{ displayValue(item.userId) }}</strong
-                    >
+                    <span class="min-w-0">
+                      <strong class="block truncate text-sm text-gray-900">
+                        {{ displayValue(item.userName) }}
+                      </strong>
+                      <span class="mt-0.5 block text-xs text-gray-500">
+                        사용자 ID {{ displayValue(item.userId) }}
+                      </span>
+                    </span>
                     <span
                       class="inline-flex shrink-0 items-center gap-1 text-xs font-semibold tabular-nums"
                       :class="getRemainingSeconds(item) === 0 ? 'text-red-500' : 'text-avocado-600'"
@@ -581,6 +586,7 @@ async function fetchActiveTokens({ silent = false } = {}) {
       .map((item) => ({
         token: String(item?.token ?? ''),
         userId: item?.userId ?? null,
+        userName: typeof item?.userName === 'string' ? item.userName.trim() : '',
         expiresAt: fetchedAt + Math.max(0, Math.floor(Number(item?.expiresIn) || 0)) * 1000
       }))
       .filter((item) => item.token)
