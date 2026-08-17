@@ -18,14 +18,46 @@ function handleNext() {
   signupStore.type = selectedType.value
   router.push({ name: 'signup-profile' })
 }
+
+function handleBackToLogin() {
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
-  <main
-    class="flex min-h-screen flex-col items-center justify-center px-6 py-12"
-    style="background-color: var(--color-avocado-50)"
-  >
-    <section class="flex w-full flex-col items-center gap-8">
+  <main class="min-h-screen" style="background-color: var(--color-avocado-50)">
+    <header
+      class="flex h-14 items-center px-4"
+      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
+    >
+      <button
+        type="button"
+        class="flex items-center justify-center rounded-lg p-2 transition"
+        style="color: var(--color-text-primary)"
+        @click="handleBackToLogin"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M12.5 16L6.5 10L12.5 4"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <h1
+        class="flex-1 text-center text-base font-semibold"
+        style="color: var(--color-text-primary)"
+      >
+        회원가입
+      </h1>
+      <div class="w-9" />
+    </header>
+
+    <section
+      class="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-md flex-col items-center justify-center gap-8 px-6 py-12"
+    >
       <!-- 타이틀 -->
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="text-3xl font-bold leading-snug" style="color: var(--color-text-primary)">
@@ -38,20 +70,6 @@ function handleNext() {
 
       <!-- 역할 카드 -->
       <div class="flex w-full gap-4">
-        <!-- 아이 카드 -->
-        <button
-          type="button"
-          class="role-card"
-          :class="{ 'role-card--active': selectedType === 'CHILD' }"
-          @click="selectRole('CHILD')"
-        >
-          <img src="@/assets/images/child.png" alt="아이" class="h-24 w-24 object-contain" />
-          <span class="text-xl font-bold" style="color: var(--color-text-primary)">아이</span>
-          <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            용돈을 관리하고<br />저축을 배워요
-          </span>
-        </button>
-
         <!-- 보호자 카드 -->
         <button
           type="button"
@@ -63,6 +81,20 @@ function handleNext() {
           <span class="text-xl font-bold" style="color: var(--color-text-primary)">보호자</span>
           <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
             아이의 경제 활동을<br />함께 응원해요
+          </span>
+        </button>
+
+        <!-- 아이 카드 -->
+        <button
+          type="button"
+          class="role-card"
+          :class="{ 'role-card--active': selectedType === 'CHILD' }"
+          @click="selectRole('CHILD')"
+        >
+          <img src="@/assets/images/child.png" alt="아이" class="h-24 w-24 object-contain" />
+          <span class="text-xl font-bold" style="color: var(--color-text-primary)">아이</span>
+          <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            용돈을 관리하고<br />저축을 배워요
           </span>
         </button>
       </div>

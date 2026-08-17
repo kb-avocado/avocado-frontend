@@ -116,7 +116,7 @@ async function handleSubmit() {
         class="flex-1 text-center text-base font-semibold"
         style="color: var(--color-text-primary)"
       >
-        프로필 설정
+        회원가입
       </h1>
       <div class="w-9" />
     </header>
