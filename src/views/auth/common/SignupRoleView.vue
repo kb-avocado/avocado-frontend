@@ -15,8 +15,8 @@ function selectRole(type) {
 
 function handleNext() {
   if (!selectedType.value) return
-  signupStore.type = selectedType.value
-  router.push({ name: 'signup-profile' })
+  signupStore.setType(selectedType.value)
+  router.push({ name: 'signup-terms' })
 }
 
 function handleBackToLogin() {
