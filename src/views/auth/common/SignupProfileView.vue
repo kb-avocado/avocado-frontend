@@ -12,14 +12,16 @@ const signupStore = useSignupStore()
 const authStore = useAuthStore()
 
 const form = ref({
-  name: '',
-  phone: '',
   email: '',
+  password: '',
+  passwordConfirm: '',
+  name: '',
   birth: '',
-  password: ''
+  phone: ''
 })
 
 const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 const submitButtonLabel = computed(() => {
@@ -31,23 +33,6 @@ const submitButtonLabel = computed(() => {
 // 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
 function handlePhoneInput(event) {
   form.value.phone = formatPhoneNumber(event.target.value)
-}
-
-// 생년월일은 YYYY-MM-DD 형태로만 입력되도록 정규화한다.
-function handleBirthInput(event) {
-  const digits = event.target.value.replace(/\D/g, '').slice(0, 8)
-
-  if (digits.length <= 4) {
-    form.value.birth = digits
-    return
-  }
-
-  if (digits.length <= 6) {
-    form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4)}`
-    return
-  }
-
-  form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
 }
 
 function handleBirthChange(event) {
@@ -63,15 +48,26 @@ function handleBirthChange(event) {
 
 async function handleSubmit() {
   if (loading.value) return
+
+  if (form.value.password !== form.value.passwordConfirm) {
+    errorMessage.value = '비밀번호가 일치하지 않습니다.'
+    return
+  }
+
   loading.value = true
   errorMessage.value = ''
 
   try {
+    // 비밀번호 확인은 화면에서만 쓰는 값이라 서버로 보내지 않는다.
+    const { email, password, name, birth, phone } = form.value
     const { data: response } = await signup({
       type: signupStore.type,
-      ...form.value,
+      email,
+      password,
+      name,
+      birth,
       // 하이픈은 화면에서 보기 좋으라고 넣은 것이라, 보낼 때는 숫자만 남긴다.
-      phone: form.value.phone.replace(/\D/g, '')
+      phone: phone.replace(/\D/g, '')
     })
     const user = response.data
 
@@ -152,54 +148,6 @@ async function handleSubmit() {
 
       <!-- 폼 -->
       <form class="flex flex-col gap-5" novalidate @submit.prevent="handleSubmit">
-        <!-- 이름 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="name" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            이름
-          </label>
-          <input
-            id="name"
-            v-model.trim="form.name"
-            type="text"
-            placeholder="이름을 입력해주세요"
-            class="input-field"
-          />
-        </div>
-
-        <!-- 휴대폰 번호 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="phone" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            휴대폰 번호
-          </label>
-          <div class="relative">
-            <input
-              id="phone"
-              :value="form.phone"
-              type="tel"
-              inputmode="numeric"
-              maxlength="13"
-              placeholder="010-1234-5678"
-              class="input-field pr-10"
-              @input="handlePhoneInput"
-            />
-            <svg
-              class="absolute right-3.5 top-1/2 -translate-y-1/2"
-              style="color: var(--color-text-muted)"
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
-            >
-              <path
-                d="M3 3h3.5l1.5 4-2 1.5A11 11 0 0010.5 12L12 10l4 1.5V15A2 2 0 0114 17C7.373 17 1 10.627 1 4a2 2 0 012-1z"
-                stroke="currentColor"
-                stroke-width="1.3"
-                stroke-linecap="round"
-              />
-            </svg>
-          </div>
-        </div>
-
         <!-- 이메일 -->
         <div class="flex flex-col gap-1.5">
           <label for="email" class="text-sm font-medium" style="color: var(--color-text-primary)">
@@ -242,25 +190,6 @@ async function handleSubmit() {
           </div>
         </div>
 
-        <!-- 생년월일 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="birth" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            생년월일
-          </label>
-          <div class="relative">
-            <input
-              id="birth"
-              v-model="form.birth"
-              type="date"
-              min="1900-01-01"
-              max="2999-12-31"
-              class="input-field pr-10"
-              style="color: var(--color-text-muted)"
-              @change="handleBirthChange"
-            />
-          </div>
-        </div>
-
         <!-- 비밀번호 -->
         <div class="flex flex-col gap-1.5">
           <label
@@ -287,6 +216,102 @@ async function handleSubmit() {
             >
               {{ showPassword ? '숨기기' : '보기' }}
             </button>
+          </div>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div class="flex flex-col gap-1.5">
+          <label
+            for="passwordConfirm"
+            class="text-sm font-medium"
+            style="color: var(--color-text-primary)"
+          >
+            비밀번호 확인
+          </label>
+          <div class="relative">
+            <input
+              id="passwordConfirm"
+              v-model="form.passwordConfirm"
+              :type="showPasswordConfirm ? 'text' : 'password'"
+              autocomplete="new-password"
+              placeholder="비밀번호를 다시 입력해주세요"
+              class="input-field pr-16"
+            />
+            <button
+              type="button"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition"
+              style="color: var(--color-text-secondary)"
+              @click="showPasswordConfirm = !showPasswordConfirm"
+            >
+              {{ showPasswordConfirm ? '숨기기' : '보기' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 이름 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="name" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            이름
+          </label>
+          <input
+            id="name"
+            v-model.trim="form.name"
+            type="text"
+            placeholder="이름을 입력해주세요"
+            class="input-field"
+          />
+        </div>
+
+        <!-- 생년월일 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="birth" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            생년월일
+          </label>
+          <div class="relative">
+            <input
+              id="birth"
+              v-model="form.birth"
+              type="date"
+              min="1900-01-01"
+              max="2999-12-31"
+              class="input-field pr-10"
+              style="color: var(--color-text-muted)"
+              @change="handleBirthChange"
+            />
+          </div>
+        </div>
+
+        <!-- 휴대폰 번호 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="phone" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            휴대폰 번호
+          </label>
+          <div class="relative">
+            <input
+              id="phone"
+              :value="form.phone"
+              type="tel"
+              inputmode="numeric"
+              maxlength="13"
+              placeholder="010-1234-5678"
+              class="input-field pr-10"
+              @input="handlePhoneInput"
+            />
+            <svg
+              class="absolute right-3.5 top-1/2 -translate-y-1/2"
+              style="color: var(--color-text-muted)"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+            >
+              <path
+                d="M3 3h3.5l1.5 4-2 1.5A11 11 0 0010.5 12L12 10l4 1.5V15A2 2 0 0114 17C7.373 17 1 10.627 1 4a2 2 0 012-1z"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+            </svg>
           </div>
         </div>
 
