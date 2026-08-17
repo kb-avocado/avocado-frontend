@@ -482,7 +482,11 @@ async function pollQrStatus(sequence = requestSequence) {
     if (status === 'SUCCESS' || status === 'FAILED') {
       paymentResult.value = normalizePaymentResult(data, status)
       if (status === 'SUCCESS') await refreshWalletAfterPayment()
+      return
     }
+
+    // 서버가 만료 또는 무효 상태를 확정하면 현재 QR을 새 토큰으로 자동 교체합니다.
+    await reissueQrToken()
   } catch {
     // 인증 오류는 axios interceptor에 맡기고, 일시 오류는 다음 polling에서 재시도합니다.
   } finally {
