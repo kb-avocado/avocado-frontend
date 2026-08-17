@@ -16,12 +16,18 @@
         {{ icon }}
       </span>
 
-      <h2
-        class="min-w-0 overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap"
-        style="color: #1d1b16"
-      >
-        {{ item.name }}
-      </h2>
+      <!--D-day 추가  -->
+      <div class="min-w-0">
+        <h2
+          class="overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap"
+          style="color: #1d1b16"
+        >
+          {{ item.name }}
+        </h2>
+        <p v-if="dday !== null" class="text-xs font-bold mt-0.5" style="color: #e1585a">
+          저금통 완료까지 D-{{ dday }}
+        </p>
+      </div>
 
       <!-- 부모 화면: 응원보내기. click.stop 필수 — 안 그러면 카드 클릭(goToDetail)까지 같이 실행됨 -->
       <button
@@ -91,7 +97,7 @@
     <div
       v-if="isCompleted"
       class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] text-white text-[15px] text-center shadow-[0_6px_14px_rgba(89,121,177,0.32)]"
-      style="background-color: #71A0EF"
+      style="background-color: #71a0ef"
     >
       저금통 깨기 완료!
     </div>
@@ -126,6 +132,14 @@ onMounted(() => {
 })
 
 const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
+
+// D-day 추가
+const dday = computed(() => {
+  if (normalizedStatus.value !== 'PENDING_ACHIEVE' || !props.item.firstDepositedAt) return null
+  const end = new Date(props.item.firstDepositedAt)
+  end.setDate(end.getDate() + 7)
+  return Math.max(0, Math.ceil((end - new Date()) / 86400000))
+})
 
 function goToBonusTransfer() {
   router.push({
