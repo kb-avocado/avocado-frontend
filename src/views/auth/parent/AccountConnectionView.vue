@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAccount } from '@/api/account'
 import BaseButton from '@/components/common/BaseButton.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const BANKS = [{ code: '004', name: 'KB국민은행' }]
 
@@ -50,6 +52,16 @@ async function handleSubmit() {
       bankCode: form.value.bankCode,
       accountNumber: form.value.accountNumber
     })
+
+    // 계좌가 등록되면 서버가 계정을 PENDING에서 ACTIVE로 바꾼다.
+    // 메모리의 로그인 정보는 아직 PENDING이라 최신 정보로 맞춘다.
+    try {
+      await authStore.refresh()
+    } catch {
+      // 계좌 등록은 서버에서 이미 끝나 사용자가 다시 시도할 일이 없다.
+      // 갱신에 실패해도 화면을 막지 않는다. 이어지는 홈 이동에서 가드가 다시 물어본다.
+    }
+
     router.push({ name: 'home' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '계좌 연결 중 오류가 발생했습니다.'

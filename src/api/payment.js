@@ -31,7 +31,6 @@ export function invalidatePaymentQr(token) {
 export function getPaymentQrStatus(token) {
   return axiosInstance.get('/payments/qr/status', { params: { token } })
 }
-
 /**
  * 결제 대기 중인 QR 토큰 목록을 조회합니다.
  */

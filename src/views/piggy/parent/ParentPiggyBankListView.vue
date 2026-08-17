@@ -1,16 +1,18 @@
 <template>
-  <div class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
-    <PiggyBankTabs v-model="tab" />
+  <NoChildConnected v-if="!hasChildren" />
 
-    <section class="mt-[26px] mb-5">
-      <h1 class="mb-[7px] text-[#252a26] text-[22px] tracking-[-0.7px]">{{ introTitle }}</h1>
-      <p class="text-[#4b534e] text-[13px] leading-[1.55]">{{ introDescription }}</p>
-    </section>
+  <div v-else class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
+    <CurrentChildBadge :name="currentChildName" :avatar-image="currentChildAvatarImage" />
 
-    <section
+    <div class="mt-[26px] mb-5">
+      <PiggyBankTabs v-model="tab" />
+    </div>
+
+<section
       v-if="error"
-      class="p-[14px] flex items-center justify-between gap-3 rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
     >
+      <span aria-hidden="true">!</span>
       <p class="text-xs">{{ error }}</p>
       <button
         type="button"
@@ -30,9 +32,10 @@
 
     <section v-else-if="items.length > 0" class="grid gap-[18px]">
       <ParentPiggyBankCard
-        v-for="item in items"
+        v-for="(item, index) in items"
         :key="item.piggyBankId"
         :item="item"
+        :index="index"
         :child-id="childId"
       />
     </section>
@@ -52,13 +55,25 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
 import ParentPiggyBankCard from '@/components/piggy/ParentPiggyBankCard.vue'
+import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
+import NoChildConnected from '@/components/common/NoChildConnected.vue'
+import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
+  // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
   childId: {
     type: [String, Number],
-    required: true
+    default: ''
   }
 })
+
+const authStore = useAuthStore()
+const hasChildren = computed(() => (authStore.user?.child ?? []).length > 0)
+
+const { name: currentChildName, avatarImage: currentChildAvatarImage } = useCurrentChildInfo(
+  computed(() => props.childId)
+)
 
 const store = usePiggyBankStore()
 const route = useRoute()
@@ -70,15 +85,9 @@ const error = ref('')
 
 const items = computed(() => store.getParentList(props.childId, tab.value))
 
-const introTitle = computed(() => (tab.value === 'CLOSED' ? '모으기 성공! 🎉' : '아이의 저금 목표'))
-
-const introDescription = computed(() =>
-  tab.value === 'CLOSED'
-    ? '정말 멋져요, 목표를 다 달성했어요.'
-    : '아이의 목표 달성을 응원하는 특별한 선물을 준비해 보세요!'
-)
-
 async function load() {
+  if (!hasChildren.value) return
+
   loading.value = true
   error.value = ''
 

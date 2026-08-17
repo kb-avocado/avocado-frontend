@@ -1,14 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-100 flex justify-center">
-    <!-- TODO: 개발용 임시 로그아웃 버튼. 정식 로그아웃 UI가 생기면 제거한다. -->
-    <button
-      type="button"
-      class="fixed left-4 top-4 z-50 rounded-lg bg-gray-800/80 px-3 py-1.5 text-xs font-medium text-white shadow"
-      @click="handleDevLogout"
-    >
-      로그아웃(임시)
-    </button>
-    <!-- 여기까지 지우기(1) -->
 
     <div class="w-full max-w-[430px] h-screen bg-white flex flex-col shadow-xl overflow-hidden">
       <AppHeader
@@ -70,16 +61,4 @@ function goMyPage() {
   })
 }
 
-// TODO: 개발용 임시 로그아웃. 정식 로그아웃 UI가 생기면 제거한다.
-async function handleDevLogout() {
-  try {
-    await logout()
-  } catch {
-    // 토큰이 이미 만료돼 실패해도 화면 상태는 초기화한다
-  } finally {
-    authStore.clear()
-    router.push({ name: 'login' })
-  }
-}
-// 여기까지 지우기(2)
 </script>

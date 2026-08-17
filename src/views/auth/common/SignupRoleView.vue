@@ -45,7 +45,7 @@ function handleNext() {
           :class="{ 'role-card--active': selectedType === 'CHILD' }"
           @click="selectRole('CHILD')"
         >
-          <img src="@/assets/images/ch4.png" alt="아이" class="h-24 w-24 object-contain" />
+          <img src="@/assets/images/child.png" alt="아이" class="h-24 w-24 object-contain" />
           <span class="text-xl font-bold" style="color: var(--color-text-primary)">아이</span>
           <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
             용돈을 관리하고<br />저축을 배워요
@@ -59,7 +59,7 @@ function handleNext() {
           :class="{ 'role-card--active': selectedType === 'PARENT' }"
           @click="selectRole('PARENT')"
         >
-          <img src="@/assets/images/ch5.png" alt="보호자" class="h-24 w-24 object-contain" />
+          <img src="@/assets/images/parent.png" alt="보호자" class="h-24 w-24 object-contain" />
           <span class="text-xl font-bold" style="color: var(--color-text-primary)">보호자</span>
           <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
             아이의 경제 활동을<br />함께 응원해요

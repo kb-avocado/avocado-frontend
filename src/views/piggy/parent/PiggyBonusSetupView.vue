@@ -1,7 +1,13 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white">
     <!-- 뒤로가기 버튼 설정을 위해 헤더와 Nav import -->
-    <AppHeader title="보상 설정" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
+    <AppHeader
+      title="보상 설정"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
     <div class="flex-1 p-4 space-y-6">
       <!-- 목표 정보 -->
@@ -29,8 +35,8 @@
             <p class="text-lg font-bold text-avocado-600">{{ formattedTargetAmount }}</p>
           </div>
 
-          <div class="flex items-start gap-2 bg-avocado-50 rounded-xl p-3">
-            <Info :size="16" class="text-avocado-600 mt-0.5 shrink-0" />
+          <div class="flex items-center gap-2 bg-avocado-50 rounded-xl p-3">
+            <Info :size="16" class="text-avocado-600 shrink-0" />
             <p class="text-xs text-muted">목표 당 최소 저축 기한은 일주일로 고정됩니다.</p>
           </div>
         </div>
@@ -39,24 +45,41 @@
       <div>
         <p class="text-sm font-medium text-avocado-900 mb-2">보너스 방식 선택</p>
         <div class="flex rounded-full bg-avocado-50 border border-avocado-300 p-1">
-          <button type="button" class="flex-1 h-9 rounded-full text-sm font-medium transition-colors" :class="bonusType === BONUS_TYPE.RATE ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
-            " @click="selectBonusType(BONUS_TYPE.RATE)">
-            응원 보너스 설정
+          <button
+            type="button"
+            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors"
+            :class="
+              bonusType === BONUS_TYPE.RATE ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
+            "
+            @click="selectBonusType(BONUS_TYPE.RATE)"
+          >
+            비율형 보너스
           </button>
-          <button type="button" class="flex-1 h-9 rounded-full text-sm font-medium transition-colors" :class="bonusType === BONUS_TYPE.FIXED ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
-            " @click="selectBonusType(BONUS_TYPE.FIXED)">
-            추가 지원금
+          <button
+            type="button"
+            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors"
+            :class="
+              bonusType === BONUS_TYPE.FIXED ? 'bg-avocado-100 text-avocado-600' : 'text-muted'
+            "
+            @click="selectBonusType(BONUS_TYPE.FIXED)"
+          >
+            정액형 보너스
           </button>
         </div>
       </div>
       <!-- 값 입력 -->
       <div v-if="bonusType">
         <label class="text-sm font-medium text-avocado-900 mb-2 block">
-          {{ bonusType === BONUS_TYPE.RATE ? '응원 보너스 설정 (연율 %)' : '추가 지원금 (정액)' }}
+          {{ bonusType === BONUS_TYPE.RATE ? '응원 보너스 설정 (%)' : '추가 지원금 (원)' }}
         </label>
         <div class="flex items-center border border-avocado-300 rounded-xl px-3 h-11">
-          <input v-model="bonusValue" type="number" inputmode="numeric" class="flex-1 outline-none text-[15px]"
-            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'" />
+          <input
+            v-model="bonusValue"
+            type="number"
+            inputmode="numeric"
+            class="flex-1 outline-none text-[15px]"
+            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'"
+          />
           <span class="text-sm text-muted">{{ bonusType === BONUS_TYPE.RATE ? '%' : '원' }}</span>
         </div>
         <p v-if="bonusValue && !isValueValid" class="text-xs text-red-500 mt-1">
@@ -81,7 +104,12 @@
     </div>
 
     <div class="p-4">
-      <BaseButton variant="primary" class="w-full gap-2" :disabled="!canSubmit" @click="handleSubmit">
+      <BaseButton
+        variant="primary"
+        class="w-full gap-2"
+        :disabled="!canSubmit"
+        @click="handleSubmit"
+      >
         <span>{{ isSubmitting ? '설정 중...' : '승인하기' }}</span>
         <CircleCheck v-if="!isSubmitting" :size="18" />
       </BaseButton>
@@ -177,7 +205,7 @@ async function handleSubmit() {
     await setBonus(
       piggyBank.value.piggyBankId,
       {
-        bonusType: bonusType.value,
+        piggyBankBonusType: bonusType.value,
         bonusValue: Number(bonusValue.value)
       },
       route.params.childId
