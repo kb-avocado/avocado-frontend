@@ -5,7 +5,7 @@ import { useFamilyConnectStore } from '@/stores/signup'
  */
 
 // 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 되돌린다.
-export const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
+export const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-terms', 'signup-profile']
 
 // 아이의 가족 연결 화면. 연결을 마치면 다시 들어올 일이 없다.
 export const FAMILY_CONNECT_ROUTE_NAMES = ['family-connect', 'family-pending']

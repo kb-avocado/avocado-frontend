@@ -37,6 +37,16 @@ const routes = [
         component: () => import('@/views/auth/common/SignupRoleView.vue')
       },
       {
+        path: 'terms',
+        name: 'signup-terms',
+        component: () => import('@/views/auth/common/SignupTermsView.vue'),
+        beforeEnter: () => {
+          const signupStore = useSignupStore()
+          // 아이인지 보호자인지에 따라 보여줄 약관이 달라진다
+          if (!signupStore.type) return { name: 'signup-role' }
+        }
+      },
+      {
         path: 'profile',
         name: 'signup-profile',
         component: () => import('@/views/auth/common/SignupProfileView.vue'),
@@ -44,6 +54,8 @@ const routes = [
           const signupStore = useSignupStore()
           // role 선택 없이 직접 URL 접근 차단
           if (!signupStore.type) return { name: 'signup-role' }
+          // 약관 동의 없이 직접 URL 접근 차단
+          if (!signupStore.agreed) return { name: 'signup-terms' }
         }
       }
     ],

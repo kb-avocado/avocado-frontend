@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { requestFamilyConnect, getFamilyRequest, confirmFamilyRequest } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 import { useFamilyConnectStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
 
@@ -128,28 +129,7 @@ onUnmounted(() => {
 <template>
   <main class="flex min-h-screen flex-col" style="background-color: var(--color-avocado-50)">
     <!-- 헤더 -->
-    <header
-      class="flex h-14 items-center px-4"
-      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
-    >
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2"
-        style="color: var(--color-text-primary)"
-        @click="router.back()"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <div class="w-9" />
-    </header>
+    <SignupHeader @click-back="router.back()" />
 
     <div class="mx-auto flex w-full max-w-sm flex-col items-center gap-8 px-6 pt-16 pb-12">
       <!-- ── code 유실 (새로고침 등) ── -->

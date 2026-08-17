@@ -12,8 +12,39 @@ const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
+// 필드별 안내 문구. 값이 비어 있으면 그 필드는 통과한 상태다.
+const fieldErrors = ref({ email: '', password: '' })
+
+const validators = {
+  // TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (형식 규칙과 안내 문구를 아이디 기준으로)
+  email(value) {
+    if (!value) return '이메일을 입력해주세요.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
+    return ''
+  },
+  password(value) {
+    if (!value) return '비밀번호를 입력해주세요.'
+    return ''
+  }
+}
+
+function validateField(field) {
+  fieldErrors.value[field] = validators[field](form.value[field])
+}
+
+function clearFieldErrorIfFixed(field) {
+  if (!fieldErrors.value[field]) return
+  if (!validators[field](form.value[field])) fieldErrors.value[field] = ''
+}
+
 async function handleSubmit() {
   if (loading.value) return
+
+  Object.keys(validators).forEach(validateField)
+  if (Object.values(fieldErrors.value).some(Boolean)) {
+    errorMessage.value = ''
+    return
+  }
 
   loading.value = true
   errorMessage.value = ''
@@ -44,7 +75,9 @@ async function handleSubmit() {
       </h1>
 
       <form class="flex flex-col gap-4" novalidate @submit.prevent="handleSubmit">
-             <div class="flex flex-col gap-1.5">
+        <!-- TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체
+             (label, placeholder, type/inputmode/autocomplete를 아이디 기준으로) -->
+        <div class="flex flex-col gap-1.5">
           <label for="email" class="text-[13px] font-medium text-avocado-secondary">이메일</label>
           <input
             id="email"
@@ -54,8 +87,20 @@ async function handleSubmit() {
             autocomplete="email"
             required
             placeholder="you@avocado.kr"
-            class="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2.5 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-avocado-600)] focus:bg-[var(--color-surface)] focus:ring-4 focus:ring-[var(--color-avocado-300)]/40"
+            class="w-full rounded-xl border bg-[var(--color-surface)] px-3.5 py-2.5 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
+            :class="
+              fieldErrors.email
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30'
+                : 'border-[var(--color-border)] focus:border-[var(--color-avocado-600)] focus:ring-[var(--color-avocado-300)]/40'
+            "
+            :aria-invalid="Boolean(fieldErrors.email)"
+            aria-describedby="email-error"
+            @blur="validateField('email')"
+            @input="clearFieldErrorIfFixed('email')"
           />
+          <p v-if="fieldErrors.email" id="email-error" class="field-error">
+            {{ fieldErrors.email }}
+          </p>
         </div>
 
         <div class="flex flex-col gap-1.5">
@@ -70,7 +115,16 @@ async function handleSubmit() {
               autocomplete="current-password"
               required
               placeholder="비밀번호 입력"
-              class="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] py-2.5 pl-3.5 pr-16 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:border-[var(--color-avocado-600)] focus:bg-[var(--color-surface)] focus:ring-4 focus:ring-[var(--color-avocado-300)]/40"
+              class="w-full rounded-xl border bg-[var(--color-surface)] py-2.5 pl-3.5 pr-16 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
+              :class="
+                fieldErrors.password
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30'
+                  : 'border-[var(--color-border)] focus:border-[var(--color-avocado-600)] focus:ring-[var(--color-avocado-300)]/40'
+              "
+              :aria-invalid="Boolean(fieldErrors.password)"
+              aria-describedby="password-error"
+              @blur="validateField('password')"
+              @input="clearFieldErrorIfFixed('password')"
             />
             <button
               type="button"
@@ -80,6 +134,9 @@ async function handleSubmit() {
               {{ showPassword ? '숨기기' : '보기' }}
             </button>
           </div>
+          <p v-if="fieldErrors.password" id="password-error" class="field-error">
+            {{ fieldErrors.password }}
+          </p>
         </div>
 
         <p
@@ -121,6 +178,12 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.field-error {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #dc2626;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
