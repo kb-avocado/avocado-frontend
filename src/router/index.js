@@ -92,6 +92,13 @@ const routes = [
     component: () => import('@/views/wallet/child/walletView.vue'),
     meta: { title: '결제하기' }
   },
+  // 관리자 POS 시뮬레이터
+  {
+    path: '/admin/pos',
+    name: 'admin-pos-simulator',
+    component: () => import('@/views/admin/PosSimulatorView.vue'),
+    meta: { title: 'POS 시뮬레이터', hideLayout: true }
+  },
   //신문
   //아이용 신문 리스트화면
   {
