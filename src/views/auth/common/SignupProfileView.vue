@@ -1,10 +1,11 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signup } from '@/api/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
 import { formatPhoneNumber } from '@/utils/format'
+import { isValidPassword } from '@/utils/validators'
 import BaseButton from '@/components/common/BaseButton.vue'
 
 const router = useRouter()
@@ -20,6 +21,60 @@ const form = ref({
   phone: ''
 })
 
+// toISOString()은 UTC 기준이라 새벽에 하루 밀린다. 로컬 날짜로 직접 만든다.
+const now = new Date()
+const todayISO = [
+  now.getFullYear(),
+  String(now.getMonth() + 1).padStart(2, '0'),
+  String(now.getDate()).padStart(2, '0')
+].join('-')
+
+// 필드별 안내 문구. 값이 비어 있으면 그 필드는 통과한 상태다.
+const fieldErrors = ref({
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  name: '',
+  birth: '',
+  phone: ''
+})
+
+// 각 필드의 검사 규칙. 통과하면 빈 문자열을 돌려준다.
+const validators = {
+  email(value) {
+    if (!value) return '이메일을 입력해주세요.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
+    return ''
+  },
+  password(value) {
+    if (!value) return '비밀번호를 입력해주세요.'
+    if (!isValidPassword(value)) return '영문과 숫자를 포함해 8자 이상으로 입력해주세요.'
+    return ''
+  },
+  passwordConfirm(value) {
+    if (!value) return '비밀번호를 한 번 더 입력해주세요.'
+    if (value !== form.value.password) return '비밀번호가 일치하지 않습니다.'
+    return ''
+  },
+  name(value) {
+    if (!value) return '이름을 입력해주세요.'
+    if (!/^[가-힣a-zA-Z\s]{2,20}$/.test(value))
+      return '이름은 한글 또는 영문 2~20자로 입력해주세요.'
+    return ''
+  },
+  birth(value) {
+    if (!value) return '생년월일을 선택해주세요.'
+    if (value > todayISO) return '생년월일은 오늘 이후로 선택할 수 없습니다.'
+    return ''
+  },
+  phone(value) {
+    if (!value) return '휴대폰 번호를 입력해주세요.'
+    if (!value.startsWith('010')) return '휴대폰 번호는 010으로 시작해야 합니다.'
+    if (!/^010-\d{4}-\d{4}$/.test(value)) return '휴대폰 번호 11자리를 모두 입력해주세요.'
+    return ''
+  }
+}
+
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const loading = ref(false)
@@ -30,27 +85,75 @@ const submitButtonLabel = computed(() => {
   return '아보카도 시작하기'
 })
 
+// 입력이 끝난 시점(blur)에만 지적하고, 입력하는 도중에는 훈수 두지 않는다.
+function validateField(field) {
+  fieldErrors.value[field] = validators[field](form.value[field])
+
+  // 비밀번호를 고치면 이미 띄워둔 '일치하지 않습니다'도 같이 갱신해준다.
+  if (field === 'password' && fieldErrors.value.passwordConfirm) {
+    fieldErrors.value.passwordConfirm = validators.passwordConfirm(form.value.passwordConfirm)
+  }
+}
+
+// 한 번 틀렸다고 알려준 필드는, 고치는 즉시 문구를 거둬준다.
+function clearFieldErrorIfFixed(field) {
+  if (!fieldErrors.value[field]) return
+  if (!validators[field](form.value[field])) fieldErrors.value[field] = ''
+}
+
+// 하이픈을 뺀 '숫자 몇 개째 뒤'라는 기준으로 커서 위치를 다시 찾는다.
+function caretAfterDigits(text, digitCount) {
+  if (digitCount === 0) return 0
+
+  let seen = 0
+  for (let i = 0; i < text.length; i += 1) {
+    if (/\d/.test(text[i])) {
+      seen += 1
+      if (seen === digitCount) return i + 1
+    }
+  }
+
+  return text.length
+}
+
 // 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
-function handlePhoneInput(event) {
-  form.value.phone = formatPhoneNumber(event.target.value)
+// 다만 값을 통째로 갈아끼우면 커서가 맨 뒤로 튀어서, 중간을 고칠 수가 없다.
+// 그래서 커서 앞의 '숫자 개수'를 기억해뒀다가 포맷 후 같은 자리로 돌려놓는다.
+async function handlePhoneInput(event) {
+  const input = event.target
+  const raw = input.value
+  const caret = input.selectionStart ?? raw.length
+  const digitsBeforeCaret = raw.slice(0, caret).replace(/\D/g, '').length
+
+  const formatted = formatPhoneNumber(raw)
+  form.value.phone = formatted
+  clearFieldErrorIfFixed('phone')
+
+  await nextTick()
+
+  // 하이픈만 지운 경우처럼 포맷 결과가 그대로면 Vue가 DOM을 안 건드리므로 직접 맞춰준다.
+  if (input.value !== formatted) input.value = formatted
+
+  const nextCaret = caretAfterDigits(formatted, digitsBeforeCaret)
+  input.setSelectionRange(nextCaret, nextCaret)
 }
 
 function handleBirthChange(event) {
   const value = String(event.target.value ?? '').slice(0, 10)
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    form.value.birth = ''
-    return
-  }
+  form.value.birth = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ''
 
-  form.value.birth = value
+  // 달력에서 고르는 값이라 blur까지 기다리지 않고 바로 알려준다.
+  validateField('birth')
 }
 
 async function handleSubmit() {
   if (loading.value) return
 
-  if (form.value.password !== form.value.passwordConfirm) {
-    errorMessage.value = '비밀번호가 일치하지 않습니다.'
+  // 제출 시점에는 아직 건드리지 않은 필드까지 한 번에 훑는다.
+  Object.keys(validators).forEach(validateField)
+  if (Object.values(fieldErrors.value).some(Boolean)) {
+    errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
     return
   }
 
@@ -162,6 +265,11 @@ async function handleSubmit() {
               autocomplete="email"
               placeholder="abc1234@naver.com"
               class="input-field pr-10"
+              :class="{ 'input-field--error': fieldErrors.email }"
+              :aria-invalid="Boolean(fieldErrors.email)"
+              aria-describedby="email-error"
+              @blur="validateField('email')"
+              @input="clearFieldErrorIfFixed('email')"
             />
             <svg
               class="absolute right-3.5 top-1/2 -translate-y-1/2"
@@ -188,6 +296,9 @@ async function handleSubmit() {
               />
             </svg>
           </div>
+          <p v-if="fieldErrors.email" id="email-error" class="field-error">
+            {{ fieldErrors.email }}
+          </p>
         </div>
 
         <!-- 비밀번호 -->
@@ -207,6 +318,11 @@ async function handleSubmit() {
               autocomplete="new-password"
               placeholder="비밀번호를 입력해주세요"
               class="input-field pr-16"
+              :class="{ 'input-field--error': fieldErrors.password }"
+              :aria-invalid="Boolean(fieldErrors.password)"
+              aria-describedby="password-error"
+              @blur="validateField('password')"
+              @input="clearFieldErrorIfFixed('password')"
             />
             <button
               type="button"
@@ -217,6 +333,9 @@ async function handleSubmit() {
               {{ showPassword ? '숨기기' : '보기' }}
             </button>
           </div>
+          <p v-if="fieldErrors.password" id="password-error" class="field-error">
+            {{ fieldErrors.password }}
+          </p>
         </div>
 
         <!-- 비밀번호 확인 -->
@@ -236,6 +355,11 @@ async function handleSubmit() {
               autocomplete="new-password"
               placeholder="비밀번호를 다시 입력해주세요"
               class="input-field pr-16"
+              :class="{ 'input-field--error': fieldErrors.passwordConfirm }"
+              :aria-invalid="Boolean(fieldErrors.passwordConfirm)"
+              aria-describedby="passwordConfirm-error"
+              @blur="validateField('passwordConfirm')"
+              @input="clearFieldErrorIfFixed('passwordConfirm')"
             />
             <button
               type="button"
@@ -246,6 +370,9 @@ async function handleSubmit() {
               {{ showPasswordConfirm ? '숨기기' : '보기' }}
             </button>
           </div>
+          <p v-if="fieldErrors.passwordConfirm" id="passwordConfirm-error" class="field-error">
+            {{ fieldErrors.passwordConfirm }}
+          </p>
         </div>
 
         <!-- 이름 -->
@@ -259,7 +386,15 @@ async function handleSubmit() {
             type="text"
             placeholder="이름을 입력해주세요"
             class="input-field"
+            :class="{ 'input-field--error': fieldErrors.name }"
+            :aria-invalid="Boolean(fieldErrors.name)"
+            aria-describedby="name-error"
+            @blur="validateField('name')"
+            @input="clearFieldErrorIfFixed('name')"
           />
+          <p v-if="fieldErrors.name" id="name-error" class="field-error">
+            {{ fieldErrors.name }}
+          </p>
         </div>
 
         <!-- 생년월일 -->
@@ -273,12 +408,21 @@ async function handleSubmit() {
               v-model="form.birth"
               type="date"
               min="1900-01-01"
-              max="2999-12-31"
+              :max="todayISO"
               class="input-field pr-10"
-              style="color: var(--color-text-muted)"
+              :class="{ 'input-field--error': fieldErrors.birth }"
+              :style="{
+                color: form.birth ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+              }"
+              :aria-invalid="Boolean(fieldErrors.birth)"
+              aria-describedby="birth-error"
               @change="handleBirthChange"
+              @blur="validateField('birth')"
             />
           </div>
+          <p v-if="fieldErrors.birth" id="birth-error" class="field-error">
+            {{ fieldErrors.birth }}
+          </p>
         </div>
 
         <!-- 휴대폰 번호 -->
@@ -292,10 +436,13 @@ async function handleSubmit() {
               :value="form.phone"
               type="tel"
               inputmode="numeric"
-              maxlength="13"
               placeholder="010-1234-5678"
               class="input-field pr-10"
+              :class="{ 'input-field--error': fieldErrors.phone }"
+              :aria-invalid="Boolean(fieldErrors.phone)"
+              aria-describedby="phone-error"
               @input="handlePhoneInput"
+              @blur="validateField('phone')"
             />
             <svg
               class="absolute right-3.5 top-1/2 -translate-y-1/2"
@@ -313,6 +460,9 @@ async function handleSubmit() {
               />
             </svg>
           </div>
+          <p v-if="fieldErrors.phone" id="phone-error" class="field-error">
+            {{ fieldErrors.phone }}
+          </p>
         </div>
 
         <!-- 에러 메시지 -->
@@ -360,5 +510,20 @@ async function handleSubmit() {
 .input-field:focus {
   border-color: var(--color-avocado-600);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-avocado-300) 50%, transparent);
+}
+
+.input-field--error {
+  border-color: #dc2626;
+}
+
+.input-field--error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #dc2626 20%, transparent);
+}
+
+.field-error {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #dc2626;
 }
 </style>
