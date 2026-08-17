@@ -16,6 +16,7 @@ const errorMessage = ref('')
 const fieldErrors = ref({ email: '', password: '' })
 
 const validators = {
+  // TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (형식 규칙과 안내 문구를 아이디 기준으로)
   email(value) {
     if (!value) return '이메일을 입력해주세요.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
@@ -74,6 +75,8 @@ async function handleSubmit() {
       </h1>
 
       <form class="flex flex-col gap-4" novalidate @submit.prevent="handleSubmit">
+        <!-- TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체
+             (label, placeholder, type/inputmode/autocomplete를 아이디 기준으로) -->
         <div class="flex flex-col gap-1.5">
           <label for="email" class="text-[13px] font-medium text-avocado-secondary">이메일</label>
           <input

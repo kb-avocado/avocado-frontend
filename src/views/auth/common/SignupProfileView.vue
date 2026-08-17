@@ -41,6 +41,7 @@ const fieldErrors = ref({
 
 // 각 필드의 검사 규칙. 통과하면 빈 문자열을 돌려준다.
 const validators = {
+  // TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (형식 규칙과 안내 문구를 아이디 기준으로)
   email(value) {
     if (!value) return '이메일을 입력해주세요.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
@@ -77,9 +78,11 @@ const validators = {
 
 const DUPLICATE_EMAIL_CODE = 'USR-006'
 const DUPLICATE_PHONE_CODE = 'USR-007'
+// TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (이메일 중복 안내 문구를 아이디 기준으로)
 const DUPLICATE_EMAIL_MESSAGE = '이미 가입된 이메일입니다.'
 const DUPLICATE_PHONE_MESSAGE = '이미 가입된 전화번호입니다.'
 
+// TODO: 이메일이 아이디로 대체되면 지우기
 function normalizeEmail(value) {
   return value.trim().toLowerCase()
 }
@@ -123,6 +126,7 @@ async function handleEmailCheck() {
   // 형식이 틀렸을 경우
   if (fieldErrors.value.email) return
 
+  // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 form.value.email을 그대로 보내기
   const email = normalizeEmail(form.value.email)
   const requestId = (latestEmailCheckId += 1)
   emailCheckStatus.value = 'checking'
@@ -132,6 +136,7 @@ async function handleEmailCheck() {
 
     if (requestId !== latestEmailCheckId) return
 
+    // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 form.value.email과 직접 비교하기
     if (response.data.email !== normalizeEmail(form.value.email)) return
 
     if (response.data.available) {
@@ -172,8 +177,6 @@ function caretAfterDigits(text, digitCount) {
 }
 
 // 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
-// 다만 값을 통째로 갈아끼우면 커서가 맨 뒤로 튀어서, 중간을 고칠 수가 없다.
-// 그래서 커서 앞의 '숫자 개수'를 기억해뒀다가 포맷 후 같은 자리로 돌려놓는다.
 async function handlePhoneInput(event) {
   const input = event.target
   const raw = input.value
@@ -229,6 +232,7 @@ async function handleSubmit() {
     const { email, password, name, birth, phone } = form.value
     const { data: response } = await signup({
       type: signupStore.type,
+      // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 email을 그대로 보내기
       email: normalizeEmail(email),
       password,
       name,
@@ -328,6 +332,8 @@ async function handleSubmit() {
       <!-- 폼 -->
       <form class="flex flex-col gap-5" novalidate @submit.prevent="handleSubmit">
         <!-- 이메일 -->
+        <!-- TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체
+             (label, placeholder, type/inputmode/autocomplete, 이메일 아이콘, 확인 안내 문구) -->
         <div class="flex flex-col gap-1.5">
           <label for="email" class="text-sm font-medium" style="color: var(--color-text-primary)">
             이메일
