@@ -203,7 +203,7 @@ function goToDeposit() {
 
 // 삭제 완료 → 목록으로
 function onDeleted() {
-  router.push({ name: 'piggy' })
+  router.replace({ name: 'piggy' })
 }
 </script>
 

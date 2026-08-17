@@ -1,12 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white">
-    <AppHeader
-      title="저금하기"
-      show-back
-      :show-bell="false"
-      :show-avatar="false"
-      @click-back="router.back()"
-    />
+    <AppHeader title="저금하기" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
 
     <div class="flex-1 p-4 space-y-6" v-if="item">
       <div class="rounded-2xl bg-avocado-100 p-4 text-center space-y-1">
@@ -19,13 +13,8 @@
 
       <div>
         <p class="text-sm font-medium text-avocado-900 mb-2">얼마를 저금할까요?</p>
-        <input
-          v-model="amountInput"
-          type="number"
-          inputmode="numeric"
-          placeholder="금액을 입력해주세요"
-          class="w-full border border-avocado-300 rounded-xl p-3 text-lg font-semibold outline-none"
-        />
+        <input v-model="amountInput" type="number" inputmode="numeric" placeholder="금액을 입력해주세요"
+          class="w-full border border-avocado-300 rounded-xl p-3 text-lg font-semibold outline-none" />
         <p v-if="errorMessage" class="text-sm text-red-500 mt-2">{{ errorMessage }}</p>
       </div>
     </div>
@@ -92,11 +81,7 @@ async function handleSubmit() {
       alert('목표 금액을 다 모았어요! 축하해요!')
     }
 
-    if (window.history.state?.back) {
-      router.back()
-    } else {
-      router.replace({ name: 'piggyChildDetail', params: { id: piggyBankId.value } })
-    }
+    router.replace({ name: 'piggyChildDetail', params: { id: piggyBankId.value } })
   } catch (e) {
     errorMessage.value = e.response?.data?.message || '저금에 실패했어요. 다시 시도해주세요.'
   } finally {

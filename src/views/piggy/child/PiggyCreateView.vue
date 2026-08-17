@@ -13,7 +13,7 @@
       <div class="flex justify-center pt-4">
         <div
           class="w-24 h-24 grid place-items-center rounded-full text-4xl"
-          style="background-color: #F1F6FF; border: 2px solid #f0f0f0"
+          style="background-color: #f1f6ff; border: 2px solid #f0f0f0"
         >
           {{ selectedIcon }}
         </div>
@@ -82,12 +82,12 @@
       </div>
 
       <!-- 안내 문구: 신문 리스트 하단 안내문구와 동일한 스타일 -->
-      <p class="text-xs text-muted leading-relaxed text-right">
-        * 목표 금액을 다 채워도 일주일이 지나야 저금통을 깰 수 있어요!
+      <p class="text-[13px] font-semibold text-[#E5793A] leading-relaxed rounded-xl p-3">
+        * 목표 금액을 다 채워도 <strong class="underline">일주일</strong>이 지나야 저금통을 깰 수
+        있어요!
       </p>
-
       <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
-<!-- 목표 만들기 버튼: 신문 '활동 완료하기' 버튼과 동일한 스타일 -->
+      <!-- 목표 만들기 버튼: 신문 '활동 완료하기' 버튼과 동일한 스타일 -->
       <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">
         <CheckCircle :size="16" class="mr-1" />
         {{ isSubmitting ? '처리 중...' : '목표 만들기' }}
@@ -146,7 +146,7 @@ async function handleSubmit() {
       targetAmount: Number(targetAmount.value),
       icon: selectedIcon.value // ★ 고른 아이콘 전송
     })
-    router.push({ name: 'piggy' }) // 성공 → 목록으로 (목록 화면이 새로 조회함)
+    router.replace({ name: 'piggy' }) // 성공 → 목록으로 (목록 화면이 새로 조회함)
   } catch (e) {
     errorMessage.value = e.message || '저금통 생성에 실패했어요. 다시 시도해주세요.'
   } finally {

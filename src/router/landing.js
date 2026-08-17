@@ -5,7 +5,7 @@ import { useFamilyConnectStore } from '@/stores/signup'
  */
 
 // 로그인하지 않은 사람만 보는 화면. 로그인한 채로 들어오면 되돌린다.
-export const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-profile']
+export const GUEST_ONLY_ROUTE_NAMES = ['login', 'signup-role', 'signup-terms', 'signup-profile']
 
 // 아이의 가족 연결 화면. 연결을 마치면 다시 들어올 일이 없다.
 export const FAMILY_CONNECT_ROUTE_NAMES = ['family-connect', 'family-pending']
@@ -61,7 +61,7 @@ export function resolveOnboardingRoute(user) {
  * 대기 화면이 잃어버린 요청 ID를 다시 심어준다.
  *
  * 보호자 요청 대기/아이 승인 대기 중 새로고침하면 스토어가 비워진다.
- * 서버에 요청이 살아 있는데도 대기 화면이 그것을 찾지 못하고 
+ * 서버에 요청이 살아 있는데도 대기 화면이 그것을 찾지 못하고
  * 코드 입력부터 다시 시작하게 된다.
  */
 export function restoreFamilyRequest(user) {

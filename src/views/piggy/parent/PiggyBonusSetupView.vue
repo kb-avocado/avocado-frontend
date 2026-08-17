@@ -141,14 +141,23 @@ import { isValidAmount, isValidPercentage } from '@/utils/validators'
 /* 해당 저금통 정보를 가져오는 composables import */
 import { usePiggyBankDetail } from '@/composables/usePiggyBankDetail'
 
+/* 사용자 정보 */
+import { useAuthStore } from '@/stores/auth'
+
 const route = useRoute()
 const router = useRouter()
 
 /* 가져온 저금통의 데이터 */
 const { piggyBank } = usePiggyBankDetail(route.params.id, route.params.childId)
 
-/* 추후 사용자 db를 통해 가져올 예정 */
-const childName = '민준'
+const authStore = useAuthStore()
+
+/* 로그인 응답의 child 목록에서 childId로 실제 아이 이름을 찾기 */
+const childName = computed(
+  () =>
+    (authStore.user?.child ?? []).find((child) => String(child.id) === String(route.params.childId))
+      ?.name ?? '아이'
+)
 
 /* 보너스 한번 설정 후 수정 불가에 의해서 기본값은 Null로 설정 */
 const bonusType = ref(null)

@@ -1,77 +1,245 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { signup } from '@/api/auth'
+import { checkEmail, signup } from '@/api/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
 import { formatPhoneNumber } from '@/utils/format'
+import { isValidPassword } from '@/utils/validators'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 
 const router = useRouter()
 const signupStore = useSignupStore()
 const authStore = useAuthStore()
 
 const form = ref({
-  name: '',
-  phone: '',
   email: '',
+  password: '',
+  passwordConfirm: '',
+  name: '',
   birth: '',
-  password: ''
+  phone: ''
 })
 
+// toISOString()은 UTC 기준이라 새벽에 하루 밀린다. 로컬 날짜로 직접 만든다.
+const now = new Date()
+const todayISO = [
+  now.getFullYear(),
+  String(now.getMonth() + 1).padStart(2, '0'),
+  String(now.getDate()).padStart(2, '0')
+].join('-')
+
+// 필드별 안내 문구. 값이 비어 있으면 그 필드는 통과한 상태다.
+const fieldErrors = ref({
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  name: '',
+  birth: '',
+  phone: ''
+})
+
+// 각 필드의 검사 규칙. 통과하면 빈 문자열을 돌려준다.
+const validators = {
+  // TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (형식 규칙과 안내 문구를 아이디 기준으로)
+  email(value) {
+    if (!value) return '이메일을 입력해주세요.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
+    return ''
+  },
+  password(value) {
+    if (!value) return '비밀번호를 입력해주세요.'
+    if (!isValidPassword(value)) return '영문과 숫자를 포함해 8자 이상으로 입력해주세요.'
+    return ''
+  },
+  passwordConfirm(value) {
+    if (!value) return '비밀번호를 한 번 더 입력해주세요.'
+    if (value !== form.value.password) return '비밀번호가 일치하지 않습니다.'
+    return ''
+  },
+  name(value) {
+    if (!value) return '이름을 입력해주세요.'
+    if (!/^[가-힣a-zA-Z\s]{2,20}$/.test(value))
+      return '이름은 한글 또는 영문 2~20자로 입력해주세요.'
+    return ''
+  },
+  birth(value) {
+    if (!value) return '생년월일을 선택해주세요.'
+    if (value > todayISO) return '생년월일은 이전 날짜만 선택할 수 있습니다.'
+    return ''
+  },
+  phone(value) {
+    if (!value) return '휴대폰 번호를 입력해주세요.'
+    if (!value.startsWith('010')) return '휴대폰 번호는 010으로 시작해야 합니다.'
+    if (!/^010-\d{4}-\d{4}$/.test(value)) return '휴대폰 번호 11자리를 모두 입력해주세요.'
+    return ''
+  }
+}
+
+const DUPLICATE_EMAIL_CODE = 'USR-006'
+const DUPLICATE_PHONE_CODE = 'USR-007'
+// TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (이메일 중복 안내 문구를 아이디 기준으로)
+const DUPLICATE_EMAIL_MESSAGE = '이미 가입된 이메일입니다.'
+const DUPLICATE_PHONE_MESSAGE = '이미 가입된 전화번호입니다.'
+
+// TODO: 이메일이 아이디로 대체되면 지우기
+function normalizeEmail(value) {
+  return value.trim().toLowerCase()
+}
+
 const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
+
+const emailCheckStatus = ref('')
+
+let latestEmailCheckId = 0
 const submitButtonLabel = computed(() => {
-  if (signupStore.type === 'CHILD') return '가족 연결하기'
+  if (signupStore.type === 'CHILD') return '회원가입'
   if (signupStore.type === 'PARENT') return '계좌 등록하기'
   return '아보카도 시작하기'
 })
 
-// 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
-function handlePhoneInput(event) {
-  form.value.phone = formatPhoneNumber(event.target.value)
+// 입력이 끝난 시점(blur)에만 지적하고, 입력하는 도중에는 훈수 두지 않는다.
+function validateField(field) {
+  fieldErrors.value[field] = validators[field](form.value[field])
+
+  // 비밀번호를 고치면 이미 띄워둔 '일치하지 않습니다'도 같이 갱신해준다.
+  if (field === 'password' && fieldErrors.value.passwordConfirm) {
+    fieldErrors.value.passwordConfirm = validators.passwordConfirm(form.value.passwordConfirm)
+  }
 }
 
-// 생년월일은 YYYY-MM-DD 형태로만 입력되도록 정규화한다.
-function handleBirthInput(event) {
-  const digits = event.target.value.replace(/\D/g, '').slice(0, 8)
+// 한 번 틀렸다고 알려준 필드는, 고치는 즉시 문구를 거둬준다.
+function clearFieldErrorIfFixed(field) {
+  if (!fieldErrors.value[field]) return
+  if (!validators[field](form.value[field])) fieldErrors.value[field] = ''
+}
 
-  if (digits.length <= 4) {
-    form.value.birth = digits
-    return
+// 중복 확인은 자동이 아니라 사용자가 버튼을 눌렀을 때만 한다.
+async function handleEmailCheck() {
+  if (emailCheckStatus.value === 'checking') return
+
+  validateField('email')
+
+  // 형식이 틀렸을 경우
+  if (fieldErrors.value.email) return
+
+  // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 form.value.email을 그대로 보내기
+  const email = normalizeEmail(form.value.email)
+  const requestId = (latestEmailCheckId += 1)
+  emailCheckStatus.value = 'checking'
+
+  try {
+    const { data: response } = await checkEmail(email)
+
+    if (requestId !== latestEmailCheckId) return
+
+    // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 form.value.email과 직접 비교하기
+    if (response.data.email !== normalizeEmail(form.value.email)) return
+
+    if (response.data.available) {
+      emailCheckStatus.value = 'available'
+      return
+    }
+
+    emailCheckStatus.value = ''
+    fieldErrors.value.email = DUPLICATE_EMAIL_MESSAGE
+  } catch {
+    // 직접 누른 버튼이라 조용히 넘어가면 눌리지 않은 것처럼 보인다. 실패했다고 알려준다.
+    if (requestId === latestEmailCheckId) emailCheckStatus.value = 'failed'
+  }
+}
+
+function handleEmailInput() {
+  latestEmailCheckId += 1
+  emailCheckStatus.value = ''
+
+  if (fieldErrors.value.email === DUPLICATE_EMAIL_MESSAGE) fieldErrors.value.email = ''
+
+  clearFieldErrorIfFixed('email')
+}
+
+// 하이픈을 뺀 '숫자 몇 개째 뒤'라는 기준으로 커서 위치를 다시 찾는다.
+function caretAfterDigits(text, digitCount) {
+  if (digitCount === 0) return 0
+
+  let seen = 0
+  for (let i = 0; i < text.length; i += 1) {
+    if (/\d/.test(text[i])) {
+      seen += 1
+      if (seen === digitCount) return i + 1
+    }
   }
 
-  if (digits.length <= 6) {
-    form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4)}`
-    return
-  }
+  return text.length
+}
 
-  form.value.birth = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
+// 서버가 010-1234-5678 형식만 받으므로 입력하는 동안 하이픈을 넣어준다.
+async function handlePhoneInput(event) {
+  const input = event.target
+  const raw = input.value
+  const caret = input.selectionStart ?? raw.length
+  const digitsBeforeCaret = raw.slice(0, caret).replace(/\D/g, '').length
+
+  const formatted = formatPhoneNumber(raw)
+  form.value.phone = formatted
+
+  if (fieldErrors.value.phone === DUPLICATE_PHONE_MESSAGE) fieldErrors.value.phone = ''
+
+  clearFieldErrorIfFixed('phone')
+
+  await nextTick()
+
+  // 하이픈만 지운 경우처럼 포맷 결과가 그대로면 Vue가 DOM을 안 건드리므로 직접 맞춰준다.
+  if (input.value !== formatted) input.value = formatted
+
+  const nextCaret = caretAfterDigits(formatted, digitsBeforeCaret)
+  input.setSelectionRange(nextCaret, nextCaret)
 }
 
 function handleBirthChange(event) {
   const value = String(event.target.value ?? '').slice(0, 10)
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    form.value.birth = ''
-    return
-  }
+  form.value.birth = /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : ''
 
-  form.value.birth = value
+  // 달력에서 고르는 값이라 blur까지 기다리지 않고 바로 알려준다.
+  validateField('birth')
 }
 
 async function handleSubmit() {
   if (loading.value) return
+
+  // 제출 시점에는 아직 건드리지 않은 필드까지 한 번에 훑는다.
+  Object.keys(validators).forEach(validateField)
+
+  // 버튼으로 중복 확인을 마친 이메일만 가입시킨다.
+  if (!fieldErrors.value.email && emailCheckStatus.value !== 'available') {
+    fieldErrors.value.email = '이메일 중복 확인을 해주세요.'
+  }
+
+  if (Object.values(fieldErrors.value).some(Boolean)) {
+    errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
+    return
+  }
+
   loading.value = true
   errorMessage.value = ''
 
   try {
+    // 비밀번호 확인은 화면에서만 쓰는 값이라 서버로 보내지 않는다.
+    const { email, password, name, birth, phone } = form.value
     const { data: response } = await signup({
       type: signupStore.type,
-      ...form.value,
+      // TODO: 이메일이 아이디로 대체되면 normalizeEmail을 벗기고 email을 그대로 보내기
+      email: normalizeEmail(email),
+      password,
+      name,
+      birth,
       // 하이픈은 화면에서 보기 좋으라고 넣은 것이라, 보낼 때는 숫자만 남긴다.
-      phone: form.value.phone.replace(/\D/g, '')
+      phone: phone.replace(/\D/g, '')
     })
     const user = response.data
 
@@ -82,7 +250,19 @@ async function handleSubmit() {
     // 어느 화면인지는 라우터 가드가 계정 상태를 보고 정한다.
     router.push({ name: 'home' })
   } catch (error) {
-    errorMessage.value = error?.response?.data?.message ?? '회원가입 중 오류가 발생했습니다.'
+    const code = error?.response?.data?.code
+    const message = error?.response?.data?.message
+
+    if (code === DUPLICATE_EMAIL_CODE) {
+      emailCheckStatus.value = ''
+      fieldErrors.value.email = message ?? DUPLICATE_EMAIL_MESSAGE
+      errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
+    } else if (code === DUPLICATE_PHONE_CODE) {
+      fieldErrors.value.phone = message ?? DUPLICATE_PHONE_MESSAGE
+      errorMessage.value = '입력하신 내용을 다시 확인해주세요.'
+    } else {
+      errorMessage.value = message ?? '회원가입 중 오류가 발생했습니다.'
+    }
   } finally {
     loading.value = false
   }
@@ -91,35 +271,7 @@ async function handleSubmit() {
 
 <template>
   <main class="min-h-screen" style="background-color: var(--color-avocado-50)">
-    <!-- 헤더 -->
-    <header
-      class="flex h-14 items-center px-4"
-      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
-    >
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2 transition"
-        style="color: var(--color-text-primary)"
-        @click="router.back()"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <h1
-        class="flex-1 text-center text-base font-semibold"
-        style="color: var(--color-text-primary)"
-      >
-        프로필 설정
-      </h1>
-      <div class="w-9" />
-    </header>
+    <SignupHeader title="회원가입" @click-back="router.back()" />
 
     <div class="mx-auto flex w-full max-w-md flex-col gap-8 px-6 pb-12 pt-6">
       <!-- 프로필 사진 (후순위 — 더미 영역) -->
@@ -152,113 +304,72 @@ async function handleSubmit() {
 
       <!-- 폼 -->
       <form class="flex flex-col gap-5" novalidate @submit.prevent="handleSubmit">
-        <!-- 이름 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="name" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            이름
-          </label>
-          <input
-            id="name"
-            v-model.trim="form.name"
-            type="text"
-            placeholder="이름을 입력해주세요"
-            class="input-field"
-          />
-        </div>
-
-        <!-- 휴대폰 번호 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="phone" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            휴대폰 번호
-          </label>
-          <div class="relative">
-            <input
-              id="phone"
-              :value="form.phone"
-              type="tel"
-              inputmode="numeric"
-              maxlength="13"
-              placeholder="010-1234-5678"
-              class="input-field pr-10"
-              @input="handlePhoneInput"
-            />
-            <svg
-              class="absolute right-3.5 top-1/2 -translate-y-1/2"
-              style="color: var(--color-text-muted)"
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
-            >
-              <path
-                d="M3 3h3.5l1.5 4-2 1.5A11 11 0 0010.5 12L12 10l4 1.5V15A2 2 0 0114 17C7.373 17 1 10.627 1 4a2 2 0 012-1z"
-                stroke="currentColor"
-                stroke-width="1.3"
-                stroke-linecap="round"
-              />
-            </svg>
-          </div>
-        </div>
-
         <!-- 이메일 -->
+        <!-- TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체
+             (label, placeholder, type/inputmode/autocomplete, 이메일 아이콘, 확인 안내 문구) -->
         <div class="flex flex-col gap-1.5">
           <label for="email" class="text-sm font-medium" style="color: var(--color-text-primary)">
             이메일
           </label>
-          <div class="relative">
-            <input
-              id="email"
-              v-model.trim="form.email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              placeholder="abc1234@naver.com"
-              class="input-field pr-10"
-            />
-            <svg
-              class="absolute right-3.5 top-1/2 -translate-y-1/2"
-              style="color: var(--color-text-muted)"
-              width="18"
-              height="18"
-              viewBox="0 0 18 18"
-              fill="none"
+          <div class="flex items-start gap-2">
+            <div class="relative flex-1">
+              <input
+                id="email"
+                v-model.trim="form.email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="abc1234@naver.com"
+                class="input-field pr-10"
+                :class="{ 'input-field--error': fieldErrors.email }"
+                :aria-invalid="Boolean(fieldErrors.email)"
+                aria-describedby="email-error"
+                @blur="validateField('email')"
+                @input="handleEmailInput"
+              />
+              <svg
+                class="absolute right-3.5 top-1/2 -translate-y-1/2"
+                style="color: var(--color-text-muted)"
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+              >
+                <rect
+                  x="1"
+                  y="3"
+                  width="16"
+                  height="12"
+                  rx="2"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                />
+                <path
+                  d="M1 6l8 5 8-5"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <button
+              type="button"
+              class="email-check-button"
+              :disabled="!form.email || emailCheckStatus === 'checking'"
+              @click="handleEmailCheck"
             >
-              <rect
-                x="1"
-                y="3"
-                width="16"
-                height="12"
-                rx="2"
-                stroke="currentColor"
-                stroke-width="1.3"
-              />
-              <path
-                d="M1 6l8 5 8-5"
-                stroke="currentColor"
-                stroke-width="1.3"
-                stroke-linecap="round"
-              />
-            </svg>
+              {{ emailCheckStatus === 'checking' ? '확인 중' : '중복 확인' }}
+            </button>
           </div>
-        </div>
-
-        <!-- 생년월일 -->
-        <div class="flex flex-col gap-1.5">
-          <label for="birth" class="text-sm font-medium" style="color: var(--color-text-primary)">
-            생년월일
-          </label>
-          <div class="relative">
-            <input
-              id="birth"
-              v-model="form.birth"
-              type="date"
-              min="1900-01-01"
-              max="2999-12-31"
-              class="input-field pr-10"
-              style="color: var(--color-text-muted)"
-              @change="handleBirthChange"
-            />
-          </div>
+          <p v-if="fieldErrors.email" id="email-error" class="field-error">
+            {{ fieldErrors.email }}
+          </p>
+          <p v-else-if="emailCheckStatus === 'available'" class="field-hint field-hint--ok">
+            사용 가능한 이메일입니다.
+          </p>
+          <p v-else-if="emailCheckStatus === 'failed'" class="field-error">
+            중복 확인에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
         </div>
 
         <!-- 비밀번호 -->
@@ -278,6 +389,11 @@ async function handleSubmit() {
               autocomplete="new-password"
               placeholder="비밀번호를 입력해주세요"
               class="input-field pr-16"
+              :class="{ 'input-field--error': fieldErrors.password }"
+              :aria-invalid="Boolean(fieldErrors.password)"
+              aria-describedby="password-error"
+              @blur="validateField('password')"
+              @input="clearFieldErrorIfFixed('password')"
             />
             <button
               type="button"
@@ -288,6 +404,136 @@ async function handleSubmit() {
               {{ showPassword ? '숨기기' : '보기' }}
             </button>
           </div>
+          <p v-if="fieldErrors.password" id="password-error" class="field-error">
+            {{ fieldErrors.password }}
+          </p>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div class="flex flex-col gap-1.5">
+          <label
+            for="passwordConfirm"
+            class="text-sm font-medium"
+            style="color: var(--color-text-primary)"
+          >
+            비밀번호 확인
+          </label>
+          <div class="relative">
+            <input
+              id="passwordConfirm"
+              v-model="form.passwordConfirm"
+              :type="showPasswordConfirm ? 'text' : 'password'"
+              autocomplete="new-password"
+              placeholder="비밀번호를 다시 입력해주세요"
+              class="input-field pr-16"
+              :class="{ 'input-field--error': fieldErrors.passwordConfirm }"
+              :aria-invalid="Boolean(fieldErrors.passwordConfirm)"
+              aria-describedby="passwordConfirm-error"
+              @blur="validateField('passwordConfirm')"
+              @input="clearFieldErrorIfFixed('passwordConfirm')"
+            />
+            <button
+              type="button"
+              class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition"
+              style="color: var(--color-text-secondary)"
+              @click="showPasswordConfirm = !showPasswordConfirm"
+            >
+              {{ showPasswordConfirm ? '숨기기' : '보기' }}
+            </button>
+          </div>
+          <p v-if="fieldErrors.passwordConfirm" id="passwordConfirm-error" class="field-error">
+            {{ fieldErrors.passwordConfirm }}
+          </p>
+        </div>
+
+        <!-- 이름 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="name" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            이름
+          </label>
+          <input
+            id="name"
+            v-model.trim="form.name"
+            type="text"
+            placeholder="이름을 입력해주세요"
+            class="input-field"
+            :class="{ 'input-field--error': fieldErrors.name }"
+            :aria-invalid="Boolean(fieldErrors.name)"
+            aria-describedby="name-error"
+            @blur="validateField('name')"
+            @input="clearFieldErrorIfFixed('name')"
+          />
+          <p v-if="fieldErrors.name" id="name-error" class="field-error">
+            {{ fieldErrors.name }}
+          </p>
+        </div>
+
+        <!-- 생년월일 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="birth" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            생년월일
+          </label>
+          <div class="relative">
+            <input
+              id="birth"
+              v-model="form.birth"
+              type="date"
+              min="1900-01-01"
+              :max="todayISO"
+              class="input-field pr-10"
+              :class="{ 'input-field--error': fieldErrors.birth }"
+              :style="{
+                color: form.birth ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+              }"
+              :aria-invalid="Boolean(fieldErrors.birth)"
+              aria-describedby="birth-error"
+              @change="handleBirthChange"
+              @blur="validateField('birth')"
+            />
+          </div>
+          <p v-if="fieldErrors.birth" id="birth-error" class="field-error">
+            {{ fieldErrors.birth }}
+          </p>
+        </div>
+
+        <!-- 휴대폰 번호 -->
+        <div class="flex flex-col gap-1.5">
+          <label for="phone" class="text-sm font-medium" style="color: var(--color-text-primary)">
+            휴대폰 번호
+          </label>
+          <div class="relative">
+            <input
+              id="phone"
+              :value="form.phone"
+              type="tel"
+              inputmode="numeric"
+              placeholder="010-1234-5678"
+              class="input-field pr-10"
+              :class="{ 'input-field--error': fieldErrors.phone }"
+              :aria-invalid="Boolean(fieldErrors.phone)"
+              aria-describedby="phone-error"
+              @input="handlePhoneInput"
+              @blur="validateField('phone')"
+            />
+            <svg
+              class="absolute right-3.5 top-1/2 -translate-y-1/2"
+              style="color: var(--color-text-muted)"
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+            >
+              <path
+                d="M3 3h3.5l1.5 4-2 1.5A11 11 0 0010.5 12L12 10l4 1.5V15A2 2 0 0114 17C7.373 17 1 10.627 1 4a2 2 0 012-1z"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              />
+            </svg>
+          </div>
+          <p v-if="fieldErrors.phone" id="phone-error" class="field-error">
+            {{ fieldErrors.phone }}
+          </p>
         </div>
 
         <!-- 에러 메시지 -->
@@ -335,5 +581,62 @@ async function handleSubmit() {
 .input-field:focus {
   border-color: var(--color-avocado-600);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-avocado-300) 50%, transparent);
+}
+
+.input-field--error {
+  border-color: #dc2626;
+}
+
+.input-field--error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #dc2626 20%, transparent);
+}
+
+.field-error {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #dc2626;
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.field-hint--ok {
+  color: var(--color-avocado-600);
+}
+
+/* 입력창과 같은 높이로 나란히 서도록 padding과 radius를 input-field에 맞춘다. */
+.email-check-button {
+  flex-shrink: 0;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-avocado-600);
+  background-color: var(--color-avocado-600);
+  padding: 0.75rem 0.875rem;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-surface);
+  transition:
+    background-color 0.15s,
+    opacity 0.15s;
+}
+
+.email-check-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.email-check-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-avocado-300) 50%, transparent);
+}
+
+.email-check-button:disabled {
+  cursor: not-allowed;
+  border-color: var(--color-avocado-300);
+  background-color: var(--color-avocado-300);
+  color: var(--color-surface);
 }
 </style>
