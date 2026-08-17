@@ -61,7 +61,7 @@ export function resolveOnboardingRoute(user) {
  * 대기 화면이 잃어버린 요청 ID를 다시 심어준다.
  *
  * 보호자 요청 대기/아이 승인 대기 중 새로고침하면 스토어가 비워진다.
- * 서버에 요청이 살아 있는데도 대기 화면이 그것을 찾지 못하고 
+ * 서버에 요청이 살아 있는데도 대기 화면이 그것을 찾지 못하고
  * 코드 입력부터 다시 시작하게 된다.
  */
 export function restoreFamilyRequest(user) {
