@@ -179,9 +179,11 @@ function handleNext() {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-avocado-300) 50%, transparent);
 }
 
+/* 체크 표시, 문구, 전문 보기가 한 줄에 나란히 서도록 세로 가운데로 맞춘다.
+   안내 문구가 붙어 두 줄이 되는 항목은 그 두 줄 전체의 가운데를 기준으로 삼는다. */
 .term-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   border-radius: var(--radius-card);
   padding: 0.625rem 1rem;
@@ -195,7 +197,7 @@ function handleNext() {
   display: flex;
   flex: 1;
   cursor: pointer;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
 }
 
@@ -208,8 +210,6 @@ function handleNext() {
   gap: 0.25rem;
   border-radius: 0.5rem;
   padding: 0.125rem 0.25rem;
-  /* 두 줄짜리 항목에서도 첫 줄과 눈높이가 맞도록 살짝 내린다. */
-  margin-top: 0.125rem;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -252,8 +252,6 @@ function handleNext() {
 .check-mark--sm {
   height: 1.25rem;
   width: 1.25rem;
-  /* 두 줄짜리 항목에서도 첫 줄 글자와 눈높이가 맞도록 살짝 내린다. */
-  margin-top: 0.125rem;
 }
 
 .check-mark--on {
