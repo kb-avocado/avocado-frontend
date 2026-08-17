@@ -80,7 +80,7 @@ const showPasswordConfirm = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 const submitButtonLabel = computed(() => {
-  if (signupStore.type === 'CHILD') return '가족 연결하기'
+  if (signupStore.type === 'CHILD') return '회원가입'
   if (signupStore.type === 'PARENT') return '계좌 등록하기'
   return '아보카도 시작하기'
 })
