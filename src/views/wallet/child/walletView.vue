@@ -409,6 +409,7 @@ function getQrErrorMessage(error) {
 async function requestQrToken(request, action) {
   if (qrLoading.value) return
 
+  let issuedToken = ''
   stopQrFlow()
   const sequence = requestSequence
   qrLoading.value = true
@@ -427,26 +428,31 @@ async function requestQrToken(request, action) {
       throw new Error('결제 QR 응답 형식이 올바르지 않습니다.')
     }
 
-    const dataUrl = await QRCode.toDataURL(String(token), {
+    issuedToken = String(token)
+    if (isUnmounted || sequence !== requestSequence) return issuedToken
+
+    const dataUrl = await QRCode.toDataURL(issuedToken, {
       width: 264,
       margin: 1,
       errorCorrectionLevel: 'M',
       color: { dark: '#111111', light: '#ffffff' }
     })
-    if (isUnmounted || sequence !== requestSequence) return
+    if (isUnmounted || sequence !== requestSequence) return issuedToken
 
-    qrToken.value = String(token)
+    qrToken.value = issuedToken
     qrDataUrl.value = dataUrl
     qrStatus.value = 'WAITING'
     startQrTimer(expiresIn)
     startQrPolling()
+    return issuedToken
   } catch (error) {
-    if (isUnmounted || sequence !== requestSequence) return
+    if (isUnmounted || sequence !== requestSequence) return issuedToken || null
     stopQrTimer()
     stopQrPolling()
     qrDataUrl.value = ''
     qrRemainingSeconds.value = 0
     qrError.value = getQrErrorMessage(error)
+    return issuedToken || null
   } finally {
     qrLoading.value = false
   }
@@ -548,6 +554,7 @@ async function invalidateCurrentQr() {
   if (qrInvalidationPromise) return qrInvalidationPromise
 
   const pendingMutation = activeQrMutationPromise
+  const currentToken = qrToken.value
   const shouldInvalidate = qrStatus.value === 'WAITING' || Boolean(pendingMutation)
 
   stopQrFlow()
@@ -557,8 +564,9 @@ async function invalidateCurrentQr() {
   const invalidationPromise = (async () => {
     try {
       // 발급 요청과 화면 이탈이 겹치면 발급 완료 후 지워 고아 토큰이 남지 않게 합니다.
-      if (pendingMutation) await pendingMutation
-      await invalidatePaymentQr()
+      const pendingToken = pendingMutation ? await pendingMutation : ''
+      const tokenToInvalidate = pendingToken || currentToken
+      if (tokenToInvalidate) await invalidatePaymentQr(tokenToInvalidate)
     } catch {
       // 화면 전환을 막지 않으며 인증 오류는 axios interceptor가 처리합니다.
     }
