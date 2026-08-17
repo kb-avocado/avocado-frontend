@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 
 const router = useRouter()
 const signupStore = useSignupStore()
@@ -18,42 +19,12 @@ function handleNext() {
   signupStore.setType(selectedType.value)
   router.push({ name: 'signup-terms' })
 }
-
-function handleBackToLogin() {
-  router.push({ name: 'login' })
-}
 </script>
 
 <template>
   <main class="min-h-screen" style="background-color: var(--color-avocado-50)">
-    <header
-      class="flex h-14 items-center px-4"
-      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
-    >
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2 transition"
-        style="color: var(--color-text-primary)"
-        @click="handleBackToLogin"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <h1
-        class="flex-1 text-center text-base font-semibold"
-        style="color: var(--color-text-primary)"
-      >
-        회원가입
-      </h1>
-      <div class="w-9" />
-    </header>
+    <!-- 첫 화면이라 방문 기록이 없을 수 있어 돌아갈 곳을 직접 정해준다. -->
+    <SignupHeader title="회원가입" @click-back="router.push({ name: 'login' })" />
 
     <section
       class="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-md flex-col items-center justify-center gap-8 px-6 py-12"

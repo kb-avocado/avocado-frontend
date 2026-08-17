@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getFamilyRequestCheck, updateFamilyRequest } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -49,24 +50,7 @@ onMounted(() => {
 <template>
   <main class="flex min-h-screen flex-col" style="background-color: var(--color-surface)">
     <!-- 헤더 -->
-    <header class="flex h-14 items-center px-4">
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2"
-        style="color: var(--color-text-primary)"
-        @click="router.back()"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-    </header>
+    <SignupHeader @click-back="router.back()" />
 
     <div class="mx-auto flex w-full max-w-sm flex-1 flex-col items-center gap-8 px-6 pt-4 pb-12">
       <!-- ── 조회 중 ── -->

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { formatPhoneNumber } from '@/utils/format'
 import { isValidPassword } from '@/utils/validators'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 
 const router = useRouter()
 const signupStore = useSignupStore()
@@ -270,35 +271,7 @@ async function handleSubmit() {
 
 <template>
   <main class="min-h-screen" style="background-color: var(--color-avocado-50)">
-    <!-- 헤더 -->
-    <header
-      class="flex h-14 items-center px-4"
-      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
-    >
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2 transition"
-        style="color: var(--color-text-primary)"
-        @click="router.back()"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <h1
-        class="flex-1 text-center text-base font-semibold"
-        style="color: var(--color-text-primary)"
-      >
-        회원가입
-      </h1>
-      <div class="w-9" />
-    </header>
+    <SignupHeader title="회원가입" @click-back="router.back()" />
 
     <div class="mx-auto flex w-full max-w-md flex-col gap-8 px-6 pb-12 pt-6">
       <!-- 프로필 사진 (후순위 — 더미 영역) -->
