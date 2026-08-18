@@ -32,7 +32,7 @@
       </button>
     </section>
 
-   <!-- 지갑 카드: 피그마 스펙(padding 32/24/28/24, gap 20, radius 24) 반영 -->
+    <!-- 지갑 카드: 피그마 스펙(padding 32/24/28/24, gap 20, radius 24) 반영 -->
     <section
       v-else
       class="relative flex flex-col items-center text-center overflow-visible"
@@ -50,7 +50,7 @@
         preserveAspectRatio="none"
         aria-hidden="true"
       >
-     <rect
+        <rect
           x="8"
           y="8"
           width="calc(100% - 16px)"
@@ -63,7 +63,7 @@
         />
       </svg>
 
-  <!-- 지갑 잠금 탭(똑딱이): 카드 오른쪽 옆면에 붙임 -->
+      <!-- 지갑 잠금 탭(똑딱이): 카드 오른쪽 옆면에 붙임 -->
       <div
         class="absolute top-1/2 -right-[14px] -translate-y-1/2 w-7 h-16 rounded-full flex items-center justify-center"
         style="background-color: #cfe4b3; box-shadow: 0 2px 4px rgba(54, 106, 27, 0.18)"
@@ -89,7 +89,8 @@
       <div class="flex items-center gap-3 w-full">
         <RouterLink
           :to="{ name: 'transfer-recipient' }"
-          class="flex-1 text-center bg-white text-avocado-600 text-sm font-medium py-3 rounded-full"
+          class="flex-1 text-center bg-white text-sm font-medium py-3 rounded-full"
+          style="color: #366a1b"
         >
           송금
         </RouterLink>
@@ -115,7 +116,7 @@
         <RouterLink :to="{ name: 'piggy' }" class="text-sm text-muted"> 모두 보기 </RouterLink>
       </div>
 
-    <!-- 저금통이 없을 때 -->
+      <!-- 저금통이 없을 때 -->
       <RouterLink
         v-if="!home.piggyBanks?.length"
         :to="{ name: 'piggy' }"
@@ -190,7 +191,7 @@
 
     <!-- 소비 / 신문 토글 -->
     <section>
-    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <button
             v-for="tabOption in HOME_TAB_OPTIONS"
@@ -218,7 +219,7 @@
 
         <RouterLink :to="homeTabMoreLink" class="text-sm text-muted"> 모두 보기 </RouterLink>
       </div>
-<!-- 소비 탭 -->
+      <!-- 소비 탭 -->
       <div v-if="activeHomeTab === 'SPENDING'" class="grid grid-cols-2 gap-3">
         <RouterLink
           :to="{ name: 'child-report' }"
@@ -257,7 +258,7 @@
         </div>
 
         <!-- 뉴스가 있을 때 -->
-     <RouterLink
+        <RouterLink
           v-else
           v-for="item in home.news"
           :key="item.newsId"

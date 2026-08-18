@@ -64,7 +64,7 @@ const routes = [
     component: () => import('@/views/home/child/HomeView.vue'),
     meta: { title: '아보카도 홈' }
   },
- {
+  {
     path: '/parent/:childId?/home',
     name: 'parent-home',
     component: () => import('@/views/home/parent/HomeView.vue'),
@@ -118,7 +118,7 @@ const routes = [
     component: () => import('@/views/news/child/NewsDetailView.vue'),
     meta: { title: '신문', showBack: true }
   },
-{
+  {
     path: '/parent/:childId?/newspaper',
     name: 'parent-newspaper',
     component: () => import('@/views/news/parent/NewspaperListView.vue'),
@@ -140,7 +140,7 @@ const routes = [
     component: () => import('@/views/report/child/ReportView.vue'),
     meta: { title: '맛있는 과카몰리 리포트' }
   },
-{
+  {
     path: '/parent/:childId?/report',
     name: 'parent-report',
     component: () => import('@/views/report/parent/ReportView.vue'),
@@ -198,7 +198,7 @@ const routes = [
     meta: { title: '티끌모아 태산! 아보카도 저금통', menu: 'piggy', audience: 'child' }
   },
   /* 저금통 목록 (부모) */
-{
+  {
     path: '/parent/:childId?/piggy',
     name: 'parent-piggy-list',
     component: () => import('@/views/piggy/parent/ParentPiggyBankListView.vue'),
@@ -227,6 +227,21 @@ const routes = [
     props: true,
     meta: { hideLayout: true, title: '저금통 부모 상세', audience: 'parent' }
   },
+  /* 입금 내역 전체보기 (아이/부모 공용) */
+  {
+    path: '/child/piggy/:id/deposits',
+    name: 'piggyDepositHistory',
+    component: () => import('@/views/piggy/common/PiggyDepositHistoryView.vue'),
+    meta: { hideLayout: true, title: '입금 내역', audience: 'child' }
+  },
+  {
+    path: '/parent/:childId/piggy/:id/deposits',
+    name: 'parentPiggyDepositHistory',
+    component: () => import('@/views/piggy/common/PiggyDepositHistoryView.vue'),
+    props: true,
+    meta: { hideLayout: true, title: '입금 내역', audience: 'parent' }
+  },
+  //저금통 저축하기
   //저금통 저축하기
   {
     path: '/child/piggy/:id/deposit',

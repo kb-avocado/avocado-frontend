@@ -1,7 +1,12 @@
 <template>
   <div class="h-screen overflow-hidden flex flex-col bg-surface">
-    <AppHeader :title="item?.name || '저금통'" show-back :show-bell="false" :show-avatar="false"
-      @click-back="router.back()" />
+    <AppHeader
+      :title="item?.name || '저금통'"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
     <div v-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
@@ -13,7 +18,11 @@
         <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[220px] p-6">
           <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
           <div class="w-40 h-40 overflow-hidden grid place-items-center">
-            <img :src="growthImage" alt="저금통 성장" class="w-full h-full object-contain scale-125" />
+            <img
+              :src="growthImage"
+              alt="저금통 성장"
+              class="w-full h-full object-contain scale-125"
+            />
           </div>
 
           <!-- 부모 화면 '응원보내기' 버튼과 동일한 스타일 -->
@@ -41,17 +50,22 @@
           <p class="text-xl font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
         </div>
       </div>
-
       <!-- 입금 내역 -->
       <div>
         <p class="mx-2 text-sm font-medium text-avocado-900 mb-2">입금 내역</p>
-        <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" />
+        <PiggyDepositHistoryList :piggy-bank-id="item.piggyBankId" :child-id="childId" />
       </div>
 
       <!-- 보너스 지급 배너 (팀원 컴포넌트) -->
-      <PiggyBonusPayoutBanner :piggy-bank-id="item.piggyBankId" :status="item.status" :bonus-type="item.bonusType"
-        :bonus-value="item.bonusValue" :bonus-paid-at="item.bonusPaidAt" :target-amount="item.targetAmount"
-        :child-id="childId" />
+      <PiggyBonusPayoutBanner
+        :piggy-bank-id="item.piggyBankId"
+        :status="item.status"
+        :bonus-type="item.bonusType"
+        :bonus-value="item.bonusValue"
+        :bonus-paid-at="item.bonusPaidAt"
+        :target-amount="item.targetAmount"
+        :child-id="childId"
+      />
     </div>
 
     <BottomNavBar />

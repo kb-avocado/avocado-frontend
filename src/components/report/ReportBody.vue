@@ -100,33 +100,33 @@
           @touchmove="onTouchMove"
           @touchend="onTouchEnd"
         >
-         <!-- 슬라이드 1: 이번 달 소비 금액 -->
+          <!-- 슬라이드 1: 이번 달 소비 금액 -->
           <div
-            class="relative w-full shrink-0 flex flex-col items-start gap-4 py-6 px-5"
+            class="relative w-full shrink-0 flex flex-col gap-5 py-6 px-5"
             style="background-color: #fff8f5; border-radius: 16px"
           >
-            <img
-              :src="walletImage"
-              alt="지갑"
-              class="absolute top-4 right-4 w-32 h-32 object-contain pointer-events-none"
-            />
-
-            <div class="w-3/5">
+            <div>
               <p class="text-sm" style="color: #9aa090">{{ monthLabel }} 소비 금액</p>
               <p class="text-3xl font-bold mt-1" style="color: #1d1b16">
                 {{ animatedTotalSpent.toLocaleString('ko-KR') }}원
               </p>
             </div>
 
-            <p class="text-sm font-medium flex items-center gap-1" style="color: #ff8c69">
+            <p
+              class="text-sm font-medium w-fit flex items-center gap-1 px-3 py-1.5 rounded-full"
+              style="color: #ff8c69; background-color: #ffe4d9"
+            >
               {{ report.summary.comparedToLastMonth <= 0 ? '▼' : '▲' }}
               지난달 대비
               {{ Math.abs(report.summary.comparedToLastMonth).toLocaleString('ko-KR') }}원
             </p>
 
-            <div>
+            <div
+              class="flex items-center justify-between pt-4"
+              style="border-top: 1px solid #f3e2d8"
+            >
               <p class="text-sm" style="color: #9aa090">소비 건수</p>
-              <p class="text-lg font-bold mt-0.5" style="color: #1d1b16">
+              <p class="text-lg font-bold" style="color: #1d1b16">
                 {{ report.summary.transactionCount }}건
               </p>
             </div>
@@ -153,7 +153,9 @@
                   <span style="color: #1d1b16">
                     <span class="font-bold">{{ spot.percentage }}%</span>
 
-                    <span style="color: #9aa090"> ({{ spot.amount.toLocaleString('ko-KR') }}원) </span>
+                    <span style="color: #9aa090">
+                      ({{ spot.amount.toLocaleString('ko-KR') }}원)
+                    </span>
                   </span>
                 </div>
 
@@ -170,27 +172,27 @@
             </div>
           </div>
 
-    <!-- 슬라이드 3: 이번 달 저금액 -->
-          <div class="w-full shrink-0 p-5" style="background-color: #ebf4dd">
+          <!-- 슬라이드 3: 이번 달 저금액 -->
+          <div class="w-full shrink-0 p-5" style="background-color: #fdf3d1">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <p class="text-sm" style="color: #9aa090">이번 달 저금액</p>
                 <p class="text-3xl font-bold mt-1" style="color: #1d1b16">
                   {{ animatedTotalSaved.toLocaleString('ko-KR') }}원
                 </p>
-                <p class="text-sm mt-1" style="color: #34a873">저금했어요!</p>
+                <p class="text-sm mt-1" style="color: #e0a800">저금했어요!</p>
               </div>
-             <img
+              <img
                 :src="piggyImage"
                 alt="저금통"
-                class="w-32 h-32 object-contain shrink-0 pointer-events-none"
+                class="w-32 h-32 object-contain shrink-0 pointer-events-none mr-4"
               />
             </div>
 
             <div class="flex items-center justify-between mt-4 mb-2">
               <p class="text-sm" style="color: #9aa090">이번 달 용돈 대비 저축률</p>
 
-              <span class="text-sm font-semibold" style="color: #34a873">
+              <span class="text-sm font-semibold" style="color: #e0a800">
                 {{
                   report.savings.savingsRate != null ? `${report.savings.savingsRate}%` : '집계 중'
                 }}
@@ -201,7 +203,7 @@
               <div
                 class="h-full rounded-full transition-[width] duration-700 ease-out"
                 :style="{
-                  backgroundColor: '#96d394',
+                  backgroundColor: '#f5c518',
                   width: barsVisible ? `${getPercentage(report.savings.savingsRate)}%` : '0%'
                 }"
               />
@@ -317,8 +319,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-vue-next'
-import walletImage from '@/assets/images/wallet.png'
-import piggyImage from '@/assets/images/piggy.png'
+import piggyImage from '@/assets/images/piggypiggy.png'
 import cadoseedImage from '@/assets/images/cadoseed.png'
 import boardImage from '@/assets/images/board.png'
 
