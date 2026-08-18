@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
-import { useNotificationStore } from '@/stores/notification'
 import {
   isFamilyConnectRoute,
   isGuestOnlyRoute,
@@ -349,12 +348,6 @@ router.beforeEach(async (to) => {
   await authStore.restore()
 
   const user = authStore.user
-
-  // 실시간 알림 스트림을 계정 상태에 맞춘다. 가입 절차를 마친 계정만 구독한다.
-  // 이미 맞춰져 있으면 아무 일도 하지 않으므로 화면을 옮길 때마다 불러도 된다.
-  // 로그인 직후·회원가입 직후는 모두 화면 이동을 거치고 새로고침도 여기를 지나므로
-  // 각 화면에 따로 연결 코드를 두지 않고 이 한 곳에서 처리한다.
-  useNotificationStore().sync(user)
 
   // 로그인한 사람이 로그인·회원가입 화면에 오면 계정 상태에 맞는 화면으로 되돌린다.
   if (user && isGuestOnlyRoute(to)) {

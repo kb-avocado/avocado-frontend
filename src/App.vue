@@ -69,15 +69,14 @@ function goNotifications() {
   })
 }
 
-// 로그인 상태 변경 시 미읽음 알림 개수 조회 및 SSE 구독 생명주기 관리
+// 계정 상태 변경 시 미읽음 알림 개수 조회 및 SSE 구독 생명주기 관리
 watch(
-  () => authStore.isAuthenticated,
-  (isAuth) => {
-    if (isAuth) {
+  () => authStore.user?.status,
+  (status) => {
+    notificationStore.sync(authStore.user)
+
+    if (status === 'ACTIVE') {
       notificationStore.fetchUnreadCount()
-      notificationStore.subscribeSse()
-    } else {
-      notificationStore.unsubscribeSse()
     }
   },
   { immediate: true }

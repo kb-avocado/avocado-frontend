@@ -22,6 +22,8 @@ function requestRefresh() {
       .then((response) => {
         useAuthStore().setUser(response.data.data)
 
+        // 토큰이 만료되면 알림 스트림도 401로 끊긴다. 재발급 전후로 status는 그대로라
+        // App.vue의 감시가 반응하지 않으므로, 끊긴 스트림은 여기서 다시 연결한다.
         useNotificationStore().sync(response.data.data)
 
         return response
@@ -36,7 +38,7 @@ function requestRefresh() {
 
 function goToLogin() {
   useAuthStore().clear()
-  useNotificationStore().disconnect()
+  useNotificationStore().reset()
 
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
