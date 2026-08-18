@@ -15,7 +15,14 @@ const axiosInstance = axios.create({
 // 리프레시 토큰을 두 번 보내면 탈취로 오인해 전 기기가 로그아웃된다.
 let refreshRequest = null
 
-function requestRefresh() {
+/**
+ * 액세스 토큰을 재발급한다.
+ *
+ * 인터셉터뿐 아니라 알림 스트림(SSE)에서도 부른다. EventSource는 브라우저가 직접 여는
+ * 연결이라 인터셉터를 타지 않아, 401로 끊겼을 때 스스로 재발급을 요청해야 한다.
+ * 동시에 여러 번 불려도 요청은 하나만 나간다.
+ */
+export function requestRefresh() {
   if (!refreshRequest) {
     refreshRequest = axiosInstance
       .post('/auth/refresh')

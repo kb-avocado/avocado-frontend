@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { requestRefresh } from '@/api/axiosInstance'
 import {
   getNotifications,
   getUnreadNotificationCount,
@@ -15,6 +16,10 @@ function log(message, ...rest) {
 
   console.log(`[알림] ${message}`, ...rest)
 }
+
+// 스트림이 끊겼을 때 토큰을 재발급해 다시 붙어보는 최대 횟수.
+// 재발급이 성공해도 연결이 계속 실패하는 상황에서 서버를 반복해 두드리지 않도록 막는다.
+const SSE_MAX_RECOVERY_ATTEMPTS = 3
 
 const NOTIFICATION_CATEGORY_BY_TYPE = {
   ALLOWANCE_RECEIVED: 'WALLET',
@@ -108,7 +113,11 @@ export const useNotificationStore = defineStore('notification', {
     loading: false,
     error: '',
     eventSource: null,
-    sseConnected: false
+    sseConnected: false,
+    // 끊긴 스트림을 되살리는 중인지. 같은 복구를 두 번 시작하지 않기 위한 표시다.
+    sseRecovering: false,
+    // 연결에 성공하지 못한 채 이어진 복구 시도 횟수
+    sseRecoveryAttempts: 0
   }),
 
   getters: {
@@ -272,6 +281,8 @@ export const useNotificationStore = defineStore('notification', {
 
         this.eventSource.onopen = () => {
           this.sseConnected = true
+          // 한 번이라도 붙었으면 이전 실패는 잊는다.
+          this.sseRecoveryAttempts = 0
         }
 
         // 기본 메시지 이벤트
@@ -299,6 +310,7 @@ export const useNotificationStore = defineStore('notification', {
           if (this.eventSource?.readyState === EventSource.CLOSED) {
             this.eventSource = null
             log('연결 끊김 (재연결 포기, 인증 만료 가능성)')
+            this.recoverClosedSse()
             return
           }
 
@@ -308,6 +320,42 @@ export const useNotificationStore = defineStore('notification', {
         console.error('SSE 구독 생성 실패:', err)
         this.eventSource = null
         this.sseConnected = false
+      }
+    },
+
+    /**
+     * 브라우저가 재연결을 포기한 스트림을 되살린다.
+     *
+     * EventSource는 브라우저가 직접 여는 연결이라 axios 인터셉터를 타지 않는다.
+     * 그래서 액세스 토큰이 만료돼 401로 끊겨도 자동 재발급이 걸리지 않고,
+     * 다른 화면에서 API를 부를 때까지 알림이 멈춘 채로 남는다.
+     * 여기서 직접 재발급을 요청해 그 공백을 없앤다.
+     *
+     * 재발급에 성공하면 requestRefresh가 sync()를 불러 스트림을 다시 연다.
+     * 실패는 로그인 만료이므로 다음 API 요청이 로그인 화면으로 보내도록 두고,
+     * 화면 이동을 여기서 일으키지는 않는다. 사용자가 보고 있던 작업이 끊기기 때문이다.
+     */
+    async recoverClosedSse() {
+      if (this.sseRecovering) return
+
+      // 재발급은 됐는데 연결은 계속 실패하는 경우가 있다. 그대로 두면 서버를 계속 두드리게 되어
+      // 몇 번 시도한 뒤 멈춘다. 다시 붙는 순간 onopen에서 횟수가 0으로 돌아간다.
+      if (this.sseRecoveryAttempts >= SSE_MAX_RECOVERY_ATTEMPTS) {
+        log('복구 중단 (재시도 한도 초과)')
+        return
+      }
+
+      this.sseRecovering = true
+      this.sseRecoveryAttempts += 1
+
+      try {
+        await requestRefresh()
+        log('토큰 재발급 후 재구독')
+      } catch {
+        // 리프레시 토큰까지 만료된 상태다. 여기서 할 수 있는 일은 없다.
+        log('복구 실패 (재로그인 필요)')
+      } finally {
+        this.sseRecovering = false
       }
     },
 
@@ -341,6 +389,8 @@ export const useNotificationStore = defineStore('notification', {
      * SSE 구독 해제
      */
     unsubscribeSse() {
+      this.sseRecoveryAttempts = 0
+
       if (this.eventSource) {
         this.eventSource.close()
         this.eventSource = null
