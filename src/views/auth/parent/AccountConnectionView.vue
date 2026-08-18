@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAccount } from '@/api/account'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -9,9 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const BANKS = [{ code: '004', name: 'KB국민은행' }]
-
-const ACCOUNT_NUMBER_MAX_LENGTH = 20
+const BANKS = [{ code: '004', name: 'KB국민은행', accountLength: 14 }]
 
 const form = ref({
   bankCode: BANKS[0].code,
@@ -22,26 +20,36 @@ const agreed = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-const selectedBankName = computed(
-  () => BANKS.find((bank) => bank.code === form.value.bankCode)?.name ?? ''
+const selectedBank = computed(
+  () => BANKS.find((bank) => bank.code === form.value.bankCode) ?? BANKS[0]
+)
+
+const selectedBankName = computed(() => selectedBank.value.name)
+const accountNumberLength = computed(() => selectedBank.value.accountLength)
+
+// 자릿수가 모자라도, 넘쳐도 계좌가 아니다. 입력한 만큼을 화면에 함께 보여줘
+// 몇 자리가 남았는지 사용자가 세지 않아도 되게 한다.
+const isAccountNumberComplete = computed(
+  () => form.value.accountNumber.length === accountNumberLength.value
 )
 
 const canSubmit = computed(() => {
   const { accountNumber } = form.value
-  return (
-    /^[0-9]+$/.test(accountNumber) &&
-    accountNumber.length <= ACCOUNT_NUMBER_MAX_LENGTH &&
-    agreed.value
-  )
+  return /^[0-9]+$/.test(accountNumber) && isAccountNumberComplete.value && agreed.value
 })
 
 function sanitizeAccountNumber(value) {
-  return value.replace(/\D/g, '').slice(0, ACCOUNT_NUMBER_MAX_LENGTH)
+  return value.replace(/\D/g, '').slice(0, accountNumberLength.value)
 }
 
 function handleAccountNumberInput(event) {
   form.value.accountNumber = sanitizeAccountNumber(event.target.value)
 }
+
+// 자릿수가 더 짧은 은행으로 바꾸면 이미 입력해 둔 번호가 새 한도를 넘는다.
+watch(accountNumberLength, () => {
+  form.value.accountNumber = sanitizeAccountNumber(form.value.accountNumber)
+})
 
 async function handleSubmit() {
   if (!canSubmit.value || loading.value) return
@@ -131,13 +139,25 @@ async function pasteAccountNumber() {
 
         <!-- 계좌번호 입력 -->
         <div class="flex flex-col gap-1.5">
-          <label
-            for="accountNumber"
-            class="text-sm font-medium"
-            style="color: var(--color-text-primary)"
-          >
-            계좌 번호 입력
-          </label>
+          <div class="flex items-center justify-between">
+            <label
+              for="accountNumber"
+              class="text-sm font-medium"
+              style="color: var(--color-text-primary)"
+            >
+              계좌 번호 입력
+            </label>
+            <span
+              class="text-xs font-medium"
+              :style="
+                isAccountNumberComplete
+                  ? 'color: var(--color-avocado-600);'
+                  : 'color: var(--color-text-muted);'
+              "
+            >
+              {{ form.accountNumber.length }}/{{ accountNumberLength }}
+            </span>
+          </div>
           <div
             class="flex items-center gap-2 rounded-2xl px-4 py-3"
             style="background-color: var(--color-surface); border: 1px solid var(--color-border)"
@@ -147,8 +167,8 @@ async function pasteAccountNumber() {
               v-model="form.accountNumber"
               type="text"
               inputmode="numeric"
-              :maxlength="ACCOUNT_NUMBER_MAX_LENGTH"
-              placeholder="숫자만 입력해 주세요"
+              :maxlength="accountNumberLength"
+              :placeholder="`숫자 ${accountNumberLength}자리를 입력해 주세요`"
               class="flex-1 bg-transparent text-[15px] outline-none placeholder:text-sm"
               style="color: var(--color-text-primary)"
               @input="handleAccountNumberInput"
