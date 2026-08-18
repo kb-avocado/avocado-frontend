@@ -24,11 +24,18 @@
       <button
         v-if="showBell"
         type="button"
-        class="text-avocado-900"
+        class="relative p-1 text-avocado-900 hover:text-avocado-700 transition-colors"
         aria-label="알림"
         @click="$emit('click-bell')"
       >
         <Bell :size="20" />
+        <!-- 미읽음 알림 배지 -->
+        <span
+          v-if="displayUnreadCount > 0"
+          class="absolute top-0 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none ring-2 ring-white shadow-sm"
+        >
+          {{ displayUnreadCount > 99 ? '99+' : displayUnreadCount }}
+        </span>
       </button>
       <button
         v-if="showAvatar"
@@ -50,15 +57,27 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Bell, User, ChevronLeft } from 'lucide-vue-next'
+import { useNotificationStore } from '@/stores/notification'
 
-defineProps({
+const props = defineProps({
   title: { type: String, required: true },
   showBack: { type: Boolean, default: false },
   showBell: { type: Boolean, default: true },
   showAvatar: { type: Boolean, default: true },
   avatarUrl: { type: String, default: '' },
+  unreadCount: { type: Number, default: null }
 })
 
 defineEmits(['click-back', 'click-bell', 'click-avatar'])
+
+const notificationStore = useNotificationStore()
+
+const displayUnreadCount = computed(() => {
+  if (props.unreadCount !== null) {
+    return props.unreadCount
+  }
+  return notificationStore.unreadCount
+})
 </script>
