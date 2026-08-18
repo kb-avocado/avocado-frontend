@@ -6,10 +6,12 @@ import BaseButton from '@/components/common/BaseButton.vue'
 import SignupHeader from '@/components/common/SignupHeader.vue'
 import { useFamilyConnectStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 
 const router = useRouter()
 const familyConnectStore = useFamilyConnectStore()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const POLL_INTERVAL = 3000
 const LOST_REDIRECT_DELAY = 2500
@@ -84,6 +86,9 @@ async function handleConfirm(confirm) {
         // 연결은 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
         // 갱신에 실패해도 완료 화면은 그대로 보여준다. 홈으로 갈 때 가드가 다시 물어본다.
       }
+
+      // ACTIVE가 됐으므로 실시간 알림을 구독한다.
+      notificationStore.sync(authStore.user)
     }
 
     phase.value = connected ? 'done' : 'canceled'

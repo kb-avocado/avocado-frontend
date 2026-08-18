@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 
 const axiosInstance = axios.create({
   // 값을 비워두면 '/api' 상대경로로 나가 vite.config.js의 프록시를 탄다.
@@ -20,6 +21,9 @@ function requestRefresh() {
       .post('/auth/refresh')
       .then((response) => {
         useAuthStore().setUser(response.data.data)
+
+        useNotificationStore().sync(response.data.data)
+
         return response
       })
       .finally(() => {
@@ -32,6 +36,7 @@ function requestRefresh() {
 
 function goToLogin() {
   useAuthStore().clear()
+  useNotificationStore().disconnect()
 
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'

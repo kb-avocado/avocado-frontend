@@ -14,12 +14,15 @@ import { useRouter } from 'vue-router'
 import { LogOut } from 'lucide-vue-next'
 import { logout } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 async function handleLogout() {
   if (!window.confirm('로그아웃 하시겠습니까?')) return
+  notificationStore.disconnect()
 
   try {
     await logout()
