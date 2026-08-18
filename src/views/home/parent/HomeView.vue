@@ -3,10 +3,9 @@
     TODO: 연결된 아이가 없는 부모 홈. 지금은 안내 문구만 있다.
     초대 코드 안내나 아이 연결 유도 등 실제 화면은 따로 구현해야 한다.
   -->
-<NoChildConnected v-if="!hasChildren" />
+  <NoChildConnected v-if="!hasChildren" />
 
   <div v-else class="p-4 flex flex-col gap-6">
-
     <!-- 아이 전환 -->
     <div class="flex gap-4 px-1">
       <button
@@ -124,7 +123,8 @@
 
         <RouterLink
           :to="{ name: 'parent-transfer', params: { childId } }"
-          class="w-full text-center bg-white text-avocado-600 text-sm font-medium py-3 rounded-full flex items-center justify-center gap-1"
+          class="w-full text-center bg-white text-sm font-medium py-3 rounded-full flex items-center justify-center gap-1"
+          style="color: #366a1b"
         >
           <CreditCard :size="14" />
           용돈 보내기

@@ -246,6 +246,21 @@ const routes = [
     props: true,
     meta: { hideLayout: true, title: '저금통 부모 상세', audience: 'parent' }
   },
+  /* 입금 내역 전체보기 (아이/부모 공용) */
+  {
+    path: '/child/piggy/:id/deposits',
+    name: 'piggyDepositHistory',
+    component: () => import('@/views/piggy/common/PiggyDepositHistoryView.vue'),
+    meta: { hideLayout: true, title: '입금 내역', audience: 'child' }
+  },
+  {
+    path: '/parent/:childId/piggy/:id/deposits',
+    name: 'parentPiggyDepositHistory',
+    component: () => import('@/views/piggy/common/PiggyDepositHistoryView.vue'),
+    props: true,
+    meta: { hideLayout: true, title: '입금 내역', audience: 'parent' }
+  },
+  //저금통 저축하기
   //저금통 저축하기
   {
     path: '/child/piggy/:id/deposit',
