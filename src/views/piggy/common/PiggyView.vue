@@ -45,9 +45,9 @@
 
     <template v-if="tab === 'IN_PROGRESS'">
       <button
+        v-if="store.childCanCreate"
         type="button"
         class="w-full min-h-[76px] mt-5 grid place-items-center content-center gap-[3px] border-[1.5px] border-dashed border-[#dce5dc] rounded-[18px] bg-surface text-[#9ba49d] text-[11px]"
-        :disabled="!store.childCanCreate"
         @click="goToCreate"
       >
         <span aria-hidden="true" class="text-[21px]">＋</span>

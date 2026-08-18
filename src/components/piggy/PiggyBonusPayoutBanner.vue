@@ -1,32 +1,32 @@
 <template>
-    <div v-if="hasBonus" class="space-y-2">
-        <p class="text-xs text-muted text-center">
-            {{
-                isPaid
-                    ? '보너스를 지급 완료 했어요!'
-                    : isAchieved
-                        ? '보너스를 아직 지급하지 않았어요!'
-                        : `목표 달성 시 ${bonusAmount.toLocaleString('ko-KR')}원이 지급돼요`
-            }}
-        </p>
-        <BaseButton variant="primary" class="w-full gap-2" :disabled="!canPay" @click="goToPayment">
-            <PiggyBank :size="18" />
-            <span>{{ isPaid ? '지급 완료' : '보너스 지급하기' }}</span>
-        </BaseButton>
-    </div>
+  <div v-if="hasBonus" class="space-y-2">
+    <p class="text-xs text-muted text-center">
+      {{
+        isPaid
+          ? '보너스를 지급 완료 했어요!'
+          : isAchieved
+            ? '보너스를 아직 지급하지 않았어요!'
+            : `목표 달성 시 ${bonusAmount.toLocaleString('ko-KR')}원이 지급돼요`
+      }}
+    </p>
+    <BaseButton variant="primary" class="w-full gap-2" :disabled="!canPay" @click="goToPayment">
+      <PiggyBank :size="18" />
+      <span>{{ isPaid ? '지급 완료' : '보너스 지급하기' }}</span>
+    </BaseButton>
+  </div>
 
-    <!-- 아직 보너스를 설정하지 않은 저금통: 설정 화면으로 보낸다 -->
-    <div v-else class="space-y-2">
-        <p class="text-xs text-muted text-center">
-            아직 응원 보너스를 설정하지 않았어요. 목표를 달성하면 보너스를 받을 수 있어요!
-        </p>
-        <BaseButton variant="outline" class="w-full gap-2" @click="goToSetup">
-            <PiggyBank :size="18" />
-            <span>보너스 설정하기</span>
-        </BaseButton>
-    </div>
+  <!-- 아직 보너스를 설정하지 않은 저금통: 설정 화면으로 보낸다 -->
+  <div v-else class="space-y-2 flex flex-col items-center">
+    <p class="text-xs text-muted text-center">
+      아이를 위한 응원 보너스를 설정해주세요! <br />보너스는 아이가 저금통을 빨리 채우기 위한
+      원동력이 됩니다.
+    </p>
+    <BaseButton variant="primary" class="gap-2 px-32" @click="goToSetup">
+      <PiggyBank :size="18" />
+      <span>보너스 설정하기</span>
+    </BaseButton>
+  </div>
 </template>
-
 
 <script setup>
 import { computed } from 'vue'
@@ -36,41 +36,41 @@ import { PiggyBank } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 
 const props = defineProps({
-    // 저금통의 아이디
-    piggyBankId: {
-        type: [String, Number],
-        required: true
-    },
-    // 저금통의 상태
-    status: {
-        type: String,
-        required: true
-    },
-    // NONE, RATE, FIXED
-    bonusType: {
-        type: String,
-        default: 'NONE'
-    },
-    // 정액 금액 또는 비율
-    bonusValue: {
-        type: Number,
-        default: 0
-    },
-    // 지급된 적 있으면 날짜 문자열, 없으면 null
-    bonusPaidAt: {
-        type: String,
-        default: null
-    },
-    // RATE 타입일 경우 계산
-    targetAmount: {
-        type: Number,
-        default: 0
-    },
-    // 아이 ID
-    childId: {
-        type: [String, Number],
-        required: true
-    }
+  // 저금통의 아이디
+  piggyBankId: {
+    type: [String, Number],
+    required: true
+  },
+  // 저금통의 상태
+  status: {
+    type: String,
+    required: true
+  },
+  // NONE, RATE, FIXED
+  bonusType: {
+    type: String,
+    default: 'NONE'
+  },
+  // 정액 금액 또는 비율
+  bonusValue: {
+    type: Number,
+    default: 0
+  },
+  // 지급된 적 있으면 날짜 문자열, 없으면 null
+  bonusPaidAt: {
+    type: String,
+    default: null
+  },
+  // RATE 타입일 경우 계산
+  targetAmount: {
+    type: Number,
+    default: 0
+  },
+  // 아이 ID
+  childId: {
+    type: [String, Number],
+    required: true
+  }
 })
 
 const router = useRouter()
@@ -89,21 +89,24 @@ const canPay = computed(() => isAchieved.value && hasBonus.value && !isPaid.valu
 
 /* 보너스가 RATE 타입일 경우 계산 */
 const bonusAmount = computed(() => {
-    if (!hasBonus.value) return 0
-    if (props.bonusType === 'RATE') {
-        return Math.floor((props.targetAmount * props.bonusValue) / 100)
-    }
-    return props.bonusValue ?? 0
+  if (!hasBonus.value) return 0
+  if (props.bonusType === 'RATE') {
+    return Math.floor((props.targetAmount * props.bonusValue) / 100)
+  }
+  return props.bonusValue ?? 0
 })
 
 /* 보너스 송금 버튼 클릭시 축하 및 보너스 송금 화면으로 이동 */
 function goToPayment() {
-    if (!canPay.value) return
-    router.push({ name: 'piggyGoalComplete', params: { childId: props.childId, id: props.piggyBankId } })
+  if (!canPay.value) return
+  router.push({
+    name: 'piggyGoalComplete',
+    params: { childId: props.childId, id: props.piggyBankId }
+  })
 }
 
 /* 보너스 설정 버튼 클릭시 설정 화면으로 이동. 보너스는 저금통당 한 번만 설정할 수 있다. */
 function goToSetup() {
-    router.push({ name: 'piggyBonus', params: { childId: props.childId, id: props.piggyBankId } })
+  router.push({ name: 'piggyBonus', params: { childId: props.childId, id: props.piggyBankId } })
 }
 </script>
