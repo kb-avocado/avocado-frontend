@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 
 const router = useRouter()
 const signupStore = useSignupStore()
@@ -15,17 +16,19 @@ function selectRole(type) {
 
 function handleNext() {
   if (!selectedType.value) return
-  signupStore.type = selectedType.value
-  router.push({ name: 'signup-profile' })
+  signupStore.setType(selectedType.value)
+  router.push({ name: 'signup-terms' })
 }
 </script>
 
 <template>
-  <main
-    class="flex min-h-screen flex-col items-center justify-center px-6 py-12"
-    style="background-color: var(--color-avocado-50)"
-  >
-    <section class="flex w-full flex-col items-center gap-8">
+  <main class="min-h-screen" style="background-color: var(--color-avocado-50)">
+    <!-- 첫 화면이라 방문 기록이 없을 수 있어 돌아갈 곳을 직접 정해준다. -->
+    <SignupHeader title="회원가입" @click-back="router.push({ name: 'login' })" />
+
+    <section
+      class="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-md flex-col items-center justify-center gap-8 px-6 py-12"
+    >
       <!-- 타이틀 -->
       <div class="flex flex-col items-center gap-2 text-center">
         <h1 class="text-3xl font-bold leading-snug" style="color: var(--color-text-primary)">
@@ -38,20 +41,6 @@ function handleNext() {
 
       <!-- 역할 카드 -->
       <div class="flex w-full gap-4">
-        <!-- 아이 카드 -->
-        <button
-          type="button"
-          class="role-card"
-          :class="{ 'role-card--active': selectedType === 'CHILD' }"
-          @click="selectRole('CHILD')"
-        >
-          <img src="@/assets/images/child.png" alt="아이" class="h-24 w-24 object-contain" />
-          <span class="text-xl font-bold" style="color: var(--color-text-primary)">아이</span>
-          <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            용돈을 관리하고<br />저축을 배워요
-          </span>
-        </button>
-
         <!-- 보호자 카드 -->
         <button
           type="button"
@@ -63,6 +52,20 @@ function handleNext() {
           <span class="text-xl font-bold" style="color: var(--color-text-primary)">보호자</span>
           <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
             아이의 경제 활동을<br />함께 응원해요
+          </span>
+        </button>
+
+        <!-- 아이 카드 -->
+        <button
+          type="button"
+          class="role-card"
+          :class="{ 'role-card--active': selectedType === 'CHILD' }"
+          @click="selectRole('CHILD')"
+        >
+          <img src="@/assets/images/child.png" alt="아이" class="h-24 w-24 object-contain" />
+          <span class="text-xl font-bold" style="color: var(--color-text-primary)">아이</span>
+          <span class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            용돈을 관리하고<br />저축을 배워요
           </span>
         </button>
       </div>

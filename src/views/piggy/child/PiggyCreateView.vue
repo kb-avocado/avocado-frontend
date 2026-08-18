@@ -82,10 +82,10 @@
       </div>
 
       <!-- 안내 문구: 신문 리스트 하단 안내문구와 동일한 스타일 -->
-      <p class="text-xs text-muted leading-relaxed text-right">
-        * 목표 금액을 다 채워도 일주일이 지나야 저금통을 깰 수 있어요!
+      <p class="text-[13px] font-semibold text-[#E5793A] leading-relaxed rounded-xl p-3">
+        * 목표 금액을 다 채워도 <strong class="underline">일주일</strong>이 지나야 저금통을 깰 수
+        있어요!
       </p>
-
       <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
       <!-- 목표 만들기 버튼: 신문 '활동 완료하기' 버튼과 동일한 스타일 -->
       <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">

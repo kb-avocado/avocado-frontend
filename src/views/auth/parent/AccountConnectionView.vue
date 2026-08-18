@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAccount } from '@/api/account'
 import BaseButton from '@/components/common/BaseButton.vue'
+import SignupHeader from '@/components/common/SignupHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -83,34 +84,7 @@ async function pasteAccountNumber() {
 <template>
   <main class="flex min-h-screen flex-col" style="background-color: var(--color-avocado-50)">
     <!-- 헤더 -->
-    <header
-      class="flex h-14 items-center px-4"
-      style="background-color: var(--color-surface); border-bottom: 1px solid var(--color-border)"
-    >
-      <button
-        type="button"
-        class="flex items-center justify-center rounded-lg p-2"
-        style="color: var(--color-text-primary)"
-        @click="router.back()"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path
-            d="M12.5 16L6.5 10L12.5 4"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <h1
-        class="flex-1 text-center text-base font-semibold"
-        style="color: var(--color-text-primary)"
-      >
-        계좌 연결하기
-      </h1>
-      <div class="w-9" />
-    </header>
+    <SignupHeader title="계좌 연결하기" @click-back="router.back()" />
 
     <div class="mx-auto flex w-full max-w-sm flex-col gap-8 px-6 pt-8 pb-12">
       <!-- 타이틀 -->

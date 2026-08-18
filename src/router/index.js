@@ -37,6 +37,16 @@ const routes = [
         component: () => import('@/views/auth/common/SignupRoleView.vue')
       },
       {
+        path: 'terms',
+        name: 'signup-terms',
+        component: () => import('@/views/auth/common/SignupTermsView.vue'),
+        beforeEnter: () => {
+          const signupStore = useSignupStore()
+          // 아이인지 보호자인지에 따라 보여줄 약관이 달라진다
+          if (!signupStore.type) return { name: 'signup-role' }
+        }
+      },
+      {
         path: 'profile',
         name: 'signup-profile',
         component: () => import('@/views/auth/common/SignupProfileView.vue'),
@@ -44,6 +54,8 @@ const routes = [
           const signupStore = useSignupStore()
           // role 선택 없이 직접 URL 접근 차단
           if (!signupStore.type) return { name: 'signup-role' }
+          // 약관 동의 없이 직접 URL 접근 차단
+          if (!signupStore.agreed) return { name: 'signup-terms' }
         }
       }
     ],
@@ -102,6 +114,13 @@ const routes = [
     name: 'wallet',
     component: () => import('@/views/wallet/child/walletView.vue'),
     meta: { title: '결제하기' }
+  },
+  // 관리자 POS 시뮬레이터
+  {
+    path: '/admin/pos',
+    name: 'admin-pos-simulator',
+    component: () => import('@/views/admin/PosSimulatorView.vue'),
+    meta: { title: 'POS 시뮬레이터', hideLayout: true }
   },
   //신문
   //아이용 신문 리스트화면

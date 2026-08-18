@@ -127,7 +127,7 @@
           <button
             type="button"
             class="rounded-md px-1 py-0.5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600"
-            @click="isFlipped = false"
+            @click="showCardFront"
           >
             카드 앞면
           </button>
@@ -194,6 +194,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import QRCode from 'qrcode'
 import {
@@ -210,7 +211,12 @@ import {
 import BaseButton from '@/components/common/BaseButton.vue'
 import NumberKeypad from '@/components/common/NumberKeypad.vue'
 import PaymentResult from '@/components/payment/PaymentResult.vue'
-import { getPaymentQrStatus, issuePaymentQr, reissuePaymentQr } from '@/api/payment'
+import {
+  getPaymentQrStatus,
+  invalidatePaymentQr,
+  issuePaymentQr,
+  reissuePaymentQr
+} from '@/api/payment'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 
@@ -241,9 +247,10 @@ const paymentResult = ref(null)
 let qrTimer = null
 let qrPollingTimer = null
 let qrExpiresAt = 0
-let isPolling = false
 let requestSequence = 0
 let isUnmounted = false
+let activeQrMutationPromise = null
+let qrInvalidationPromise = null
 
 const childId = computed(
   () =>
@@ -262,7 +269,8 @@ const isQrExpired = computed(
   () =>
     !qrLoading.value &&
     !qrError.value &&
-    ['EXPIRED', 'INVALID'].includes(qrStatus.value)
+    (['EXPIRED', 'INVALID'].includes(qrStatus.value) ||
+      (qrStatus.value === 'WAITING' && qrRemainingSeconds.value === 0))
 )
 const qrStateTitle = computed(() =>
   qrStatus.value === 'INVALID' ? '사용할 수 없는 QR이에요' : 'QR이 만료되었어요'
@@ -354,10 +362,9 @@ function stopQrTimer() {
 
 function stopQrPolling() {
   if (qrPollingTimer) {
-    clearInterval(qrPollingTimer)
+    clearTimeout(qrPollingTimer)
     qrPollingTimer = null
   }
-  isPolling = false
 }
 
 function stopQrFlow() {
@@ -374,9 +381,7 @@ function startQrTimer(expiresIn) {
   const updateRemainingTime = () => {
     qrRemainingSeconds.value = Math.max(0, Math.ceil((qrExpiresAt - Date.now()) / 1000))
     if (qrRemainingSeconds.value === 0) {
-      qrStatus.value = 'EXPIRED'
       stopQrTimer()
-      stopQrPolling()
     }
   }
 
@@ -404,6 +409,7 @@ function getQrErrorMessage(error) {
 async function requestQrToken(request, action) {
   if (qrLoading.value) return
 
+  let issuedToken = ''
   stopQrFlow()
   const sequence = requestSequence
   qrLoading.value = true
@@ -422,26 +428,31 @@ async function requestQrToken(request, action) {
       throw new Error('결제 QR 응답 형식이 올바르지 않습니다.')
     }
 
-    const dataUrl = await QRCode.toDataURL(String(token), {
+    issuedToken = String(token)
+    if (isUnmounted || sequence !== requestSequence) return issuedToken
+
+    const dataUrl = await QRCode.toDataURL(issuedToken, {
       width: 264,
       margin: 1,
       errorCorrectionLevel: 'M',
       color: { dark: '#111111', light: '#ffffff' }
     })
-    if (isUnmounted || sequence !== requestSequence) return
+    if (isUnmounted || sequence !== requestSequence) return issuedToken
 
-    qrToken.value = String(token)
+    qrToken.value = issuedToken
     qrDataUrl.value = dataUrl
     qrStatus.value = 'WAITING'
     startQrTimer(expiresIn)
     startQrPolling()
+    return issuedToken
   } catch (error) {
-    if (isUnmounted || sequence !== requestSequence) return
+    if (isUnmounted || sequence !== requestSequence) return issuedToken || null
     stopQrTimer()
     stopQrPolling()
     qrDataUrl.value = ''
     qrRemainingSeconds.value = 0
     qrError.value = getQrErrorMessage(error)
+    return issuedToken || null
   } finally {
     qrLoading.value = false
   }
@@ -450,9 +461,7 @@ async function requestQrToken(request, action) {
 function normalizePaymentResult(data, status) {
   const amount = data.amount === null || data.amount === undefined ? null : Number(data.amount)
   const balanceAfter =
-    data.balanceAfter === null || data.balanceAfter === undefined
-      ? null
-      : Number(data.balanceAfter)
+    data.balanceAfter === null || data.balanceAfter === undefined ? null : Number(data.balanceAfter)
 
   return {
     status,
@@ -463,12 +472,10 @@ function normalizePaymentResult(data, status) {
   }
 }
 
-async function pollQrStatus() {
-  if (isPolling || !qrToken.value || qrStatus.value !== 'WAITING') return
+async function pollQrStatus(sequence = requestSequence) {
+  if (!qrToken.value || qrStatus.value !== 'WAITING') return
 
   const token = qrToken.value
-  const sequence = requestSequence
-  isPolling = true
 
   try {
     const response = await getPaymentQrStatus(token)
@@ -489,26 +496,92 @@ async function pollQrStatus() {
     if (status === 'SUCCESS' || status === 'FAILED') {
       paymentResult.value = normalizePaymentResult(data, status)
       if (status === 'SUCCESS') await refreshWalletAfterPayment()
+      return
+    }
+
+    // 자연 만료는 자동 재발급하되, 다른 화면에서 취소되어 INVALID가 된 QR은 되살리지 않습니다.
+    if (status === 'EXPIRED' || (status === 'INVALID' && qrRemainingSeconds.value === 0)) {
+      await reissueQrToken()
     }
   } catch {
     // 인증 오류는 axios interceptor에 맡기고, 일시 오류는 다음 polling에서 재시도합니다.
   } finally {
-    isPolling = false
+    if (
+      !isUnmounted &&
+      sequence === requestSequence &&
+      token === qrToken.value &&
+      qrStatus.value === 'WAITING'
+    ) {
+      qrPollingTimer = setTimeout(() => {
+        qrPollingTimer = null
+        pollQrStatus(sequence)
+      }, 1500)
+    }
   }
 }
 
 function startQrPolling() {
   stopQrPolling()
-  pollQrStatus()
-  qrPollingTimer = setInterval(pollQrStatus, 1500)
+  pollQrStatus(requestSequence)
 }
 
 function issueQrToken() {
-  return requestQrToken(issuePaymentQr, 'issue')
+  return trackQrMutation(requestQrToken(issuePaymentQr, 'issue'))
 }
 
 function reissueQrToken() {
-  return requestQrToken(reissuePaymentQr, 'reissue')
+  return trackQrMutation(requestQrToken(reissuePaymentQr, 'reissue'))
+}
+
+function trackQrMutation(mutationPromise) {
+  activeQrMutationPromise = mutationPromise
+  mutationPromise.finally(() => {
+    if (activeQrMutationPromise === mutationPromise) activeQrMutationPromise = null
+  })
+  return mutationPromise
+}
+
+function resetQrView() {
+  isFlipped.value = false
+  qrStatus.value = 'IDLE'
+  qrToken.value = ''
+  qrDataUrl.value = ''
+  qrRemainingSeconds.value = 0
+  qrError.value = ''
+}
+
+async function invalidateCurrentQr() {
+  if (qrInvalidationPromise) return qrInvalidationPromise
+
+  const pendingMutation = activeQrMutationPromise
+  const currentToken = qrToken.value
+  const shouldInvalidate = qrStatus.value === 'WAITING' || Boolean(pendingMutation)
+
+  stopQrFlow()
+  resetQrView()
+  if (!shouldInvalidate) return
+
+  const invalidationPromise = (async () => {
+    try {
+      // 발급 요청과 화면 이탈이 겹치면 발급 완료 후 지워 고아 토큰이 남지 않게 합니다.
+      const pendingToken = pendingMutation ? await pendingMutation : ''
+      const tokenToInvalidate = pendingToken || currentToken
+      if (tokenToInvalidate) await invalidatePaymentQr(tokenToInvalidate)
+    } catch {
+      // 화면 전환을 막지 않으며 인증 오류는 axios interceptor가 처리합니다.
+    }
+  })()
+
+  qrInvalidationPromise = invalidationPromise
+  try {
+    await invalidationPromise
+  } finally {
+    if (qrInvalidationPromise === invalidationPromise) qrInvalidationPromise = null
+  }
+}
+
+function showCardFront() {
+  return invalidateCurrentQr()
 }
 
 function retryQrToken() {
@@ -526,11 +599,7 @@ async function refreshWalletAfterPayment() {
 
 function closePaymentResult() {
   paymentResult.value = null
-  isFlipped.value = false
-  qrStatus.value = 'IDLE'
-  qrToken.value = ''
-  qrDataUrl.value = ''
-  qrRemainingSeconds.value = 0
+  resetQrView()
 }
 
 async function loadWallet() {
@@ -549,6 +618,11 @@ async function loadWallet() {
 }
 
 onMounted(loadWallet)
+
+onBeforeRouteLeave(async () => {
+  await invalidateCurrentQr()
+  return true
+})
 
 onUnmounted(() => {
   isUnmounted = true
