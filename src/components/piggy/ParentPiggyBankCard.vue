@@ -6,7 +6,7 @@
   >
     <header
       class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
-      :class="{ 'opacity-[0.45]': isCompleted }"
+      :class="{ 'opacity-[0.45]': isFinished }"
     >
       <span
         class="w-[46px] h-[46px] grid place-items-center rounded-[14px] text-[21px]"
@@ -41,7 +41,7 @@
     </header>
 
     <!-- 진행률 -->
-    <div class="grid gap-[9px]" :class="{ 'opacity-[0.45]': isCompleted }">
+    <div class="grid gap-[9px]" :class="{ 'opacity-[0.45]': isFinished }">
       <div class="flex items-center justify-between">
         <small class="text-sm" style="color: #72796b">진행률</small>
         <strong class="text-xl" style="color: #000000">{{ safeRate }}%</strong>
@@ -58,7 +58,7 @@
     <section
       v-if="isActive"
       class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
-      :class="{ 'opacity-[0.45]': isCompleted }"
+      :class="{ 'opacity-[0.45]': isFinished }"
     >
       <div class="grid gap-[5px]">
         <small class="text-[11px]" style="color: #939393">남은 금액</small>
@@ -74,20 +74,23 @@
     <section
       v-else
       class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
-      :class="{ 'opacity-[0.45]': isCompleted }"
+      :class="{ 'opacity-[0.45]': isFinished }"
       @click.stop
     >
       <div class="grid gap-[5px]">
         <small class="text-[11px] font-bold" style="color: #939393">보호자님 추가 보너스</small>
-        <strong class="text-[13px]" :style="{ color: isBonusPaid ? '#4e9440' : '#e1585a' }">
-          {{ isBonusPaid ? '지급 완료' : '미지급' }}
+        <strong
+          class="text-[13px]"
+          :style="{ color: !hasBonus ? '#939393' : isBonusPaid ? '#4e9440' : '#e1585a' }"
+        >
+          {{ !hasBonus ? '없음' : isBonusPaid ? '지급 완료' : '미지급' }}
         </strong>
       </div>
 
       <button
         type="button"
         class="min-w-[91px] h-[38px] border-0 rounded-[10px] bg-avocado-600 text-white text-[11px] font-bold disabled:bg-[#dcead5] disabled:shadow-none"
-        :disabled="!isCompleted || isBonusPaid"
+        :disabled="!isCompleted || !hasBonus || isBonusPaid"
         @click.stop="goToBonusTransfer"
       >
         보너스 송금
@@ -95,7 +98,7 @@
     </section>
 
     <div
-      v-if="isCompleted"
+      v-if="isFinished"
       class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] text-white text-[15px] text-center shadow-[0_6px_14px_rgba(89,121,177,0.32)]"
       style="background-color: #71a0ef"
     >
@@ -170,6 +173,11 @@ const isCompleted = computed(() =>
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
 
 const isBonusPaid = computed(() => ['PAID', 'COMPLETED'].includes(bonusStatus.value))
+
+// 보너스가 설정된 저금통인지 (NONE이면 보너스 없음)
+const hasBonus = computed(() => String(props.item.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE')
+// 최종 완료 = 달성 + (보너스 없음 or 지급 완료)
+const isFinished = computed(() => isCompleted.value && (!hasBonus.value || isBonusPaid.value))
 
 const remainingAmount = computed(() =>
   Math.max(0, Number(props.item.targetAmount || 0) - Number(props.item.savedAmount || 0))
