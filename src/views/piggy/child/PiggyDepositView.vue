@@ -1,6 +1,12 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white">
-    <AppHeader title="저금하기" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
+    <AppHeader
+      title="저금하기"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
     <div class="flex-1 p-4 space-y-6" v-if="item">
       <div class="rounded-2xl bg-avocado-100 p-4 text-center space-y-1">
@@ -13,8 +19,13 @@
 
       <div>
         <p class="text-sm font-medium text-avocado-900 mb-2">얼마를 저금할까요?</p>
-        <input v-model="amountInput" type="number" inputmode="numeric" placeholder="금액을 입력해주세요"
-          class="w-full border border-avocado-300 rounded-xl p-3 text-lg font-semibold outline-none" />
+        <input
+          v-model="amountInput"
+          type="number"
+          inputmode="numeric"
+          placeholder="금액을 입력해주세요"
+          class="w-full border border-avocado-300 rounded-xl p-3 text-lg font-semibold outline-none"
+        />
         <p v-if="errorMessage" class="text-sm text-red-500 mt-2">{{ errorMessage }}</p>
       </div>
     </div>
@@ -24,6 +35,8 @@
         {{ isSubmitting ? '저금하는 중...' : '저금하기' }}
       </BaseButton>
     </div>
+    <!-- 저금 성공 팝업 -->
+    <ResultModal v-model="showSuccess" variant="success" :message="successMessage" />
   </div>
 </template>
 
@@ -38,6 +51,7 @@ import { depositToPiggyBank } from '@/api/piggy'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import { isValidAmount } from '@/utils/validators'
 import { formatCurrency } from '@/utils/format'
+import ResultModal from '@/components/common/ResultModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +72,8 @@ const remainingAmount = computed(() =>
 const amountInput = ref('')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
+const showSuccess = ref(false)
+const successMessage = ref('저금되었어요')
 
 const canSubmit = computed(() => isValidAmount(amountInput.value) && !isSubmitting.value)
 
@@ -65,7 +81,6 @@ async function handleSubmit() {
   if (!canSubmit.value) return
 
   const amount = Number(amountInput.value)
-
   if (amount > remainingAmount.value) {
     errorMessage.value = `목표 금액을 넘을 수 없어요. 최대 ${formatCurrency(remainingAmount.value)}까지 저금할 수 있어요.`
     return
@@ -77,15 +92,19 @@ async function handleSubmit() {
   try {
     const response = await depositToPiggyBank(piggyBankId.value, { amount })
 
-    if (response.data.data.goalReached) {
-      alert('목표 금액을 다 모았어요! 축하해요!')
-    }
+    // 목표 달성 여부에 따라 문구 변경 (alert 제거)
+    successMessage.value = response.data.data.goalReached
+      ? '목표를 다 모았어요! 🎉'
+      : '저금되었어요'
+    showSuccess.value = true
 
-    router.replace({ name: 'piggyChildDetail', params: { id: piggyBankId.value } })
+    // 팝업 잠깐 보여준 뒤 상세로 이동
+    setTimeout(() => {
+      router.replace({ name: 'piggyChildDetail', params: { id: piggyBankId.value } })
+    }, 1200)
   } catch (e) {
     errorMessage.value = e.response?.data?.message || '저금에 실패했어요. 다시 시도해주세요.'
-  } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false // 실패 시에만 버튼 다시 활성화
   }
 }
 </script>

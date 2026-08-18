@@ -88,6 +88,8 @@
     </div>
 
     <BottomNavBar />
+    <!-- 삭제 성공 팝업 -->
+    <ResultModal v-model="showDeleted" variant="delete" message="삭제되었어요" />
   </div>
 </template>
 
@@ -103,6 +105,7 @@ import PiggyDepositHistoryList from '@/components/piggy/PiggyDepositHistoryList.
 import PiggyGrowthProgressBar from '@/components/piggy/PiggyGrowthProgressBar.vue'
 import PiggyDeleteButton from '@/components/piggy/PiggyDeleteButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
+import ResultModal from '@/components/common/ResultModal.vue'
 
 import stage1 from '@/assets/images/seed1.png'
 import stage2 from '@/assets/images/seed2.png'
@@ -136,6 +139,7 @@ function writeStoredStage(id, stage) {
 const route = useRoute()
 const router = useRouter()
 const store = usePiggyBankStore()
+const showDeleted = ref(false)
 
 const piggyBankId = computed(() => route.params.id)
 
@@ -201,9 +205,12 @@ function goToDeposit() {
   router.push({ name: 'piggyDeposit', params: { id: piggyBankId.value } })
 }
 
-// 삭제 완료 → 목록으로
+// 삭제 완료 → 팝업 후 목록으로
 function onDeleted() {
-  router.replace({ name: 'piggy' })
+  showDeleted.value = true
+  setTimeout(() => {
+    router.replace({ name: 'piggy' })
+  }, 1200)
 }
 </script>
 
