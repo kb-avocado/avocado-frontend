@@ -129,6 +129,19 @@ const routes = [
     component: () => import('@/views/wallet/child/walletView.vue'),
     meta: { title: '결제하기' }
   },
+  {
+    path: '/child/wallet/transactions',
+    name: 'wallet-transaction-list',
+    component: () => import('@/views/wallet/child/WalletTransactionListView.vue'),
+    meta: { title: '전체 거래 내역', showBack: true }
+  },
+  {
+    path: '/child/wallet/transactions/:transactionId',
+    name: 'wallet-transaction-detail',
+    component: () => import('@/views/wallet/child/WalletTransactionDetailView.vue'),
+    props: true,
+    meta: { title: '거래 상세', showBack: true }
+  },
   // 관리자 POS 시뮬레이터
   {
     path: '/admin/pos',

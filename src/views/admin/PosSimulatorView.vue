@@ -196,15 +196,99 @@
           </div>
 
           <div>
-            <label for="merchant" class="block text-xs font-medium text-gray-600">가맹점</label>
-            <select
-              id="merchant"
-              v-model.number="merchantId"
-              class="mt-2 h-14 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-800 outline-none focus:border-avocado-600 focus:ring-2 focus:ring-avocado-100"
-              :disabled="isSubmitting"
+            <div class="flex items-center justify-between">
+              <label for="merchant-search" class="block text-xs font-medium text-gray-600">
+                가맹점
+              </label>
+              <span
+                class="text-xs font-medium"
+                :class="selectedMerchant ? 'text-avocado-600' : 'text-gray-400'"
+              >
+                {{
+                  selectedMerchant
+                    ? `${selectedMerchant.id} · ${selectedMerchant.name}`
+                    : '선택 안 됨'
+                }}
+              </span>
+            </div>
+
+            <div class="relative mt-2">
+              <Search
+                :size="16"
+                class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+              />
+              <input
+                id="merchant-search"
+                v-model="merchantSearch"
+                type="text"
+                autocomplete="off"
+                placeholder="가맹점명 또는 업종으로 검색"
+                class="h-12 w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-avocado-600 focus:ring-2 focus:ring-avocado-100"
+                :disabled="isSubmitting"
+              />
+            </div>
+
+            <div class="mt-2 flex gap-1.5 rounded-2xl bg-gray-100 p-1">
+              <button
+                v-for="filter in merchantFilterOptions"
+                :key="filter.value"
+                type="button"
+                class="flex-1 rounded-xl px-3 py-2 text-xs font-semibold transition"
+                :class="
+                  merchantFilter === filter.value
+                    ? 'bg-white text-avocado-600 shadow-sm'
+                    : 'text-gray-500'
+                "
+                :disabled="isSubmitting"
+                @click="merchantFilter = filter.value"
+              >
+                {{ filter.label }}
+              </button>
+            </div>
+
+            <div
+              class="mt-2 max-h-64 space-y-1.5 overflow-y-auto rounded-2xl border border-gray-100 bg-gray-50 p-2"
+              role="listbox"
+              aria-label="가맹점 선택"
             >
-              <option :value="3001">3001: 아보카도 편의점</option>
-            </select>
+              <button
+                v-for="merchant in filteredMerchants"
+                :key="merchant.id"
+                type="button"
+                class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition"
+                :class="merchantButtonClass(merchant)"
+                role="option"
+                :aria-selected="merchantId === merchant.id"
+                :disabled="isSubmitting"
+                @click="merchantId = merchant.id"
+              >
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-medium text-gray-900">
+                    {{ merchant.name }}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    {{ merchant.id }} · {{ merchant.category }}
+                  </span>
+                </span>
+                <span
+                  v-if="merchant.restricted"
+                  class="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-500"
+                >
+                  결제 제한
+                </span>
+                <CircleCheck
+                  v-if="merchantId === merchant.id"
+                  :size="18"
+                  class="shrink-0 text-avocado-600"
+                  aria-hidden="true"
+                />
+              </button>
+
+              <p v-if="!filteredMerchants.length" class="py-6 text-center text-xs text-gray-400">
+                검색 결과가 없어요.
+              </p>
+            </div>
           </div>
 
           <fieldset>
@@ -367,6 +451,7 @@ import {
   LoaderCircle,
   QrCode,
   RefreshCw,
+  Search,
   UserRound
 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -379,6 +464,39 @@ const resultOptions = [
   { value: 'FORCE_FAIL', label: '강제 실패' }
 ]
 
+const MERCHANTS = [
+  { id: 3001, name: 'CU 강남점', category: '편의점', restricted: false },
+  { id: 3002, name: 'GS25 역삼점', category: '편의점', restricted: false },
+  { id: 3003, name: '세븐일레븐 선릉점', category: '편의점', restricted: false },
+  { id: 3004, name: '우리동네마트 강남점', category: '슈퍼마켓', restricted: false },
+  { id: 3005, name: '행복마트 역삼점', category: '슈퍼마켓', restricted: false },
+  { id: 3006, name: '강남김밥', category: '일반한식', restricted: false },
+  { id: 3007, name: '역삼분식', category: '분식', restricted: false },
+  { id: 3008, name: '선릉돈까스', category: '일반양식', restricted: false },
+  { id: 3009, name: '강남반점', category: '중식', restricted: false },
+  { id: 3010, name: '스시하루 강남점', category: '일식', restricted: false },
+  { id: 3011, name: '햇살베이커리', category: '제과점', restricted: false },
+  { id: 3012, name: '강남커피하우스', category: '커피전문점', restricted: false },
+  { id: 3013, name: '역삼카페', category: '커피전문점', restricted: false },
+  { id: 3014, name: '버거하우스 강남점', category: '패스트푸드', restricted: false },
+  { id: 3015, name: '피자마을 역삼점', category: '패스트푸드', restricted: false },
+  { id: 3016, name: '꿈나무문구', category: '문구점', restricted: false },
+  { id: 3017, name: '강남서점', category: '서점', restricted: false },
+  { id: 3018, name: '아이조아완구', category: '완구점', restricted: false },
+  { id: 3019, name: '드림스포츠', category: '스포츠용품점', restricted: false },
+  { id: 3020, name: '강남의류마켓', category: '의류판매점', restricted: false },
+  { id: 3021, name: '강남온누리약국', category: '약국', restricted: false },
+  { id: 3022, name: '우리소아청소년과', category: '병원·의원', restricted: false },
+  { id: 3023, name: '튼튼치과', category: '치과', restricted: false },
+  { id: 3024, name: '꿈나무영어학원', category: '학원', restricted: false },
+  { id: 3025, name: '강남포차', category: '일반주점', restricted: true },
+  { id: 3026, name: '역삼호프', category: '일반주점', restricted: true },
+  { id: 3027, name: '블루문 단란주점', category: '단란주점', restricted: true },
+  { id: 3028, name: '스타 유흥주점', category: '유흥주점', restricted: true },
+  { id: 3029, name: '와인앤리커 강남점', category: '주류전문판매점', restricted: true },
+  { id: 3030, name: '어덜트샵 강남점', category: '성인용품점', restricted: true }
+]
+
 const qrTokens = ref([])
 const selectedToken = ref('')
 const currentTime = ref(Date.now())
@@ -386,9 +504,17 @@ const isTokenLoading = ref(false)
 const isTokenBackgroundRefreshing = ref(false)
 const tokenError = ref('')
 
+const merchantFilterOptions = [
+  { value: 'ALL', label: '전체' },
+  { value: 'GENERAL', label: '일반' },
+  { value: 'RESTRICTED', label: '결제 제한' }
+]
+
 const amountInput = ref('')
 const amountTouched = ref(false)
-const merchantId = ref(3001)
+const merchantId = ref(null)
+const merchantSearch = ref('')
+const merchantFilter = ref('ALL')
 const requestedResult = ref('SUCCESS')
 const isSubmitting = ref(false)
 const simulationError = ref('')
@@ -410,6 +536,26 @@ const selectedRemainingSeconds = computed(() =>
 const activeTokenCount = computed(
   () => qrTokens.value.filter((item) => getRemainingSeconds(item) > 0).length
 )
+
+const selectedMerchant = computed(
+  () => MERCHANTS.find((merchant) => merchant.id === merchantId.value) ?? null
+)
+
+const filteredMerchants = computed(() => {
+  const keyword = merchantSearch.value.trim().toLowerCase()
+
+  return MERCHANTS.filter((merchant) => {
+    if (merchantFilter.value === 'GENERAL' && merchant.restricted) return false
+    if (merchantFilter.value === 'RESTRICTED' && !merchant.restricted) return false
+    if (!keyword) return true
+
+    return (
+      merchant.name.toLowerCase().includes(keyword) ||
+      merchant.category.toLowerCase().includes(keyword) ||
+      String(merchant.id).includes(keyword)
+    )
+  })
+})
 
 const numericAmount = computed(() => Number(amountInput.value))
 
@@ -433,6 +579,7 @@ const canSubmit = computed(
     Boolean(selectedQr.value) &&
     selectedRemainingSeconds.value > 0 &&
     isAmountValid.value &&
+    Boolean(selectedMerchant.value) &&
     !isTokenLoading.value &&
     !isSubmitting.value
 )
@@ -513,6 +660,14 @@ function tokenButtonClass(item) {
   }
 
   if (selectedToken.value === item.token) {
+    return 'border-avocado-300 bg-avocado-100 ring-1 ring-avocado-300'
+  }
+
+  return 'border-gray-200 bg-white hover:border-avocado-300 hover:bg-avocado-50'
+}
+
+function merchantButtonClass(merchant) {
+  if (merchantId.value === merchant.id) {
     return 'border-avocado-300 bg-avocado-100 ring-1 ring-avocado-300'
   }
 
