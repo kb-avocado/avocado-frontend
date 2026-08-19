@@ -155,7 +155,7 @@ const routes = [
     path: '/child/newspaper',
     name: 'newspaper',
     component: () => import('@/views/news/child/NewspaperView.vue'),
-    meta: { title: '경제가 쏙쏙! 아보카도 신문' }
+    meta: { title: '아보카도 신문 & 챌린지' }
   },
   //아이용 신문 세부화면
   {
@@ -169,7 +169,7 @@ const routes = [
     name: 'parent-newspaper',
     component: () => import('@/views/news/parent/NewspaperListView.vue'),
     props: true,
-    meta: { title: '경제가 쏙쏙! 아보카도 신문', audience: 'parent', menu: 'newspaper' }
+    meta: { title: '아보카도 신문 & 챌린지', audience: 'parent', menu: 'newspaper' }
   },
   //부모용 신문 세부화면
   {
@@ -184,14 +184,14 @@ const routes = [
     path: '/child/report',
     name: 'child-report',
     component: () => import('@/views/report/child/ReportView.vue'),
-    meta: { title: '맛있는 과카몰리 리포트' }
+    meta: { title: '아보카도 리포트' }
   },
   {
     path: '/parent/:childId?/report',
     name: 'parent-report',
     component: () => import('@/views/report/parent/ReportView.vue'),
     props: true,
-    meta: { title: '맛있는 과카몰리 리포트', audience: 'parent', menu: 'report' }
+    meta: { title: '아보카도 리포트', audience: 'parent', menu: 'report' }
   },
 
   // 송금
@@ -241,7 +241,7 @@ const routes = [
     path: '/child/piggy',
     name: 'piggy',
     component: () => import('@/views/piggy/common/PiggyView.vue'),
-    meta: { title: '티끌모아 태산! 아보카도 저금통', menu: 'piggy', audience: 'child' }
+    meta: { title: '아보카도 저금통', menu: 'piggy', audience: 'child' }
   },
   /* 저금통 목록 (부모) */
   {
@@ -249,7 +249,7 @@ const routes = [
     name: 'parent-piggy-list',
     component: () => import('@/views/piggy/parent/ParentPiggyBankListView.vue'),
     props: true,
-    meta: { title: '티끌모아 태산! 아보카도 저금통', audience: 'parent', menu: 'piggy' }
+    meta: { title: '아보카도 저금통', audience: 'parent', menu: 'piggy' }
   },
   /* 저금통 생성 (아이) */
   {
