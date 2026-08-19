@@ -1,13 +1,7 @@
 <template>
   <div class="h-screen overflow-hidden flex flex-col bg-white">
     <!-- 뒤로가기 버튼 설정을 위해 헤더와 Nav import -->
-    <AppHeader
-      title="보너스 설정"
-      show-back
-      :show-bell="false"
-      :show-avatar="false"
-      @click-back="router.back()"
-    />
+    <AppHeader title="보너스 설정" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
 
     <div class="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-6">
       <!-- 목표 정보 -->
@@ -17,8 +11,7 @@
           목표 달성 시 설정한 보너스가 추가 지급됩니다.
         </p>
         <div
-          class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-5 space-y-4"
-        >
+          class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-5 space-y-4">
           <div class="flex flex-col items-center gap-2">
             <div class="w-14 h-14 rounded-full bg-avocado-100 flex items-center justify-center">
               <Gamepad2 :size="26" class="text-avocado-600" />
@@ -50,18 +43,11 @@
       <div>
         <p class="ml-2 text-sm font-medium text-avocado-900 mb-2">보너스 방식 선택</p>
         <div class="mx-2 flex rounded-full bg-gray-100 border border-gray-200 p-1">
-          <button
-            v-for="option in BONUS_TYPE_OPTIONS"
-            :key="option.value"
-            type="button"
-            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors"
-            :style="
-              bonusType === option.value
+          <button v-for="option in BONUS_TYPE_OPTIONS" :key="option.value" type="button"
+            class="flex-1 h-9 rounded-full text-sm font-medium transition-colors" :style="bonusType === option.value
                 ? { backgroundColor: '#4C4C4C', color: '#FFFFFF' }
                 : { backgroundColor: 'transparent', color: '#72796B' }
-            "
-            @click="bonusType = option.value"
-          >
+              " @click="bonusType = option.value">
             {{ option.label }}
           </button>
         </div>
@@ -73,13 +59,8 @@
           {{ bonusType === BONUS_TYPE.RATE ? '응원 보너스 설정 (%)' : '추가 지원금 (원)' }}
         </label>
         <div class="mx-2 rounded-xl border border-gray-200 p-3 flex items-center">
-          <input
-            v-model="bonusValue"
-            type="number"
-            inputmode="numeric"
-            class="flex-1 outline-none text-sm text-gray-900"
-            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'"
-          />
+          <input :value="bonusValue" type="text" inputmode="numeric" class="flex-1 outline-none text-sm text-gray-900"
+            :placeholder="bonusType === BONUS_TYPE.RATE ? '예: 5' : '예: 10000'" @input="onBonusValueInput" />
           <span class="text-sm text-muted">{{ bonusType === BONUS_TYPE.RATE ? '%' : '원' }}</span>
         </div>
         <p v-if="bonusValue && !isValueValid" class="mx-2 text-xs text-red-500 mt-1">
@@ -110,12 +91,7 @@
         </div>
 
         <div class="p-4">
-          <BaseButton
-            variant="primary"
-            class="w-full gap-2"
-            :disabled="!canSubmit"
-            @click="handleSubmit"
-          >
+          <BaseButton variant="primary" class="w-full gap-2" :disabled="!canSubmit" @click="handleSubmit">
             <span>{{ isSubmitting ? '설정 중...' : '승인하기' }}</span>
             <CircleCheck v-if="!isSubmitting" :size="18" />
           </BaseButton>
@@ -150,14 +126,23 @@ import { isValidAmount, isValidPercentage } from '@/utils/validators'
 /* 해당 저금통 정보를 가져오는 composables import */
 import { usePiggyBankDetail } from '@/composables/usePiggyBankDetail'
 
+/* 사용자 정보 */
+import { useAuthStore } from '@/stores/auth'
+
 const route = useRoute()
 const router = useRouter()
 
 /* 가져온 저금통의 데이터 */
 const { piggyBank } = usePiggyBankDetail(route.params.id, route.params.childId)
 
-/* 추후 사용자 db를 통해 가져올 예정 */
-const childName = '민준'
+const authStore = useAuthStore()
+
+/* 로그인 응답의 child 목록에서 childId로 실제 아이 이름을 찾기 */
+const childName = computed(
+  () =>
+    (authStore.user?.child ?? []).find((child) => String(child.id) === String(route.params.childId))
+      ?.name ?? '아이'
+)
 
 /* 토글에 넘길 옵션 목록 (정액형이 기본값이 되도록 먼저 배치) */
 const BONUS_TYPE_OPTIONS = [
@@ -204,6 +189,11 @@ function resetBonusValueOnTypeChange() {
   submitError.value = ''
 }
 watch(bonusType, resetBonusValueOnTypeChange)
+
+/* 숫자만 입력되도록 필터링 (type=number의 화살표/마이너스 입력 문제 방지) */
+function onBonusValueInput(event) {
+  bonusValue.value = event.target.value.replace(/[^\d]/g, '')
+}
 
 /* 저장 시 실행됨 */
 async function handleSubmit() {
