@@ -1,37 +1,42 @@
 <template>
   <div v-if="hasBonus" class="space-y-2">
     <p class="text-xs text-muted text-center">
-      {{
-        isPaid
-          ? '보너스를 지급 완료 했어요!'
-          : isAchieved
-            ? '보너스를 아직 지급하지 않았어요!'
-            : `목표 달성 시 ${bonusAmount.toLocaleString('ko-KR')}원이 지급돼요`
-      }}
+      <template v-if="isPaid">보너스를 지급 완료 했어요!</template>
+      <template v-else-if="isAchieved">보너스를 아직 지급하지 않았어요!</template>
+      <template v-else
+        >목표 달성 시 <span class="font-bold">{{ bonusAmount.toLocaleString('ko-KR') }}원</span>이
+        지급돼요</template
+      >
     </p>
     <BaseButton variant="primary" class="w-full gap-2" :disabled="!canPay" @click="goToPayment">
       <PiggyBank :size="18" />
       <span>{{ isPaid ? '지급 완료' : '보너스 지급하기' }}</span>
     </BaseButton>
   </div>
+  <div v-else class="space-y-3">
+    <!-- 신문 리스트 안내문과 동일한 정보 아이콘 스타일 -->
+    <div class="flex items-center gap-2 mx-4">
+      <Info :size="16" class="text-avocado-600 shrink-0" />
+      <p class="text-xs text-muted leading-relaxed">
+        아이를 위한 응원 보너스를 설정해주세요!<br />
+        보너스는 아이가 저금통을 빨리 채우기 위한 원동력이 됩니다.
+      </p>
+    </div>
 
-  <!-- 아직 보너스를 설정하지 않은 저금통: 설정 화면으로 보낸다 -->
-  <div v-else class="space-y-2 flex flex-col items-center">
-    <p class="text-xs text-muted text-center">
-      아이를 위한 응원 보너스를 설정해주세요! <br />보너스는 아이가 저금통을 빨리 채우기 위한
-      원동력이 됩니다.
-    </p>
-    <BaseButton variant="primary" class="gap-2 px-32" @click="goToSetup">
-      <PiggyBank :size="18" />
-      <span>보너스 설정하기</span>
-    </BaseButton>
+    <!-- 보너스 송금 화면과 동일한 좌우 여백 -->
+    <div class="px-4">
+      <BaseButton variant="primary" class="w-full gap-2" @click="goToSetup">
+        <span>보너스 설정하기</span>
+        <PiggyBank :size="18" />
+      </BaseButton>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { PiggyBank } from 'lucide-vue-next'
+import { PiggyBank, Info } from 'lucide-vue-next'
 
 import BaseButton from '@/components/common/BaseButton.vue'
 

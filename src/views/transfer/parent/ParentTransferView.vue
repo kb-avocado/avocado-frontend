@@ -5,15 +5,21 @@
     <section v-if="result" class="flex flex-1 flex-col">
       <div class="flex flex-1 flex-col items-center justify-center">
         <CircleCheck :size="52" class="text-avocado-600" />
+
         <h1 class="mt-5 text-xl font-bold text-gray-900">용돈 보내기를 완료했어요</h1>
 
         <dl class="mt-8 w-full rounded-2xl bg-gray-50 p-5">
           <div class="flex items-center justify-between">
             <dt class="text-sm text-gray-500">받는 사람</dt>
-            <dd class="text-sm font-medium text-gray-900">{{ result.counterpartyName }}</dd>
+
+            <dd class="text-sm font-medium text-gray-900">
+              {{ result.counterpartyName }}
+            </dd>
           </div>
+
           <div class="mt-4 flex items-center justify-between">
             <dt class="text-sm text-gray-500">용돈</dt>
+
             <dd class="text-lg font-bold text-gray-900">{{ formatMoney(result.amount) }}원</dd>
           </div>
         </dl>
@@ -29,24 +35,33 @@
 
     <!-- 금액 입력 -->
     <form v-else class="flex flex-1 flex-col" novalidate @submit.prevent="submit">
+      <!-- 상단 타이틀 -->
       <h1 class="text-xl font-bold text-gray-900">{{ childName }}에게 얼마를 보낼까요?</h1>
+
       <p class="mt-2 text-sm text-gray-500">보호자님의 계좌에서 아이 지갑으로 바로 충전돼요.</p>
 
-      <div class="mt-6 rounded-2xl bg-avocado-50 p-4" aria-live="polite">
+      <!-- 아이 지갑 잔액 카드 -->
+      <div class="mt-6 rounded-2xl p-5" style="background-color: #eef0fb" aria-live="polite">
         <p class="text-xs text-gray-500">{{ childName }}의 아보카도 지갑</p>
+
         <p v-if="walletLoading" class="mt-1 text-sm text-gray-400">잔액을 불러오는 중이에요</p>
+
         <p v-else-if="wallet" class="mt-1 text-lg font-bold text-gray-900">
           현재 {{ formatMoney(wallet.balance) }}원
         </p>
+
         <p v-else class="mt-1 text-sm text-gray-500">
           {{ walletError || '지갑 잔액을 불러오지 못했어요.' }}
         </p>
       </div>
 
+      <!-- 보낼 금액 -->
       <label for="transfer-amount" class="mt-8 block text-sm font-medium text-gray-700">
         보낼 금액
       </label>
-      <div class="mt-2 flex items-baseline gap-2 border-b-2 border-avocado-600 pb-2">
+
+      <!-- 금액 입력 -->
+      <div class="mt-2 flex items-baseline gap-2">
         <input
           id="transfer-amount"
           v-model="amountText"
@@ -54,58 +69,84 @@
           inputmode="numeric"
           autocomplete="off"
           placeholder="0"
-          class="min-w-0 flex-1 text-right text-3xl font-bold text-gray-900 outline-none placeholder:text-gray-300"
+          class="min-w-0 flex-1 border-0 bg-transparent text-right text-3xl font-bold text-gray-900 outline-none ring-0 placeholder:text-gray-300 focus:border-0 focus:outline-none focus:ring-0"
           :disabled="isSending"
           :aria-invalid="Boolean(amountError)"
           @input="onAmountInput"
         />
-        <span class="text-lg font-medium text-gray-700">원</span>
-      </div>
-      <p v-if="amountError" role="alert" class="mt-2 text-sm text-red-600">{{ amountError }}</p>
 
-      <div class="mt-4 flex gap-2">
+        <span class="text-lg font-medium text-gray-700"> 원 </span>
+      </div>
+
+      <!-- 구분선 -->
+      <div class="mt-2 border-t border-gray-200"></div>
+
+      <!-- 금액 오류 -->
+      <p v-if="amountError" role="alert" class="mt-2 text-sm text-red-600">
+        {{ amountError }}
+      </p>
+
+      <!-- 빠른 금액 선택 + 모두 지우기 -->
+      <div class="mt-4 flex items-center justify-center gap-2">
         <button
           v-for="quickAmount in QUICK_AMOUNTS"
           :key="quickAmount"
           type="button"
-          class="flex-1 rounded-full bg-gray-100 py-2 text-sm text-gray-700"
+          class="h-10 rounded-full bg-gray-100 px-4 text-sm text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="isSending"
           @click="addAmount(quickAmount)"
         >
           +{{ formatMoney(quickAmount) }}
         </button>
+
+        <button
+          type="button"
+          class="h-10 rounded-full bg-gray-100 px-4 text-sm text-gray-500 transition-colors hover:bg-gray-200"
+          @click="clearAmount"
+        >
+          모두 지우기
+        </button>
       </div>
 
+      <!-- 송금 오류 -->
       <p
         v-if="sendError"
         role="alert"
         aria-live="polite"
-        class="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
+        class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
       >
         {{ sendError }}
       </p>
 
-      <BaseButton
-        class="mt-auto h-12 w-full rounded-xl"
-        :disabled="!canSubmit || isSending"
-        @click="submit"
-      >
-        <span
-          v-if="isSending"
-          class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-          aria-hidden="true"
-        />
-        {{ isSending ? '보내는 중...' : '보내기' }}
-      </BaseButton>
+      <!-- 보내기 버튼 -->
+      <div class="mt-7 px-4">
+        <BaseButton
+          variant="primary"
+          class="w-full gap-2"
+          :disabled="!canSubmit || isSending"
+          @click="submit"
+        >
+          <span
+            v-if="isSending"
+            class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            aria-hidden="true"
+          />
+
+          {{ isSending ? '보내는 중...' : '보내기' }}
+        </BaseButton>
+      </div>
     </form>
   </main>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { CircleCheck } from 'lucide-vue-next'
+
 import BaseButton from '@/components/common/BaseButton.vue'
+
 import { transferAccountToWallet } from '@/api/transfer'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
@@ -120,8 +161,11 @@ const props = defineProps({
   }
 })
 
+const route = useRoute()
+
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+
 const { wallet, loading: walletLoading, error: walletError } = storeToRefs(walletStore)
 
 const amountText = ref('')
@@ -130,42 +174,66 @@ const sendError = ref('')
 const isSending = ref(false)
 const result = ref(null)
 
-// 로그인 응답에 실려온 연결된 아이 목록에서 이름을 찾는다.
+/* 로그인 응답의 연결된 아이 목록에서 현재 아이 이름 조회 */
 const childName = computed(
   () =>
     (authStore.user?.child ?? []).find((child) => String(child.id) === String(props.childId))
       ?.name ?? '아이'
 )
 
+/* 실제 송금 금액 */
 const amount = computed(() => Number(amountText.value.replace(/,/g, '')) || 0)
+
+/* 송금 버튼 활성화 조건 */
 const canSubmit = computed(() => amount.value > 0 && !amountError.value)
 
+/* 금액 천 단위 콤마 */
 function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
 }
 
+/* 송금 금액 설정 */
 function setAmount(value) {
   const clamped = Math.min(Math.max(value, 0), MAX_AMOUNT)
+
   amountText.value = clamped === 0 ? '' : formatMoney(clamped)
+
   amountError.value =
     value > MAX_AMOUNT ? `한 번에 ${formatMoney(MAX_AMOUNT)}원까지 보낼 수 있어요.` : ''
+
   sendError.value = ''
 }
 
+/* 직접 금액 입력 */
 function onAmountInput() {
   setAmount(Number(amountText.value.replace(/[^\d]/g, '')) || 0)
 }
 
+/* 빠른 금액 추가 */
 function addAmount(value) {
   setAmount(amount.value + value)
 }
 
+/* 입력 금액 전체 삭제 */
+function clearAmount() {
+  setAmount(0)
+}
+
+/* 송금 실패 메시지 */
 function getSendErrorMessage(error) {
   const status = error?.response?.status
 
-  if (status === 403) return '이 아이에게 보낼 권한이 없어요. 가족 연결 상태를 확인해 주세요.'
-  if (status === 404) return '보호자님의 출금 계좌를 찾을 수 없어요.'
-  if (status >= 500) return '서버에 문제가 발생했어요. 잠시 후 다시 시도해주세요.'
+  if (status === 403) {
+    return '이 아이에게 보낼 권한이 없어요. 가족 연결 상태를 확인해 주세요.'
+  }
+
+  if (status === 404) {
+    return '보호자님의 출금 계좌를 찾을 수 없어요.'
+  }
+
+  if (status >= 500) {
+    return '서버에 문제가 발생했어요. 잠시 후 다시 시도해주세요.'
+  }
 
   return (
     error?.response?.data?.error?.message ||
@@ -174,6 +242,7 @@ function getSendErrorMessage(error) {
   )
 }
 
+/* 용돈 보내기 */
 async function submit() {
   if (isSending.value || !canSubmit.value) return
 
@@ -194,13 +263,24 @@ async function submit() {
   }
 }
 
+/* 아이 지갑 잔액 조회 */
 async function loadWallet() {
   try {
     await walletStore.fetchWallet(props.childId)
   } catch {
-    // 잔액 조회 실패는 wallet store의 error 상태로 표시한다.
+    // wallet store의 error 상태로 표시
+  }
+}
+
+/* query로 넘어온 초기 송금 금액 적용 */
+function applyInitialAmountFromQuery() {
+  const initialAmount = Number(route.query.amount)
+
+  if (Number.isFinite(initialAmount) && initialAmount > 0) {
+    setAmount(initialAmount)
   }
 }
 
 onMounted(loadWallet)
+onMounted(applyInitialAmountFromQuery)
 </script>
