@@ -105,15 +105,15 @@
         @click="handleCardClick"
       >
         <img
-          src="@/assets/images/card01.png"
+          src="@/assets/images/card02.png"
           alt="아보카도 선불카드 앞면"
           class="h-full w-full rounded-3xl object-cover shadow-sm"
         />
         <div
-          class="absolute bottom-[9%] left-[6%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+          class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
         >
           <span class="text-xs text-gray-600">잔액 확인</span>
-          <strong class="mt-1 whitespace-nowrap text-lg text-gray-900">
+          <strong class="mt-1 whitespace-nowrap text-base text-gray-900">
             {{ formatMoney(wallet?.balance) }}원
           </strong>
         </div>
