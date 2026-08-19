@@ -60,10 +60,12 @@
         <p class="text-sm font-medium text-[#42493C] mb-2">목표 금액</p>
         <div class="rounded-xl border border-gray-200 p-3 flex items-center gap-2">
           <input
-            v-model.number="targetAmount"
-            type="number"
-            min="0"
+            v-model="targetAmount"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
             class="flex-1 text-sm text-gray-900 outline-none bg-transparent"
+            @input="targetAmount = String(Number(targetAmount.replace(/[^0-9]/g, '')) || '')"
           />
           <span class="text-sm text-gray-500">원</span>
         </div>
@@ -115,7 +117,7 @@ const store = usePiggyBankStore()
 const icons = ['🚗', '🎮', '🎂', '📚', '👕', '⚽', '⭐', '❤️']
 const name = ref('')
 const selectedIcon = ref('🎮')
-const targetAmount = ref(0)
+const targetAmount = ref('')
 
 // 빠른 금액 추가 버튼: 지정된 색상 + 공통 글씨색(#626262)
 const quickAmounts = [
@@ -132,7 +134,7 @@ const canSubmit = computed(
 )
 
 function addAmount(amount) {
-  targetAmount.value = Number(targetAmount.value || 0) + amount
+  targetAmount.value = String(Number(targetAmount.value || 0) + amount)
 }
 
 // 변경: 실제 생성 API 연동
