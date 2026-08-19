@@ -155,7 +155,7 @@ const routes = [
     path: '/child/newspaper',
     name: 'newspaper',
     component: () => import('@/views/news/child/NewspaperView.vue'),
-    meta: { title: '아보카도 신문' }
+    meta: { title: '아보카도 신문 & 챌린지' }
   },
   //아이용 신문 세부화면
   {
@@ -169,7 +169,7 @@ const routes = [
     name: 'parent-newspaper',
     component: () => import('@/views/news/parent/NewspaperListView.vue'),
     props: true,
-    meta: { title: '아보카도 신문', audience: 'parent', menu: 'newspaper' }
+    meta: { title: '아보카도 신문 & 챌린지', audience: 'parent', menu: 'newspaper' }
   },
   //부모용 신문 세부화면
   {
