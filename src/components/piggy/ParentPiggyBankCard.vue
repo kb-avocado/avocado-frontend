@@ -25,7 +25,7 @@
           {{ item.name }}
         </h2>
         <p v-if="dday !== null" class="text-xs font-bold mt-0.5" style="color: #e1585a">
-          저금통 완료까지 D-{{ dday }}
+          {{ dday === 0 ? '저금통 완료 D-day' : `저금통 완료 D-${dday}` }}
         </p>
       </div>
 
@@ -136,9 +136,11 @@ const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperC
 // D-day 추가
 const dday = computed(() => {
   if (normalizedStatus.value !== 'PENDING_ACHIEVE' || !props.item.firstDepositedAt) return null
-  const end = new Date(props.item.firstDepositedAt)
-  end.setDate(end.getDate() + 7)
-  return Math.max(0, Math.ceil((end - new Date()) / 86400000))
+  const s = new Date(props.item.firstDepositedAt)
+  const complete = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7) // 완료일 자정
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()) // 오늘 자정
+  return Math.max(0, Math.round((complete - today) / 86400000))
 })
 
 function goToBonusTransfer() {
