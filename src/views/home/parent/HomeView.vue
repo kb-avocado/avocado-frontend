@@ -297,11 +297,22 @@
               name: 'parent-newspaper-detail',
               params: { childId, newsId: item.newsId }
             }"
-            class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-4"
+            class="relative flex items-center justify-between h-20 pl-7 pr-4 rounded-2xl overflow-visible"
+            :class="item.isNew ? '' : 'bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]'"
+            :style="item.isNew ? { backgroundColor: '#EBF4DD' } : undefined"
           >
-            <div class="min-w-0 pr-3">
+            <!-- 티켓 탭 -->
+            <span
+              class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-10 rounded-full"
+              style="background-color: #bfbfbf"
+            />
+
+            <div class="min-w-0 flex-1 pr-3" :class="item.isRead ? 'opacity-70' : ''">
               <div class="flex items-center gap-2">
-                <p class="text-sm font-semibold text-gray-900 truncate">
+                <p
+                  class="truncate"
+                  :class="item.isRead ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'"
+                >
                   {{ item.title }}
                 </p>
 
@@ -320,7 +331,13 @@
               <p class="text-xs text-muted mt-1">발행일: {{ formatDate(item.publishedAt) }}</p>
             </div>
 
-            <ChevronRight :size="18" class="text-muted shrink-0" />
+            <img
+              v-if="item.isCompleted"
+              :src="getBadgeImage(item.newsId)"
+              alt="참 잘했어요"
+              class="w-11 h-11 rounded-full bg-white object-contain shrink-0"
+            />
+            <ChevronRight v-else :size="18" style="color: #bfbfbf" class="shrink-0" />
           </RouterLink>
         </div>
       </section>
@@ -354,6 +371,8 @@ import { getSpendingType } from '@/api/report'
 import { getHome } from '@/api/home'
 import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 import NoChildConnected from '@/components/common/NoChildConnected.vue'
+import ch11 from '@/assets/images/ch11.png'
+import ch12 from '@/assets/images/ch12.png'
 
 const props = defineProps({
   // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
@@ -508,6 +527,18 @@ function formatDate(dateString) {
   }
 
   return dateString.slice(0, 10)
+}
+
+// 완료한 신문 뱃지 이미지: newsId마다 매번 다르게 안 바뀌도록 한 번 고른 걸 캐싱 (신문 탭과 동일 방식)
+const BADGE_IMAGES = [ch11, ch12]
+const badgeImageMap = new Map()
+
+function getBadgeImage(newsId) {
+  if (!badgeImageMap.has(newsId)) {
+    const randomImage = BADGE_IMAGES[Math.floor(Math.random() * BADGE_IMAGES.length)]
+    badgeImageMap.set(newsId, randomImage)
+  }
+  return badgeImageMap.get(newsId)
 }
 
 function getPiggyProgress(piggy) {

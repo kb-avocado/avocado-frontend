@@ -47,7 +47,7 @@
       </div>
 
       <p v-if="showMinLengthError" class="text-xs text-red-500">
-        최소 {{ MIN_ANSWER_LENGTH }}자를 채워야 활동을 완료할 수 있습니다.
+        최소 {{ MIN_ANSWER_LENGTH }}자를 채워야 챌린지를 완료할 수 있습니다.
       </p>
 
       <BaseButton
@@ -57,7 +57,7 @@
         @click="openCompleteConfirm"
       >
         <CheckCircle :size="16" class="mr-1" />
-        활동 완료하기
+        {{ isEditMode ? '챌린지 수정하기' : '챌린지 완료하기' }}
       </BaseButton>
     </div>
   </div>
@@ -67,26 +67,24 @@
   <ConfirmModal
     v-model="showCompleteConfirm"
     variant="complete"
-    title="활동을 완료하시겠습니까?"
+    :title="isEditMode ? '챌린지를 수정하시겠습니까?' : '챌린지를 완료하시겠습니까?'"
     @confirm="onSubmit"
   />
-
-  <ResultModal v-model="showSavedResult" variant="success" message="저장되었습니다." />
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ExternalLink, Pin, CheckCircle } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
-import ResultModal from '@/components/common/ResultModal.vue'
 import { usePageTitle } from '@/composables/usePageTitle'
 import { getNewsDetail, saveNewsAnswer } from '@/api/news'
 
 const MIN_ANSWER_LENGTH = 3
 
 const route = useRoute()
+const router = useRouter()
 const { setPageTitle, clearPageTitle } = usePageTitle()
 
 const news = ref(null)
@@ -94,7 +92,9 @@ const answer = ref('')
 const isSaving = ref(false)
 const showMinLengthError = ref(false)
 const showCompleteConfirm = ref(false)
-const showSavedResult = ref(false)
+
+// 이미 완료한 챌린지인지 (완료했으면 버튼/모달 문구를 "수정"으로 바꾼다)
+const isEditMode = computed(() => Boolean(news.value?.myActivity?.completedAt))
 
 function formatDate(dateValue) {
   if (!dateValue) return ''
@@ -112,7 +112,7 @@ async function fetchDetail() {
     const { data } = await getNewsDetail(route.params.newsId)
     news.value = data.data
     answer.value = data.data.myActivity?.childAnswer ?? ''
-    setPageTitle('경제가 쏙쏙! 아보카도 신문')
+    setPageTitle('아보카도 신문')
   } catch (error) {
     console.error('기사 상세 조회 실패:', error)
   }
@@ -130,16 +130,10 @@ function openCompleteConfirm() {
 async function onSubmit() {
   isSaving.value = true
   try {
-    const { data } = await saveNewsAnswer(route.params.newsId, answer.value)
-    news.value.myActivity = {
-      ...news.value.myActivity,
-      childAnswer: data.data.childAnswer,
-      completedAt: data.data.completedAt
-    }
-    showSavedResult.value = true
+    await saveNewsAnswer(route.params.newsId, answer.value)
+    router.push({ name: 'newspaper' })
   } catch (error) {
     console.error('답변 저장 실패:', error)
-  } finally {
     isSaving.value = false
   }
 }
