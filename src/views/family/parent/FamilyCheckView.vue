@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getFamilyRequestCheck, updateFamilyRequest } from '@/api/family'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -10,32 +10,110 @@ const route = useRoute()
 
 const requestId = route.params.requestId
 
-phase: 'loading' | 'loaded' | 'load_error' | 'processing' | 'approved' | 'rejected'
+// 'loading' | 'loaded' | 'load_error' | 'processing' | 'approved' | 'rejected' | 'closed'
 const phase = ref('loading')
 const childInfo = ref({ name: '', createdAt: '' })
 
+// 더 이상 승인·거절할 수 없는 요청의 상태. closed 화면에서 무엇을 안내할지 정한다.
+const closedStatus = ref('')
+const actionError = ref('')
+
+const CLOSED_NOTICES = {
+  APPROVED: {
+    emoji: '⏳',
+    title: '이미 승인한 요청이에요',
+    description: '자녀가 보호자를 확인하면 연결이 끝나요.'
+  },
+  REJECTED: {
+    emoji: '🙅',
+    title: '이미 거절한 요청이에요',
+    description: '자녀가 코드를 다시 입력하면 새 요청이 도착해요.'
+  },
+  CANCELED: {
+    emoji: '🙁',
+    title: '자녀가 취소한 요청이에요',
+    description: '자녀가 요청을 취소했어요.'
+  },
+  ACTIVE: {
+    emoji: '✅',
+    title: '이미 연결된 가족이에요',
+    description: '더 확인할 것이 없어요.'
+  }
+}
+
+const closedNotice = computed(
+  () =>
+    CLOSED_NOTICES[closedStatus.value] ?? {
+      emoji: '🙁',
+      title: '처리할 수 없는 요청이에요',
+      description: '요청 목록에서 다시 확인해주세요.'
+    }
+)
+
 async function fetchRequest() {
   phase.value = 'loading'
+  actionError.value = ''
+
   try {
     const { data: response } = await getFamilyRequestCheck(requestId)
     const request = response.data
 
     childInfo.value = { name: request.childName, createdAt: request.createdAt }
+
+    // 승인·거절은 아직 아무도 손대지 않은 요청에만 할 수 있다.
+    // 자녀가 취소했거나 이미 처리한 요청에 버튼을 보여줘 봐야 서버가 409로 막는다.
+    if (request.status !== 'PENDING') {
+      closedStatus.value = request.status
+      phase.value = 'closed'
+      return
+    }
+
     phase.value = 'loaded'
   } catch (error) {
+    const status = error?.response?.status
+
+    // 남의 요청이거나 없는 요청이다. 다시 시도해도 결과가 같으니 조용히 목록으로 돌려보낸다.
+    if (status === 403 || status === 404) {
+      router.replace({ name: 'family-requests' })
+      return
+    }
+
+    // 일시적인 오류는 다시 시도할 값어치가 있다.
     phase.value = 'load_error'
   }
 }
 
 async function handleDecision(decision) {
   phase.value = 'processing'
+  actionError.value = ''
+
   try {
     await updateFamilyRequest(requestId, { decision })
     phase.value = decision === 'APPROVE' ? 'approved' : 'rejected'
   } catch (error) {
-    // 실패 시 원래 선택 화면으로 되돌림
+    // 409는 자녀가 취소했거나 다른 기기에서 이미 처리한 경우다.
+    // 다시 조회해 화면이 실제 상태를 따라가게 하면 closed 화면으로 넘어간다.
+    if (error?.response?.status === 409) {
+      await fetchRequest()
+      return
+    }
+
+    // 일시적인 오류는 원래 선택 화면으로 되돌리고 이유를 알린다.
     phase.value = 'loaded'
+    actionError.value = '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요.'
   }
+}
+
+// 다른 화면을 보다 돌아오면 그 사이 자녀가 취소했을 수 있다. 선택 화면일 때만 다시 확인한다.
+function handleVisibilityChange() {
+  if (document.hidden) return
+  if (phase.value !== 'loaded') return
+
+  fetchRequest()
+}
+
+function goToRequests() {
+  router.push({ name: 'family-requests' })
 }
 
 function goHome() {
@@ -43,7 +121,12 @@ function goHome() {
 }
 
 onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   fetchRequest()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
@@ -115,6 +198,15 @@ onMounted(() => {
 
         <div class="flex-1" />
 
+        <p
+          v-if="actionError"
+          role="alert"
+          class="w-full rounded-xl px-3.5 py-2.5 text-sm text-red-700"
+          style="background-color: #fef2f2"
+        >
+          {{ actionError }}
+        </p>
+
         <!-- 버튼 -->
         <div class="flex w-full flex-col gap-3">
           <BaseButton
@@ -139,6 +231,31 @@ onMounted(() => {
         <p class="text-center text-xs leading-relaxed" style="color: var(--color-text-muted)">
           잘못된 요청이라면 거절해 주세요.
         </p>
+      </template>
+
+      <!-- ── 처리할 수 없는 요청 (자녀가 취소했거나 이미 처리함) ── -->
+      <template v-else-if="phase === 'closed'">
+        <div class="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+          <span class="text-4xl">{{ closedNotice.emoji }}</span>
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            {{ closedNotice.title }}
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            {{ closedNotice.description }}
+          </p>
+        </div>
+
+        <div class="flex w-full flex-col gap-3">
+          <BaseButton class="w-full" @click="goToRequests"> 요청 목록으로 </BaseButton>
+          <button
+            type="button"
+            class="w-full py-2 text-sm font-medium"
+            style="color: var(--color-text-secondary)"
+            @click="goHome"
+          >
+            홈으로
+          </button>
+        </div>
       </template>
 
       <!-- ── 승인 완료 ── -->
@@ -166,7 +283,17 @@ onMounted(() => {
             {{ childInfo.name }}님이 확인 후 최종 연결됩니다.
           </p>
         </div>
-        <BaseButton class="w-full" @click="goHome"> 홈으로 </BaseButton>
+        <div class="flex w-full flex-col gap-3">
+          <BaseButton class="w-full" @click="goToRequests"> 요청 목록으로 </BaseButton>
+          <button
+            type="button"
+            class="w-full py-2 text-sm font-medium"
+            style="color: var(--color-text-secondary)"
+            @click="goHome"
+          >
+            홈으로
+          </button>
+        </div>
       </template>
 
       <!-- ── 거절 완료 ── -->
@@ -177,7 +304,17 @@ onMounted(() => {
             연결 요청을 거절했어요
           </h1>
         </div>
-        <BaseButton class="w-full" @click="goHome"> 홈으로 </BaseButton>
+        <div class="flex w-full flex-col gap-3">
+          <BaseButton class="w-full" @click="goToRequests"> 요청 목록으로 </BaseButton>
+          <button
+            type="button"
+            class="w-full py-2 text-sm font-medium"
+            style="color: var(--color-text-secondary)"
+            @click="goHome"
+          >
+            홈으로
+          </button>
+        </div>
       </template>
     </div>
   </main>

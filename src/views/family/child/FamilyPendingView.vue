@@ -12,7 +12,9 @@ const familyConnectStore = useFamilyConnectStore()
 const authStore = useAuthStore()
 
 const POLL_INTERVAL = 3000
-const LOST_REDIRECT_DELAY = 2500
+// 폴링을 유지하는 시간
+const POLL_TIMEOUT = 3 * 60 * 1000
+const LOST_REDIRECT_DELAY = 3000
 
 const phase = ref('lost')
 
@@ -20,7 +22,21 @@ const code = familyConnectStore.code
 const requestId = ref(null)
 const parentInfo = ref({ name: '', image: '' })
 
+// 취소는 어느 화면에서든 누를 수 있어 phase와 따로 둔다.
+const canceling = ref(false)
+const cancelError = ref('')
+
 let pollTimer = null
+// 이 시각을 넘기면 폴링을 멈춘다. 탭을 잠시 벗어났다 돌아와도 기한은 그대로다.
+let pollExpiresAt = 0
+
+// 남은 시간은 분 단위로만 보여준다. 초를 세자고 타이머를 따로 두지 않고
+// 3초마다 도는 폴링에 얹어 갱신한다
+const remainingMinutes = ref(0)
+
+function syncRemainingMinutes() {
+  remainingMinutes.value = Math.max(1, Math.round((pollExpiresAt - Date.now()) / 60000))
+}
 
 function stopPolling() {
   if (pollTimer) {
@@ -29,7 +45,29 @@ function stopPolling() {
   }
 }
 
-async function pollStatus() {
+/**
+ * 남은 기한 동안 폴링을 돌린다.
+ * renew는 기한을 지금부터 다시 세는 경우(요청을 새로 보냈거나 사용자가 더 기다리기로 한 경우)다.
+ */
+function startPolling({ renew = false } = {}) {
+  if (renew) pollExpiresAt = Date.now() + POLL_TIMEOUT
+
+  stopPolling()
+
+  if (Date.now() >= pollExpiresAt) {
+    phase.value = 'timeout'
+    return
+  }
+
+  syncRemainingMinutes()
+  pollTimer = setInterval(pollStatus, POLL_INTERVAL)
+}
+
+/**
+ * 요청 상태를 한 번 확인하고, 끝난 요청이면 그에 맞는 화면으로 넘긴다.
+ * 기한을 보지 않아 폴링이 멈춘 뒤에도 단발로 부를 수 있다.
+ */
+async function checkStatusOnce() {
   try {
     // 응답은 { success, code, message, data } 구조라 실제 값은 한 겹 안에 있다.
     const { data: response } = await getFamilyRequest(requestId.value)
@@ -42,11 +80,29 @@ async function pollStatus() {
     } else if (request.status === 'REJECTED') {
       stopPolling()
       phase.value = 'rejected'
+    } else if (request.status === 'CANCELED') {
+      // 다른 기기에서 취소했거나, 아이가 다른 코드로 새 요청을 보내 이 요청이 정리된 경우다.
+      stopPolling()
+      phase.value = 'canceled'
     }
-    // PENDING이면 폴링 계속 유지
+    // PENDING이면 아직 진행 중이라 화면을 그대로 둔다.
   } catch (error) {
-    // 일시적 네트워크 오류로 간주, 폴링은 계속 유지
+    // 일시적 네트워크 오류로 간주하고 화면을 그대로 둔다.
   }
+}
+
+async function pollStatus() {
+  // 기한이 지나면 요청만 멈춘다. 서버의 연결 요청은 PENDING으로 살아 있어
+  // 보호자가 나중에 승인해도 그대로 이어진다.
+  if (Date.now() >= pollExpiresAt) {
+    stopPolling()
+    phase.value = 'timeout'
+    return
+  }
+
+  syncRemainingMinutes()
+
+  await checkStatusOnce()
 }
 
 async function sendRequest() {
@@ -57,10 +113,75 @@ async function sendRequest() {
     // 재로그인으로 이 화면에 다시 들어와도 같은 요청을 이어받도록 저장해둔다.
     familyConnectStore.setRequestId(requestId.value)
     phase.value = 'waiting'
-    pollTimer = setInterval(pollStatus, POLL_INTERVAL)
+    startPolling({ renew: true })
   } catch (error) {
     phase.value = 'send_error'
   }
+}
+
+// 기한이 지난 뒤 사용자가 더 기다리기로 한 경우. 기한을 새로 잡고 바로 한 번 확인한다.
+function resumePolling() {
+  cancelError.value = ''
+  phase.value = 'waiting'
+  startPolling({ renew: true })
+  pollStatus()
+}
+
+/**
+ * 아이가 스스로 연결 요청을 거둔다.
+ * 보호자의 승인 전이든 후든 CANCELED로 정리돼, 보호자 쪽 요청 목록에서도 사라진다.
+ */
+async function handleCancel() {
+  if (canceling.value) return
+
+  canceling.value = true
+  cancelError.value = ''
+  stopPolling()
+
+  try {
+    await confirmFamilyRequest(requestId.value, false)
+
+    // 메모리의 로그인 정보에는 이 요청이 아직 진행 중으로 남아 있다.
+    // 맞춰두지 않으면 가드가 코드를 다시 입력하는 길에 끝난 요청을 도로 집어든다.
+    try {
+      await authStore.refresh()
+    } catch {
+      // 취소는 서버에서 이미 끝났다. 갱신에 실패해도 화면을 막지 않는다.
+    }
+
+    familyConnectStore.clear()
+    phase.value = 'canceled'
+  } catch (error) {
+    // 취소하지 못했으면 요청은 그대로 살아 있다. 보던 화면으로 되돌린다.
+    cancelError.value = '요청을 취소하지 못했어요. 잠시 후 다시 시도해주세요.'
+    if (phase.value === 'waiting') startPolling()
+  } finally {
+    canceling.value = false
+  }
+}
+
+/**
+ * 탭이 가려진 동안에는 화면을 갱신할 이유가 없다.
+ * 돌아오면 즉시 한 번 확인하고, 기한이 남아 있으면 다시 돌린다.
+ */
+async function handleVisibilityChange() {
+  if (document.hidden) {
+    stopPolling()
+    return
+  }
+
+  // 기한이 지나 폴링을 멈춘 뒤에도, 돌아온 김에 한 번은 확인한다.
+  // 자리를 비운 사이 보호자가 승인했다면 버튼을 누르지 않아도 넘어간다.
+  if (phase.value === 'timeout') {
+    await checkStatusOnce()
+    return
+  }
+
+  if (phase.value !== 'waiting') return
+
+  await pollStatus()
+
+  if (phase.value === 'waiting') startPolling()
 }
 
 function goToCodeInput() {
@@ -75,15 +196,14 @@ async function handleConfirm(confirm) {
     // 연결이 확정되면 ACTIVE, 아이가 취소하면 CANCELED가 내려온다.
     const connected = response.data.status === 'ACTIVE'
 
-    if (connected) {
-      // 연결이 확정되면 서버가 계정을 ACTIVE로 바꾸고 지갑도 만든다.
-      // 메모리의 로그인 정보는 아직 가입 절차 중이라 최신 정보로 맞춘다.
-      try {
-        await authStore.refresh()
-      } catch {
-        // 연결은 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
-        // 갱신에 실패해도 완료 화면은 그대로 보여준다. 홈으로 갈 때 가드가 다시 물어본다.
-      }
+    // 확정하면 서버가 계정을 ACTIVE로 바꾸고 지갑도 만든다. 취소하면 요청이 CANCELED가 된다.
+    // 어느 쪽이든 메모리의 로그인 정보가 낡는데, 취소 쪽을 맞추지 않으면 가드가
+    // 코드를 다시 입력하러 가는 길에 끝난 요청을 도로 집어든다.
+    try {
+      await authStore.refresh()
+    } catch {
+      // 처리는 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
+      // 갱신에 실패해도 화면을 막지 않는다. 홈으로 갈 때 가드가 다시 물어본다.
     }
 
     phase.value = connected ? 'done' : 'canceled'
@@ -99,13 +219,15 @@ function goHome() {
 }
 
 onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+
   // 이미 진행 중인 요청이 있으면(재로그인 등) 새로 만들지 않고 그 요청을 이어받는다.
   // 첫 조회를 바로 해야 이미 승인된 요청이 3초를 기다리지 않고 확인 화면으로 넘어간다.
   if (familyConnectStore.requestId) {
     requestId.value = familyConnectStore.requestId
     phase.value = 'waiting'
+    startPolling({ renew: true })
     pollStatus()
-    pollTimer = setInterval(pollStatus, POLL_INTERVAL)
     return
   }
 
@@ -122,6 +244,7 @@ function clearStoredCode() {
 }
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
   stopPolling()
 })
 </script>
@@ -259,9 +382,72 @@ onUnmounted(() => {
           </span>
         </div>
 
-        <p class="text-xs" style="color: var(--color-text-muted)">
-          승인이 완료되면 자동으로 화면이 넘어갑니다
+        <p class="text-center text-xs leading-relaxed" style="color: var(--color-text-muted)">
+          승인이 완료되면 자동으로 화면이 넘어갑니다<br />
+          약 {{ remainingMinutes }}분 뒤 자동 확인이 멈춰요
         </p>
+
+        <p
+          v-if="cancelError"
+          role="alert"
+          class="w-full rounded-xl px-3.5 py-2.5 text-sm text-red-700"
+          style="background-color: #fef2f2"
+        >
+          {{ cancelError }}
+        </p>
+
+        <button
+          type="button"
+          class="w-full py-2 text-sm font-medium"
+          style="color: var(--color-text-secondary)"
+          :disabled="canceling"
+          @click="handleCancel"
+        >
+          {{ canceling ? '취소하는 중...' : '요청 취소하기' }}
+        </button>
+      </template>
+
+      <!-- ── 대기 시간 초과 (폴링만 멈춤, 요청은 살아 있음) ── -->
+      <template v-else-if="phase === 'timeout'">
+        <div
+          class="flex h-32 w-32 items-center justify-center rounded-full"
+          style="background-color: var(--color-avocado-100)"
+        >
+          <span class="text-4xl">⏰</span>
+        </div>
+
+        <div class="flex flex-col items-center gap-2 text-center">
+          <h1 class="text-xl font-bold" style="color: var(--color-text-primary)">
+            아직 승인되지 않았어요
+          </h1>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
+            요청은 그대로 남아 있어요.<br />보호자가 승인하면 이어서 진행할 수 있어요.
+          </p>
+        </div>
+
+        <p
+          v-if="cancelError"
+          role="alert"
+          class="w-full rounded-xl px-3.5 py-2.5 text-sm text-red-700"
+          style="background-color: #fef2f2"
+        >
+          {{ cancelError }}
+        </p>
+
+        <div class="flex w-full flex-col gap-3">
+          <BaseButton class="w-full" :disabled="canceling" @click="resumePolling">
+            계속 기다리기
+          </BaseButton>
+          <button
+            type="button"
+            class="w-full py-2 text-sm font-medium"
+            style="color: var(--color-text-secondary)"
+            :disabled="canceling"
+            @click="handleCancel"
+          >
+            {{ canceling ? '취소하는 중...' : '요청 취소하기' }}
+          </button>
+        </div>
       </template>
 
       <!-- ── 보호자가 거절함 ── -->

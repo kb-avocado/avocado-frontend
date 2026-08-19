@@ -2,7 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
+import { writeLastViewedChildId } from '@/utils/lastViewedChild'
 import {
+  isChildOnlyRoute,
+  isOwnChild,
+  isParentOnlyRoute,
   isFamilyConnectRoute,
   isGuestOnlyRoute,
   isOnboardingRoute,
@@ -106,6 +110,16 @@ const routes = [
       }
     ],
     meta: { hideLayout: true }
+  },
+
+  // 보호자가 받은 연결 요청함.
+  // 가입 절차용인 위 /family 화면들과 달리 가입을 마친 보호자가 마이페이지에서 들어오므로,
+  // hideLayout 없이 공용 헤더와 하단 네비게이션을 그대로 쓴다.
+  {
+    path: '/parent/family/requests',
+    name: 'family-requests',
+    component: () => import('@/views/family/parent/FamilyRequestListView.vue'),
+    meta: { title: '가족 연결 요청', showBack: true, audience: 'parent' }
   },
 
   // 하단 네비게이션 바 5개 탭
@@ -327,6 +341,12 @@ const routes = [
     name: 'parentNotifications',
     component: () => import('@/views/notification/NotificationListView.vue'),
     meta: { hideLayout: true, title: '알림', audience: 'parent' }
+  },
+
+  // 없는 주소는 홈으로 되돌린다.
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'home' }
   }
 ]
 
@@ -377,10 +397,35 @@ router.beforeEach(async (to) => {
     return resolveHomeRoute(user)
   }
 
-  // 로그인·회원가입 화면이 홈으로만 밀어넣고 나머지를 여기 맡긴다.
-  if (user.type === 'PARENT' && to.name === 'home') {
+  // 아이용 화면과 보호자용 화면은 주소로 갈린다. 반대쪽 계정이 주소를 고쳐 들어오면
+  // 서버가 어차피 막지만 화면이 깨진 채로 남는다. 조용히 제 홈으로 돌려보낸다.
+  // 로그인 직후 'home'으로만 밀어넣는 경우도 여기서 보호자 홈으로 갈린다.
+  if (user.type === 'PARENT' && isChildOnlyRoute(to)) {
     return resolveHomeRoute(user)
   }
+
+  if (user.type !== 'PARENT' && isParentOnlyRoute(to)) {
+    return resolveHomeRoute(user)
+  }
+
+  // 주소의 childId만 남의 것으로 바꾸는 경우. 연결된 아이가 아니면 되돌린다.
+  if (to.params.childId && !isOwnChild(user, to.params.childId)) {
+    return resolveHomeRoute(user)
+  }
+})
+
+/* 보호자가 마지막으로 보던 아이를 기억한다.
+ *
+ * childId를 요구하지 않는 화면(마이페이지, 알림 등)에 다녀오면 어느 아이를 보고 있었는지
+ * 잃어버려 늘 첫 아이로 되돌아간다. childId가 있는 화면을 지날 때마다 적어두고,
+ * landing.js의 resolveParentChildId가 그 값을 기본값으로 쓴다.
+ *
+ * childId는 보호자 화면에만 있는 파라미터라 아이 화면과 섞이지 않는다.
+ */
+router.afterEach((to) => {
+  if (!to.params.childId) return
+
+  writeLastViewedChildId(to.params.childId)
 })
 
 export default router

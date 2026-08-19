@@ -1,4 +1,5 @@
 import { useFamilyConnectStore } from '@/stores/signup'
+import { readLastViewedChildId } from '@/utils/lastViewedChild'
 
 /**
  * 로그인 상태와 계정 상태로 갈 화면을 정하는 규칙을 모아둔다.
@@ -28,6 +29,20 @@ export function isOnboardingRoute(to) {
 
 export function isFamilyConnectRoute(to) {
   return FAMILY_CONNECT_ROUTE_NAMES.includes(to.name)
+}
+
+// 화면을 볼 사람은 주소에 드러나 있다. 어느 쪽도 아니면 공용 화면이다.
+export function isChildOnlyRoute(to) {
+  return to.path.startsWith('/child/')
+}
+
+export function isParentOnlyRoute(to) {
+  return to.path.startsWith('/parent/')
+}
+
+// 주소의 childId가 이 보호자와 연결된 아이인지.
+export function isOwnChild(user, childId) {
+  return (user?.child ?? []).some((child) => String(child.id) === String(childId))
 }
 
 // 보호자의 응답을 기다리는 중이거나, 아이의 확정만 남은 요청.
@@ -69,8 +84,15 @@ export function restoreFamilyRequest(user) {
 
   const familyConnectStore = useFamilyConnectStore()
 
-  // 코드를 직접 입력하고 들어온 경우처럼 이미 값이 있으면 건드리지 않는다.
+  // 이미 값이 있으면 건드리지 않는다.
   if (familyConnectStore.requestId) return
+
+  // 코드를 방금 입력하고 들어온 경우다. 새 요청을 보내야 하므로 지난 요청을 집어들지 않는다.
+  //
+  // user.family는 로그인 시점의 스냅샷이라, 요청을 취소한 뒤에도 한동안 진행 중으로 남아 있다.
+  // 그 값을 믿고 요청 ID를 심으면 대기 화면이 새 요청을 보내지 않고 끝난 요청을 이어받아,
+  // 코드를 다시 넣어도 곧바로 "취소되었어요"가 뜬다.
+  if (familyConnectStore.code) return
 
   if (!hasRequestInProgress(user.family)) return
 
@@ -78,22 +100,41 @@ export function restoreFamilyRequest(user) {
 }
 
 /**
+ * 보호자 화면이 childId 없이 열렸을 때 보여줄 아이.
+ *
+ * 마지막으로 보던 아이를 이어서 보여준다. 저장된 값이 지금 연결된 아이 목록에 없으면
+ * (계정이 바뀌었거나 연결이 끊겼으면) 첫 아이로 돌아간다.
+ *
+ * @returns 아이 ID. 연결된 아이가 없으면 undefined.
+ */
+export function resolveParentChildId(user) {
+  const children = user?.child ?? []
+
+  if (children.length === 0) return undefined
+
+  const lastViewedId = readLastViewedChildId()
+  const lastViewed = children.find((child) => String(child.id) === String(lastViewedId))
+
+  return lastViewed?.id ?? children[0].id
+}
+
+/**
  * 가입 절차를 마친 계정이 기본으로 볼 화면.
- * 부모 홈은 볼 아이를 정해야 열리므로 연결된 첫 아이를 쓴다.
+ * 부모 홈은 볼 아이를 정해야 열린다.
  */
 export function resolveHomeRoute(user) {
   if (user.type !== 'PARENT') {
     return { name: 'home' }
   }
 
-  const firstChildId = user.child?.[0]?.id
+  const childId = resolveParentChildId(user)
 
   // 아직 연결된 아이가 없으면 childId 없이 홈으로 보낸다. 홈이 빈 화면을 대신 보여준다.
-  if (!firstChildId) {
+  if (!childId) {
     return { name: 'parent-home' }
   }
 
-  return { name: 'parent-home', params: { childId: firstChildId } }
+  return { name: 'parent-home', params: { childId } }
 }
 
 /**
