@@ -34,3 +34,6 @@ pnpm-debug.log*
 coverage/
 .vercel
 .env*
+
+# Claude Code (개인용)
+CLAUDE.md

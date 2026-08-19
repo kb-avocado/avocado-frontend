@@ -172,22 +172,23 @@
     <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-bold text-gray-900">최근 결제 내역</h2>
-        <button type="button" class="text-xs text-gray-500" disabled>전체보기 ›</button>
+        <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
+          전체보기 ›
+        </RouterLink>
       </div>
 
-      <ul class="mt-3 space-y-4">
-        <li v-for="item in recentPayments" :key="item.id" class="flex items-center gap-3">
-          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50">
-            <component :is="item.icon" :size="16" class="text-avocado-600" />
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-medium text-gray-900">{{ item.merchant }}</p>
-            <p class="mt-0.5 text-xs text-gray-400">{{ item.date }}</p>
-          </div>
-          <strong class="text-sm text-red-500">-{{ formatMoney(item.amount) }}원</strong>
+      <ul v-if="recentTransactions.length" class="mt-1 divide-y divide-gray-100">
+        <li v-for="transaction in recentTransactions" :key="transaction.id" class="py-1">
+          <WalletTransactionItem :transaction="transaction" />
         </li>
       </ul>
-      <p class="mt-4 text-center text-[11px] text-gray-400">최근 내역 조회 API 연동 예정</p>
+      <p v-else class="mt-4 text-center text-xs text-gray-400">
+        {{
+          recentPaymentsLoading
+            ? '최근 결제 내역을 불러오는 중이에요.'
+            : recentPaymentsError || '최근 결제 내역이 없어요.'
+        }}
+      </p>
     </section>
   </div>
 </template>
@@ -201,24 +202,29 @@ import {
   ArrowLeft,
   CircleAlert,
   ClockAlert,
-  Gamepad2,
   LoaderCircle,
   ShieldAlert,
-  ShoppingBasket,
-  Store,
   Wallet as WalletIcon
 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import NumberKeypad from '@/components/common/NumberKeypad.vue'
 import PaymentResult from '@/components/payment/PaymentResult.vue'
+import WalletTransactionItem from '@/components/wallet/WalletTransactionItem.vue'
 import {
   getPaymentQrStatus,
   invalidatePaymentQr,
   issuePaymentQr,
   reissuePaymentQr
 } from '@/api/payment'
+import { getWalletTransactions } from '@/api/wallet'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import {
+  isDisplayableWalletTransaction,
+  normalizeWalletTransaction
+} from '@/utils/walletTransaction'
+
+const RECENT_PAYMENTS_SIZE = 3
 
 const USE_WALLET_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_WALLET_MOCK === 'true'
 const MOCK_WALLET = {
@@ -319,11 +325,9 @@ const stateDescription = computed(() => {
   return '잠시만 기다려 주세요.'
 })
 
-const recentPayments = [
-  { id: 1, merchant: 'CU 편의점', date: '오늘 15:30', amount: 3500, icon: Store },
-  { id: 2, merchant: 'Roblox', date: '어제 20:15', amount: 5000, icon: Gamepad2 },
-  { id: 3, merchant: '파리바게뜨', date: '2월 14일', amount: 2400, icon: ShoppingBasket }
-]
+const recentTransactions = ref([])
+const recentPaymentsLoading = ref(false)
+const recentPaymentsError = ref('')
 
 function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
@@ -595,6 +599,7 @@ async function refreshWalletAfterPayment() {
   } catch {
     // 결과 화면은 유지하고 기존 wallet store의 오류 처리 흐름을 사용합니다.
   }
+  loadRecentPayments()
 }
 
 function closePaymentResult() {
@@ -617,7 +622,34 @@ async function loadWallet() {
   }
 }
 
-onMounted(loadWallet)
+async function loadRecentPayments() {
+  if (USE_WALLET_MOCK) return
+  recentPaymentsLoading.value = true
+  recentPaymentsError.value = ''
+  try {
+    const response = await getWalletTransactions({ page: 0, size: RECENT_PAYMENTS_SIZE })
+    const items = response.data?.data?.items
+
+    if (!Array.isArray(items)) {
+      throw new Error('최근 결제 내역 응답 형식이 올바르지 않습니다.')
+    }
+
+    recentTransactions.value = items
+      .map((item) => normalizeWalletTransaction(item))
+      .filter((item) => isDisplayableWalletTransaction(item))
+      .slice(0, RECENT_PAYMENTS_SIZE)
+  } catch (error) {
+    console.error('최근 결제 내역 조회 실패:', error)
+    recentPaymentsError.value = '최근 결제 내역을 불러오지 못했어요.'
+  } finally {
+    recentPaymentsLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadWallet()
+  loadRecentPayments()
+})
 
 onBeforeRouteLeave(async () => {
   await invalidateCurrentQr()
