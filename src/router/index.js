@@ -108,6 +108,16 @@ const routes = [
     meta: { hideLayout: true }
   },
 
+  // 보호자가 받은 연결 요청함.
+  // 가입 절차용인 위 /family 화면들과 달리 가입을 마친 보호자가 마이페이지에서 들어오므로,
+  // hideLayout 없이 공용 헤더와 하단 네비게이션을 그대로 쓴다.
+  {
+    path: '/parent/family/requests',
+    name: 'family-requests',
+    component: () => import('@/views/family/parent/FamilyRequestListView.vue'),
+    meta: { title: '가족 연결 요청', showBack: true, audience: 'parent' }
+  },
+
   // 하단 네비게이션 바 5개 탭
   {
     path: '/child/wallet',
