@@ -4,6 +4,9 @@ import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
 import { writeLastViewedChildId } from '@/utils/lastViewedChild'
 import {
+  isChildOnlyRoute,
+  isOwnChild,
+  isParentOnlyRoute,
   isFamilyConnectRoute,
   isGuestOnlyRoute,
   isOnboardingRoute,
@@ -338,6 +341,12 @@ const routes = [
     name: 'parentNotifications',
     component: () => import('@/views/notification/NotificationListView.vue'),
     meta: { hideLayout: true, title: '알림', audience: 'parent' }
+  },
+
+  // 없는 주소는 홈으로 되돌린다.
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'home' }
   }
 ]
 
@@ -388,8 +397,19 @@ router.beforeEach(async (to) => {
     return resolveHomeRoute(user)
   }
 
-  // 로그인·회원가입 화면이 홈으로만 밀어넣고 나머지를 여기 맡긴다.
-  if (user.type === 'PARENT' && to.name === 'home') {
+  // 아이용 화면과 보호자용 화면은 주소로 갈린다. 반대쪽 계정이 주소를 고쳐 들어오면
+  // 서버가 어차피 막지만 화면이 깨진 채로 남는다. 조용히 제 홈으로 돌려보낸다.
+  // 로그인 직후 'home'으로만 밀어넣는 경우도 여기서 보호자 홈으로 갈린다.
+  if (user.type === 'PARENT' && isChildOnlyRoute(to)) {
+    return resolveHomeRoute(user)
+  }
+
+  if (user.type !== 'PARENT' && isParentOnlyRoute(to)) {
+    return resolveHomeRoute(user)
+  }
+
+  // 주소의 childId만 남의 것으로 바꾸는 경우. 연결된 아이가 아니면 되돌린다.
+  if (to.params.childId && !isOwnChild(user, to.params.childId)) {
     return resolveHomeRoute(user)
   }
 })

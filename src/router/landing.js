@@ -31,6 +31,20 @@ export function isFamilyConnectRoute(to) {
   return FAMILY_CONNECT_ROUTE_NAMES.includes(to.name)
 }
 
+// 화면을 볼 사람은 주소에 드러나 있다. 어느 쪽도 아니면 공용 화면이다.
+export function isChildOnlyRoute(to) {
+  return to.path.startsWith('/child/')
+}
+
+export function isParentOnlyRoute(to) {
+  return to.path.startsWith('/parent/')
+}
+
+// 주소의 childId가 이 보호자와 연결된 아이인지.
+export function isOwnChild(user, childId) {
+  return (user?.child ?? []).some((child) => String(child.id) === String(childId))
+}
+
 // 보호자의 응답을 기다리는 중이거나, 아이의 확정만 남은 요청.
 function hasRequestInProgress(family) {
   return family?.status === 'PENDING' || family?.status === 'APPROVED'

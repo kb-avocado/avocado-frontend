@@ -70,6 +70,15 @@ async function fetchRequest() {
 
     phase.value = 'loaded'
   } catch (error) {
+    const status = error?.response?.status
+
+    // 남의 요청이거나 없는 요청이다. 다시 시도해도 결과가 같으니 조용히 목록으로 돌려보낸다.
+    if (status === 403 || status === 404) {
+      router.replace({ name: 'family-requests' })
+      return
+    }
+
+    // 일시적인 오류는 다시 시도할 값어치가 있다.
     phase.value = 'load_error'
   }
 }
