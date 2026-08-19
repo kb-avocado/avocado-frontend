@@ -140,6 +140,15 @@ async function handleCancel() {
 
   try {
     await confirmFamilyRequest(requestId.value, false)
+
+    // 메모리의 로그인 정보에는 이 요청이 아직 진행 중으로 남아 있다.
+    // 맞춰두지 않으면 가드가 코드를 다시 입력하는 길에 끝난 요청을 도로 집어든다.
+    try {
+      await authStore.refresh()
+    } catch {
+      // 취소는 서버에서 이미 끝났다. 갱신에 실패해도 화면을 막지 않는다.
+    }
+
     familyConnectStore.clear()
     phase.value = 'canceled'
   } catch (error) {
@@ -187,15 +196,14 @@ async function handleConfirm(confirm) {
     // 연결이 확정되면 ACTIVE, 아이가 취소하면 CANCELED가 내려온다.
     const connected = response.data.status === 'ACTIVE'
 
-    if (connected) {
-      // 연결이 확정되면 서버가 계정을 ACTIVE로 바꾸고 지갑도 만든다.
-      // 메모리의 로그인 정보는 아직 가입 절차 중이라 최신 정보로 맞춘다.
-      try {
-        await authStore.refresh()
-      } catch {
-        // 연결은 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
-        // 갱신에 실패해도 완료 화면은 그대로 보여준다. 홈으로 갈 때 가드가 다시 물어본다.
-      }
+    // 확정하면 서버가 계정을 ACTIVE로 바꾸고 지갑도 만든다. 취소하면 요청이 CANCELED가 된다.
+    // 어느 쪽이든 메모리의 로그인 정보가 낡는데, 취소 쪽을 맞추지 않으면 가드가
+    // 코드를 다시 입력하러 가는 길에 끝난 요청을 도로 집어든다.
+    try {
+      await authStore.refresh()
+    } catch {
+      // 처리는 서버에서 이미 끝나 아이가 다시 시도할 일이 없다.
+      // 갱신에 실패해도 화면을 막지 않는다. 홈으로 갈 때 가드가 다시 물어본다.
     }
 
     phase.value = connected ? 'done' : 'canceled'

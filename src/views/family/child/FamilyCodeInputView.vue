@@ -85,6 +85,9 @@ function onPaste(event) {
 function handleSubmit() {
   if (!canSubmit.value) return
 
+  // 코드를 새로 입력했다는 것은 새 요청을 보내겠다는 뜻이다.
+  // 지난 요청 ID가 남아 있으면 대기 화면이 그것을 이어받아 새 요청이 아예 나가지 않는다.
+  familyConnectStore.clear()
   familyConnectStore.setCode(fullCode.value)
   router.push({ name: 'family-pending' })
 }

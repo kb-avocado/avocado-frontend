@@ -69,8 +69,15 @@ export function restoreFamilyRequest(user) {
 
   const familyConnectStore = useFamilyConnectStore()
 
-  // 코드를 직접 입력하고 들어온 경우처럼 이미 값이 있으면 건드리지 않는다.
+  // 이미 값이 있으면 건드리지 않는다.
   if (familyConnectStore.requestId) return
+
+  // 코드를 방금 입력하고 들어온 경우다. 새 요청을 보내야 하므로 지난 요청을 집어들지 않는다.
+  //
+  // user.family는 로그인 시점의 스냅샷이라, 요청을 취소한 뒤에도 한동안 진행 중으로 남아 있다.
+  // 그 값을 믿고 요청 ID를 심으면 대기 화면이 새 요청을 보내지 않고 끝난 요청을 이어받아,
+  // 코드를 다시 넣어도 곧바로 "취소되었어요"가 뜬다.
+  if (familyConnectStore.code) return
 
   if (!hasRequestInProgress(user.family)) return
 
