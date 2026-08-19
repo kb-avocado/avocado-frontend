@@ -1,4 +1,5 @@
 import { useFamilyConnectStore } from '@/stores/signup'
+import { readLastViewedChildId } from '@/utils/lastViewedChild'
 
 /**
  * 로그인 상태와 계정 상태로 갈 화면을 정하는 규칙을 모아둔다.
@@ -85,22 +86,41 @@ export function restoreFamilyRequest(user) {
 }
 
 /**
+ * 보호자 화면이 childId 없이 열렸을 때 보여줄 아이.
+ *
+ * 마지막으로 보던 아이를 이어서 보여준다. 저장된 값이 지금 연결된 아이 목록에 없으면
+ * (계정이 바뀌었거나 연결이 끊겼으면) 첫 아이로 돌아간다.
+ *
+ * @returns 아이 ID. 연결된 아이가 없으면 undefined.
+ */
+export function resolveParentChildId(user) {
+  const children = user?.child ?? []
+
+  if (children.length === 0) return undefined
+
+  const lastViewedId = readLastViewedChildId()
+  const lastViewed = children.find((child) => String(child.id) === String(lastViewedId))
+
+  return lastViewed?.id ?? children[0].id
+}
+
+/**
  * 가입 절차를 마친 계정이 기본으로 볼 화면.
- * 부모 홈은 볼 아이를 정해야 열리므로 연결된 첫 아이를 쓴다.
+ * 부모 홈은 볼 아이를 정해야 열린다.
  */
 export function resolveHomeRoute(user) {
   if (user.type !== 'PARENT') {
     return { name: 'home' }
   }
 
-  const firstChildId = user.child?.[0]?.id
+  const childId = resolveParentChildId(user)
 
   // 아직 연결된 아이가 없으면 childId 없이 홈으로 보낸다. 홈이 빈 화면을 대신 보여준다.
-  if (!firstChildId) {
+  if (!childId) {
     return { name: 'parent-home' }
   }
 
-  return { name: 'parent-home', params: { childId: firstChildId } }
+  return { name: 'parent-home', params: { childId } }
 }
 
 /**

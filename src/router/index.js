@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSignupStore } from '@/stores/signup'
 import { useTransferStore } from '@/stores/transfer'
+import { writeLastViewedChildId } from '@/utils/lastViewedChild'
 import {
   isFamilyConnectRoute,
   isGuestOnlyRoute,
@@ -391,6 +392,20 @@ router.beforeEach(async (to) => {
   if (user.type === 'PARENT' && to.name === 'home') {
     return resolveHomeRoute(user)
   }
+})
+
+/* 보호자가 마지막으로 보던 아이를 기억한다.
+ *
+ * childId를 요구하지 않는 화면(마이페이지, 알림 등)에 다녀오면 어느 아이를 보고 있었는지
+ * 잃어버려 늘 첫 아이로 되돌아간다. childId가 있는 화면을 지날 때마다 적어두고,
+ * landing.js의 resolveParentChildId가 그 값을 기본값으로 쓴다.
+ *
+ * childId는 보호자 화면에만 있는 파라미터라 아이 화면과 섞이지 않는다.
+ */
+router.afterEach((to) => {
+  if (!to.params.childId) return
+
+  writeLastViewedChildId(to.params.childId)
 })
 
 export default router
