@@ -159,7 +159,7 @@ const icon = computed(() => {
 
 const bonusText = computed(() => {
   const bonus = props.item.bonus
-  if (!bonus) return '미지급'
+  if (!bonus || String(bonus.type ?? 'NONE').toUpperCase() === 'NONE') return '없음'
 
   if (['PAID', 'COMPLETED'].includes(bonusStatus.value)) {
     return won(bonus.paidAmount ?? bonus.amount ?? calculateRateBonus(bonus))
