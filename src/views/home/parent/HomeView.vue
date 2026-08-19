@@ -348,6 +348,7 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { CreditCard, CalendarDays, Plus, Wallet, ChevronRight } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { resolveHomeRoute } from '@/router/landing'
 import { useWalletStore } from '@/stores/wallet'
 import { getSpendingType } from '@/api/report'
 import { getHome } from '@/api/home'
@@ -546,7 +547,16 @@ watch(
   }
 )
 
-onMounted(() => {
+watch(hasChildren, (has) => {
+  if (!has) return
+  if (props.childId) return
+
+  router.replace(resolveHomeRoute(authStore.user))
+})
+
+onMounted(async () => {
+  await authStore.refresh().catch(() => {})
+
   // 연결된 아이가 없으면 조회할 대상도 없다.
   if (!hasChildren.value) return
 
