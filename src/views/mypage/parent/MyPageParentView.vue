@@ -27,7 +27,11 @@
     <template v-else-if="phase === 'loaded'">
       <ProfileCard :name="myPage.name" user-type="보호자" :email="myPage.email" />
 
-      <FamilyInviteCode v-if="myPage.inviteCode" :invite-code="myPage.inviteCode" />
+      <FamilyInviteCode
+        v-if="myPage.inviteCode"
+        :invite-code="myPage.inviteCode"
+        :pending-count="pendingRequestCount"
+      />
 
       <MenuList :items="menuItems" />
 
@@ -43,6 +47,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { CreditCard, Settings, Headphones } from 'lucide-vue-next'
 
+import { getFamilyRequests } from '@/api/family'
 import { getMyPage } from '@/api/user'
 import ProfileCard from '@/components/mypage/ProfileCard.vue'
 import FamilyInviteCode from '@/components/mypage/FamilyInviteCode.vue'
@@ -54,6 +59,7 @@ const router = useRouter()
 // 'loading' | 'loaded' | 'error'
 const phase = ref('loading')
 const myPage = ref({ name: '', email: '', inviteCode: '' })
+const pendingRequestCount = ref(0)
 
 async function fetchMyPage() {
   phase.value = 'loading'
@@ -73,6 +79,16 @@ async function fetchMyPage() {
   } catch {
     // 401은 axios 인터셉터가 로그인 화면으로 보낸다.
     phase.value = 'error'
+    return
+  }
+
+  // 대기 건수는 곁들이는 정보라, 실패해도 마이페이지 전체를 막지 않는다.
+  // 보호자로 확인된 뒤에 부르므로 아이 계정이 403을 받을 일은 없다.
+  try {
+    const { data: response } = await getFamilyRequests('PENDING')
+    pendingRequestCount.value = (response.data ?? []).length
+  } catch {
+    pendingRequestCount.value = 0
   }
 }
 

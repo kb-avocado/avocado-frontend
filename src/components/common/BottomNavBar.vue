@@ -65,6 +65,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { resolveParentChildId } from '@/router/landing'
 import { Home, PiggyBank, LayoutGrid, Send, Newspaper, PieChart } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -76,9 +77,11 @@ const authStore = useAuthStore()
 const isParent = computed(() => authStore.user?.type === 'PARENT')
 
 // URL에 이미 childId가 있으면 그걸 우선 쓰고(아이를 여러 명 둔 부모가 특정 아이 화면에 있는 경우),
-// 없으면 로그인 시 내려온 연결된 아이 목록 중 첫 번째를 기본값으로 쓴다.
+// 없으면 마지막으로 보던 아이를 기본값으로 쓴다. 그런 아이가 없으면 첫 아이로 돌아간다.
 // 연결된 아이가 아예 없으면 빈 문자열 → 부모용 라우트에 childId 없이 진입(각 화면이 "연결된 아이 없음"을 보여줌).
-const childId = computed(() => String(route.params.childId ?? authStore.user?.child?.[0]?.id ?? ''))
+const childId = computed(() =>
+  String(route.params.childId ?? resolveParentChildId(authStore.user) ?? '')
+)
 
 // 부모이면서 아이가 없을 때도, "아이용 화면"이 아니라 "부모용 화면(연결된 아이 없음 안내)"으로 보내야 한다.
 // 그래서 폴백을 { name: 'piggy' } 같은 아이 전용 라우트가 아니라, childId 없는 parent-* 라우트로 바꾼다.

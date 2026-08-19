@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getMe } from '@/api/auth'
+import { clearLastViewedChildId } from '@/utils/lastViewedChild'
 
 export const useAuthStore = defineStore('auth', () => {
   // 화면 표시와 분기에 쓰는 사용자 정보만 둔다.
@@ -18,6 +19,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clear() {
     user.value = null
+
+    // 다음 사용자가 남의 아이를 기본값으로 물려받지 않도록 지운다.
+    clearLastViewedChildId()
   }
 
   /**
@@ -36,8 +40,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: response } = await getMe()
       user.value = response.data
     } catch {
-      // 토큰이 없거나 만료됐다. 로그인하지 않은 상태로 둔다.
-      user.value = null
+      // 토큰이 없거나 만료됐다. 로그아웃과 같은 상태로 되돌린다.
+      clear()
     }
   }
 

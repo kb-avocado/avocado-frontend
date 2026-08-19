@@ -119,6 +119,7 @@ import {
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import NotificationCard from '@/components/notification/NotificationCard.vue'
+import { getFamilyRequests } from '@/api/family'
 import { formatMessageTime } from '@/utils/format'
 import { useNotificationStore } from '@/stores/notification'
 
@@ -193,15 +194,16 @@ async function handleNotificationClick(notification) {
     return
   }
 
+  if (notification.type === 'FAMILY_INVITE_RECEIVED') {
+    await openFamilyRequest()
+    return
+  }
+
   // 새 알림 DTO에는 상세 ID가 없으므로 타입별 접근 가능한 대표 화면으로 이동한다.
   if (notification.type === 'ALLOWANCE_RECEIVED') {
     router.push({ name: 'wallet' })
   } else if (notification.type === 'FAMILY_RELATION_APPROVED') {
     router.push({ name: 'home' })
-  } else if (notification.type === 'FAMILY_INVITE_RECEIVED') {
-    if (isParent.value) {
-      router.push({ name: 'mypageParent' })
-    }
   } else if (notification.type === 'SPENDING_REPORT_CREATED') {
     router.push({ name: isParent.value ? 'parent-report' : 'child-report' })
   } else if (notification.notifyType === 'PIGGY_BANK') {
@@ -231,6 +233,29 @@ async function handleNotificationClick(notification) {
       router.push({ name: isParent.value ? 'parent-newspaper' : 'newspaper' })
     }
   }
+}
+
+/**
+ * 가족 연결 요청 알림에서 해당 요청으로 들어간다.
+ *
+ * 알림에는 어떤 요청인지 가리키는 값이 없다. 서버가 referenceId를 내려주지 않기 때문이다.
+ * 대기 중인 요청이 하나뿐이면 그 요청일 수밖에 없으므로 바로 열고,
+ * 여러 건이면 어느 것인지 가릴 수 없어 목록에서 고르게 한다.
+ */
+async function openFamilyRequest() {
+  try {
+    const { data: response } = await getFamilyRequests('PENDING')
+    const pending = response.data ?? []
+
+    if (pending.length === 1) {
+      router.push({ name: 'family-check', params: { requestId: pending[0].requestId } })
+      return
+    }
+  } catch {
+    // 조회에 실패하면 목록 화면이 다시 시도하고 오류도 그쪽에서 보여준다.
+  }
+
+  router.push({ name: 'family-requests' })
 }
 
 // 액션 버튼 클릭
