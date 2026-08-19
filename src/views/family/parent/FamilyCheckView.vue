@@ -10,7 +10,7 @@ const route = useRoute()
 
 const requestId = route.params.requestId
 
-phase: 'loading' | 'loaded' | 'load_error' | 'processing' | 'approved' | 'rejected'
+'loading' | 'loaded' | 'load_error' | 'processing' | 'approved' | 'rejected'
 const phase = ref('loading')
 const childInfo = ref({ name: '', createdAt: '' })
 

@@ -161,6 +161,10 @@ const typeIconMap = {
   SPENDING_REPORT_CREATED: BarChart3,
   CHEER_MESSAGE_RECEIVED: MessageCircleHeart,
   PIGGY_BANK_ACHIEVED: Trophy,
+  PIGGY_BANK_BONUS_SET: PiggyBank,
+  PIGGY_BANK_REFUNDED: PiggyBank,
+  PIGGY_BANK_CREATED: PiggyBank,
+  PIGGY_BANK_BONUS_REMINDER: PiggyBank,
   WALLET: Banknote,
   PIGGY_BANK: PiggyBank,
   NEWS: BarChart3,
@@ -194,20 +198,16 @@ async function handleNotificationClick(notification) {
     router.push({ name: 'wallet' })
   } else if (notification.type === 'FAMILY_RELATION_APPROVED') {
     router.push({ name: 'home' })
-  } else if (notification.type === 'SPENDING_REPORT_CREATED') {
-    router.push({ name: 'child-report' })
-  } else if (
-    notification.type === 'CHEER_MESSAGE_RECEIVED' ||
-    notification.type === 'PIGGY_BANK_ACHIEVED'
-  ) {
-    router.push({ name: 'piggy' })
-  } else if (notification.notifyType === 'PIGGY_BANK') {
+  } else if (notification.type === 'FAMILY_INVITE_RECEIVED') {
     if (isParent.value) {
-      if (notification.referenceId) {
-        router.push({ name: 'piggyDetail', params: { id: notification.referenceId } })
-      } else {
-        router.push({ name: 'parent-piggy-list' })
-      }
+      router.push({ name: 'mypageParent' })
+    }
+  } else if (notification.type === 'SPENDING_REPORT_CREATED') {
+    router.push({ name: isParent.value ? 'parent-report' : 'child-report' })
+  } else if (notification.notifyType === 'PIGGY_BANK') {
+    // 부모용 저금통 상세는 childId가 필요한데 알림에는 담겨오지 않아 목록으로 이동한다.
+    if (isParent.value) {
+      router.push({ name: 'parent-piggy-list' })
     } else {
       if (notification.referenceId) {
         router.push({ name: 'piggyChildDetail', params: { id: notification.referenceId } })
