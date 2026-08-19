@@ -92,10 +92,13 @@
         <ChevronRight v-else :size="18" style="color: #bfbfbf" class="shrink-0" />
       </RouterLink>
     </div>
- <!-- 안내 문구: 페이지네이션 아래로 이동 -->
-    <p class="text-xs text-muted leading-relaxed mt-6 text-right">
-      * 어린이 경제 신문 RSS의 최신 기사를 매주 업데이트하여 제공합니다.
-    </p>
+    <!-- 안내 문구: 페이지네이션 아래로 이동 -->
+    <div class="flex items-center gap-2 mt-6">
+      <Info :size="16" class="text-avocado-600 shrink-0" />
+      <p class="text-xs text-muted leading-relaxed">
+        어린이 경제 신문 RSS의 최신 기사를 매주 업데이트하여 제공합니다.
+      </p>
+    </div>
     <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-6">
       <button
         type="button"
@@ -126,13 +129,12 @@
         <ChevronRight :size="18" />
       </button>
     </div>
-
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Info } from 'lucide-vue-next'
 import ch11 from '@/assets/images/ch11.png'
 import ch12 from '@/assets/images/ch12.png'
 import { getNewsList } from '@/api/news'
