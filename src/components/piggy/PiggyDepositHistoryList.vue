@@ -1,18 +1,13 @@
 <template>
-  <div
-    class="mx-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-4"
-  >
+  <div class="mx-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-4">
     <p v-if="deposits.length === 0" class="text-sm text-muted text-center py-6">
       아직 저금한 기록이 없어요.
     </p>
 
     <template v-else>
       <div>
-        <div
-          v-for="(deposit, index) in visibleDeposits"
-          :key="deposit.depositId"
-          class="flex items-start justify-between py-5 first:pt-0 last:pb-0"
-        >
+        <div v-for="(deposit, index) in visibleDeposits" :key="deposit.depositId"
+          class="flex items-start justify-between py-5 first:pt-0 last:pb-0">
           <div class="flex gap-3">
             <p class="w-9 shrink-0 text-xs text-muted">
               {{
@@ -31,11 +26,8 @@
         </div>
       </div>
 
-      <RouterLink
-        v-if="deposits.length > VISIBLE_COUNT"
-        :to="historyRoute"
-        class="block w-full mt-2 pt-3 border-t border-avocado-100 text-sm text-muted text-center"
-      >
+      <RouterLink v-if="deposits.length > VISIBLE_COUNT" :to="historyRoute"
+        class="block w-full mt-2 pt-3 border-t border-avocado-100 text-sm text-muted text-center">
         모두 보기 ({{ deposits.length }})
       </RouterLink>
     </template>
@@ -43,7 +35,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 /* piggy.js의 조회 함수 */
 import { getDeposits } from '@/api/piggy'
@@ -71,20 +63,22 @@ const visibleDeposits = computed(() => deposits.value.slice(0, VISIBLE_COUNT))
 const historyRoute = computed(() =>
   props.childId != null
     ? {
-        name: 'parentPiggyDepositHistory',
-        params: { childId: props.childId, id: props.piggyBankId }
-      }
+      name: 'parentPiggyDepositHistory',
+      params: { childId: props.childId, id: props.piggyBankId }
+    }
     : { name: 'piggyDepositHistory', params: { id: props.piggyBankId } }
 )
 
-onMounted(async () => {
+async function fetchDeposits() {
   try {
-    const response = await getDeposits(props.piggyBankId)
+    const response = await getDeposits(props.piggyBankId, props.childId)
     deposits.value = response.data.data
   } catch (e) {
     deposits.value = []
   }
-})
+}
+
+watch(() => props.piggyBankId, fetchDeposits, { immediate: true })
 
 /* 바로 이전 항목과 날짜(월.일)가 같은지 확인 */
 function isSameDateAsPrev(list, index) {
