@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col bg-surface">
     <AppHeader title="알림" show-back :show-bell="false" show-avatar @click-back="router.back()" />
 
-    <div class="flex-1 p-4 space-y-4">
+    <div class="flex-1 space-y-4 p-4 pb-[calc(var(--nav-height)+1rem)]">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-avocado-900">알림</h1>
@@ -85,7 +85,9 @@
       </div>
     </div>
 
-    <BottomNavBar />
+    <div class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[430px]">
+      <BottomNavBar />
+    </div>
   </div>
 </template>
 

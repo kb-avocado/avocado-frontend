@@ -6,13 +6,16 @@
           type="button"
           class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
           aria-label="이전 달"
-          :disabled="isMonthLoading"
+          :disabled="!canGoPreviousMonth || isMonthLoading"
           @click="goToPreviousMonth"
         >
           <ChevronLeft :size="20" />
         </button>
 
-        <h2 class="text-lg font-bold text-gray-900">{{ monthTitle }}의 지갑 기록</h2>
+        <div class="flex flex-col items-center leading-tight">
+          <span class="text-xs font-medium text-gray-400">{{ selectedYearLabel }}</span>
+          <h2 class="text-lg font-bold text-gray-900">{{ selectedMonthLabel }}의 지갑 기록</h2>
+        </div>
 
         <button
           type="button"
@@ -72,7 +75,9 @@
           </span>
           <span class="h-4 w-20 rounded bg-gray-100" />
         </div>
-        <span class="sr-only">{{ monthTitle }} 지갑 기록을 불러오는 중입니다.</span>
+        <span class="sr-only">
+          {{ selectedYearLabel }} {{ selectedMonthLabel }} 지갑 기록을 불러오는 중입니다.
+        </span>
       </div>
 
       <div v-else-if="errorMessage" class="px-4 py-12 text-center" role="alert">
@@ -201,18 +206,26 @@ let requestController = null
 const hasMore = computed(() => totalPages.value === null || nextPage.value < totalPages.value)
 const canGoNextMonth = computed(() => selectedMonth.value < CURRENT_MONTH_KEY)
 
-const monthTitle = computed(() => {
-  const [year, month] = selectedMonth.value.split('-')
-  return year === String(new Date().getFullYear())
-    ? `${Number(month)}월`
-    : `${year}년 ${Number(month)}월`
-})
+const selectedYearLabel = computed(() => `${selectedMonth.value.split('-')[0]}년`)
+const selectedMonthLabel = computed(() => `${Number(selectedMonth.value.split('-')[1])}월`)
 
 function getTransactionMonthKey(transaction) {
   const date = new Date(transaction.createdAt)
   if (Number.isNaN(date.getTime())) return ''
   return getMonthKey(date)
 }
+
+// hasMore가 true인 동안은 아직 더 오래된 내역이 있는지 알 수 없으니 항상 이동을 허용한다.
+// 서버 데이터를 전부 불러온 뒤에는, 실제로 내역이 존재하는 가장 오래된 달까지만 갈 수 있게 막는다.
+const canGoPreviousMonth = computed(() => {
+  if (hasMore.value) return true
+  if (!transactions.value.length) return false
+
+  const earliestLoadedMonth = getTransactionMonthKey(
+    transactions.value[transactions.value.length - 1]
+  )
+  return !earliestLoadedMonth || selectedMonth.value > earliestLoadedMonth
+})
 
 const filteredTransactions = computed(() =>
   transactions.value.filter((transaction) => {
@@ -245,7 +258,7 @@ async function ensureMonthLoaded(monthKey) {
 }
 
 function goToPreviousMonth() {
-  if (isMonthLoading.value) return
+  if (isMonthLoading.value || !canGoPreviousMonth.value) return
   selectedMonth.value = shiftMonthKey(selectedMonth.value, -1)
   ensureMonthLoaded(selectedMonth.value)
 }

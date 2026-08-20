@@ -45,7 +45,7 @@
     </BaseButton>
   </div>
 
-  <div v-else class="relative flex min-h-full flex-col">
+  <div v-else class="relative flex min-h-full flex-col overflow-hidden">
     <Transition name="pin-sheet">
       <div v-if="showPin" class="absolute inset-0 z-20 flex flex-col bg-white px-6 pb-0 pt-4">
         <button
