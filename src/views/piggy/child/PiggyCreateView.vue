@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-surface">
+  <div class="h-screen overflow-hidden flex flex-col bg-surface">
     <AppHeader title="저금통 만들기" show-back :show-bell="true" :show-avatar="false" @click-back="router.back()" />
 
-    <div class="flex-1 px-5 pt-5 pb-8 space-y-6">
+    <div class="flex-1 min-h-0 overflow-y-auto px-5 pt-5 pb-8 space-y-6">
 
       <!-- 저금 목표 이름: 신문 챌린지 답변란과 동일한 스타일 -->
       <div>
