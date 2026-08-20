@@ -27,7 +27,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const tabs = [
   { value: 'IN_PROGRESS', label: '진행중' },
-  { value: 'BONUS_UNPAID', label: '보너스 미지급' },
+  { value: 'BONUS_UNPAID', label: '보너스 대기중' },
   { value: 'CLOSED', label: '완료' }
 ]
 
