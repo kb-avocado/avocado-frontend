@@ -1,12 +1,7 @@
 <template>
   <div class="h-screen overflow-hidden flex flex-col bg-surface">
-    <AppHeader
-      :title="item?.name || '저금통'"
-      show-back
-      :show-bell="false"
-      :show-avatar="false"
-      @click-back="router.back()"
-    />
+    <AppHeader :title="item?.name || '저금통'" show-back :show-bell="false" :show-avatar="false"
+      @click-back="router.back()" />
 
     <div v-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
@@ -17,21 +12,16 @@
       <div class="mx-2 flex flex-col gap-1">
         <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[220px] p-6">
           <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
-          <div class="w-40 h-40 overflow-hidden grid place-items-center">
-            <img
-              :src="growthImage"
-              alt="저금통 성장"
-              class="w-full h-full object-contain scale-125"
-            />
+          <div class="w-40 h-40 overflow-hidden grid place-items-center grow-idle">
+            <Transition name="grow" mode="out-in">
+              <img :key="growthImage" :src="growthImage" alt="저금통 성장" class="w-full h-full object-contain scale-125" />
+            </Transition>
           </div>
 
           <!-- 부모 화면 '응원보내기' 버튼과 동일한 스타일 -->
-          <button
-            type="button"
+          <button type="button"
             class="absolute bottom-3 right-4 py-[7px] px-[12px] border-0 rounded-full text-xs font-bold whitespace-nowrap"
-            style="background-color: #fcf7c2; color: #555353"
-            @click="goToCheerMessages"
-          >
+            style="background-color: #fcf7c2; color: #555353" @click="goToCheerMessages">
             보냈던 응원보기
           </button>
         </div>
@@ -57,15 +47,9 @@
       </div>
 
       <!-- 보너스 지급 배너 (팀원 컴포넌트) -->
-      <PiggyBonusPayoutBanner
-        :piggy-bank-id="item.piggyBankId"
-        :status="item.status"
-        :bonus-type="item.bonusType"
-        :bonus-value="item.bonusValue"
-        :bonus-paid-at="item.bonusPaidAt"
-        :target-amount="item.targetAmount"
-        :child-id="childId"
-      />
+      <PiggyBonusPayoutBanner :piggy-bank-id="item.piggyBankId" :status="item.status" :bonus-type="item.bonusType"
+        :bonus-value="item.bonusValue" :bonus-paid-at="item.bonusPaidAt" :target-amount="item.targetAmount"
+        :child-id="childId" />
     </div>
 
     <BottomNavBar />
@@ -129,3 +113,39 @@ function goToCheerMessages() {
   })
 }
 </script>
+
+<style scoped>
+.grow-idle {
+  animation: grow-sway 3.5s ease-in-out infinite;
+}
+
+@keyframes grow-sway {
+
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.grow-enter-active {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+}
+
+.grow-leave-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.grow-enter-from {
+  transform: scale(0.6);
+  opacity: 0;
+}
+
+.grow-leave-to {
+  transform: scale(0.85);
+  opacity: 0;
+}
+</style>

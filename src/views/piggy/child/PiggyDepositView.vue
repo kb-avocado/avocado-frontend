@@ -1,32 +1,36 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-white">
+  <div class="min-h-screen flex flex-col bg-white overflow-hidden">
     <AppHeader title="저금하기" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
 
-    <div class="flex-1 flex flex-col p-4" v-if="item">
-      <div class="rounded-2xl bg-avocado-100 p-4 text-center space-y-1">
-        <p class="text-sm text-muted">{{ item.name }}</p>
-        <p class="text-xs text-muted">
-          남은 금액
-          <span class="font-semibold text-avocado-900">{{ formatCurrency(remainingAmount) }}</span>
-        </p>
+    <div class="flex-1 flex flex-col transition-transform duration-500 ease-out"
+      :class="pageRevealed ? 'translate-y-0' : 'translate-y-full'">
+      <div class="flex-1 flex flex-col p-4" v-if="item">
+        <div class="rounded-2xl bg-avocado-100 p-4 text-center space-y-1">
+          <p class="text-sm text-muted">{{ item.name }}</p>
+          <p class="text-xs text-muted">
+            남은 금액
+            <span class="font-semibold text-avocado-900">{{ formatCurrency(remainingAmount) }}</span>
+          </p>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center gap-2">
+          <p class="text-sm font-medium text-avocado-900">얼마를 저금할까요?</p>
+          <p class="text-3xl font-bold text-avocado-900">
+            {{ formatCurrency(Number(amountInput || 0)) }}
+          </p>
+          <p v-if="errorMessage" class="text-sm text-red-500 text-center">{{ errorMessage }}</p>
+        </div>
+
+        <NumberKeypad mode="amount" @input="appendDigit" @delete="deleteDigit" />
       </div>
 
-      <div class="flex-1 flex flex-col items-center justify-center gap-2">
-        <p class="text-sm font-medium text-avocado-900">얼마를 저금할까요?</p>
-        <p class="text-3xl font-bold text-avocado-900">
-          {{ formatCurrency(Number(amountInput || 0)) }}
-        </p>
-        <p v-if="errorMessage" class="text-sm text-red-500 text-center">{{ errorMessage }}</p>
+      <div class="p-4">
+        <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">
+          {{ isSubmitting ? '저금하는 중...' : '저금하기' }}
+        </BaseButton>
       </div>
-
-      <NumberKeypad mode="amount" @input="appendDigit" @delete="deleteDigit" />
     </div>
 
-    <div class="p-4">
-      <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">
-        {{ isSubmitting ? '저금하는 중...' : '저금하기' }}
-      </BaseButton>
-    </div>
     <!-- 저금 성공 팝업 -->
     <ResultModal v-model="showSuccess" variant="success" :message="successMessage" />
   </div>
@@ -56,6 +60,13 @@ onMounted(() => {
   store.loadDetail(piggyBankId.value)
 })
 
+onMounted(() => {
+  store.loadDetail(piggyBankId.value)
+  requestAnimationFrame(() => {
+    pageRevealed.value = true
+  })
+})
+
 const item = computed(() => store.detail)
 
 const remainingAmount = computed(() =>
@@ -67,7 +78,7 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 const showSuccess = ref(false)
 const successMessage = ref('저금되었어요')
-
+const pageRevealed = ref(false)
 const MAX_AMOUNT_LENGTH = 9 // 최대 9자리(약 9억 9999만원)까지만 입력 허용
 
 /* 키패드 숫자 입력 */
