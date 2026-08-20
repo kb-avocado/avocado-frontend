@@ -329,7 +329,8 @@
     </div>
 
     <!-- 아보카도 씨의 한마디 -->
-    <div class="flex items-end gap-1">
+    <!-- 조언은 매달 1일 AI 배치가 채운다. 아직 없는 달에는 통째로 감춘다. -->
+    <div v-if="report.advice" class="flex items-end gap-1">
       <img
         :src="cadoseedImage"
         alt="아보카도 씨"
@@ -349,9 +350,7 @@
         >
           <p class="text-sm font-bold">아보카도 씨의 한마디</p>
 
-          <p class="text-xs leading-relaxed">
-            "아이에게 이번 주에 먹은 간식 중 어떤 게 가장 행복했는지 물어보며 칭찬해 주세요."
-          </p>
+          <p class="text-xs leading-relaxed">{{ report.advice }}</p>
         </div>
       </div>
     </div>
