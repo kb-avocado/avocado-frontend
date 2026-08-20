@@ -85,9 +85,11 @@
       </div>
     </div>
 
-    <div class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[430px]">
-      <BottomNavBar />
-    </div>
+    <Teleport to="body">
+      <div class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[430px]">
+        <BottomNavBar />
+      </div>
+    </Teleport>
   </div>
 </template>
 
