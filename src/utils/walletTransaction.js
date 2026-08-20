@@ -204,12 +204,10 @@ export function formatWalletMoney(value) {
 export function formatWalletTransactionAmount(transaction) {
   if (transaction?.amount === null || transaction?.amount === undefined) return '금액 정보 없음'
 
+  const direction = getWalletTransactionDirection(transaction)
   let prefix = ''
-  if (transaction.status === 'SUCCESS') {
-    const direction = getWalletTransactionDirection(transaction)
-    if (direction === 'IN') prefix = '+'
-    if (direction === 'OUT') prefix = '-'
-  }
+  if (direction === 'IN') prefix = '+'
+  if (direction === 'OUT') prefix = '-'
 
   return `${prefix}${Number(transaction.amount).toLocaleString('ko-KR')}원`
 }
