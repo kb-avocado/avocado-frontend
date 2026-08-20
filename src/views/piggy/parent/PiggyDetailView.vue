@@ -13,7 +13,7 @@
         <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[220px] p-6">
           <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
           <div class="w-40 h-40 overflow-hidden grid place-items-center grow-idle">
-            <Transition name="grow" mode="out-in">
+            <Transition name="grow" mode="out-in" appear>
               <img :key="growthImage" :src="growthImage" alt="저금통 성장" class="w-full h-full object-contain scale-125" />
             </Transition>
           </div>
@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/common/AppHeader.vue'
@@ -83,9 +83,13 @@ const store = usePiggyBankStore()
 const piggyBankId = computed(() => route.params.id)
 const childId = computed(() => route.params.childId)
 
-onMounted(() => {
-  store.loadDetail(piggyBankId.value, childId.value)
-})
+watch(
+  piggyBankId,
+  (id) => {
+    store.loadDetail(id)
+  },
+  { immediate: true }
+)
 
 const item = computed(() => store.detail)
 

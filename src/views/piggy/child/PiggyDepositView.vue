@@ -58,10 +58,6 @@ const piggyBankId = computed(() => route.params.id)
 
 onMounted(() => {
   store.loadDetail(piggyBankId.value)
-})
-
-onMounted(() => {
-  store.loadDetail(piggyBankId.value)
   requestAnimationFrame(() => {
     pageRevealed.value = true
   })

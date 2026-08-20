@@ -221,6 +221,7 @@ export const usePiggyBankStore = defineStore('piggyBank', {
     async loadDetail(piggyBankId, childId) {
       this.loading = true
       this.error = ''
+      this.detail = null // 다른 저금통의 이전 데이터가 한 프레임이라도 남아있지 않도록 먼저 비움
 
       try {
         this.detail = await piggyBankApi.getDetail(piggyBankId, childId)
