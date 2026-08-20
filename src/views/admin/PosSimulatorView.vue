@@ -465,9 +465,6 @@ const resultOptions = [
 ]
 
 const MERCHANTS = [
-  { id: 3001, name: 'CU 강남점', category: '편의점', restricted: false },
-  { id: 3002, name: 'GS25 역삼점', category: '편의점', restricted: false },
-  { id: 3003, name: '세븐일레븐 선릉점', category: '편의점', restricted: false },
   { id: 3004, name: '우리동네마트 강남점', category: '슈퍼마켓', restricted: false },
   { id: 3005, name: '행복마트 역삼점', category: '슈퍼마켓', restricted: false },
   { id: 3006, name: '강남김밥', category: '일반한식', restricted: false },
@@ -489,6 +486,9 @@ const MERCHANTS = [
   { id: 3022, name: '우리소아청소년과', category: '병원·의원', restricted: false },
   { id: 3023, name: '튼튼치과', category: '치과', restricted: false },
   { id: 3024, name: '꿈나무영어학원', category: '학원', restricted: false },
+  { id: 3031, name: 'CU 강남점', category: '편의점', restricted: false },
+  { id: 3032, name: 'GS25 역삼점', category: '편의점', restricted: false },
+  { id: 3033, name: '세븐일레븐 선릉점', category: '편의점', restricted: false },
   { id: 3025, name: '강남포차', category: '일반주점', restricted: true },
   { id: 3026, name: '역삼호프', category: '일반주점', restricted: true },
   { id: 3027, name: '블루문 단란주점', category: '단란주점', restricted: true },

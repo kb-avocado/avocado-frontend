@@ -45,151 +45,177 @@
     </BaseButton>
   </div>
 
-  <div v-else-if="showPin" class="flex h-full min-h-full flex-col px-6 pb-0 pt-4">
-    <button
-      type="button"
-      class="-ml-2 flex h-10 w-10 items-center justify-center rounded-full text-gray-700"
-      aria-label="비밀번호 입력 취소"
-      @click="cancelPin"
-    >
-      <ArrowLeft :size="22" />
-    </button>
-
-    <div class="flex min-h-0 flex-1 flex-col items-center justify-center py-3 text-center">
-      <img src="@/assets/images/cadoseed.png" alt="" class="h-[180px] w-[180px] object-contain" />
-      <h2 class="mt-3 text-base font-bold text-gray-900">비밀번호 6자리를 입력해 주세요.</h2>
-      <div class="mt-4 flex gap-3" aria-label="비밀번호 입력 상태" aria-live="polite">
-        <span
-          v-for="index in 6"
-          :key="index"
-          class="h-3 w-3 rounded-full"
-          :class="index <= pin.length ? 'bg-avocado-600' : 'bg-gray-200'"
-        />
-      </div>
-    </div>
-
-    <NumberKeypad
-      class="sticky bottom-0 z-0 mt-auto w-full shrink-0 bg-white pb-5 pt-3"
-      mode="pin"
-      @input="appendPin"
-      @delete="deletePin"
-      @cancel="cancelPin"
-    />
-  </div>
-
-  <div v-else class="flex min-h-full flex-col px-4 pb-7 pt-4">
-    <div
-      v-if="screenState !== 'ready'"
-      class="mb-4 flex gap-3 rounded-2xl bg-amber-50 p-4"
-      role="alert"
-    >
-      <ShieldAlert :size="22" class="shrink-0 text-amber-500" />
-      <div>
-        <p class="text-sm font-semibold text-gray-900">{{ stateTitle }}</p>
-        <p class="mt-1 text-sm leading-5 text-gray-600">{{ stateDescription }}</p>
-      </div>
-    </div>
-
-    <section class="text-center" aria-labelledby="payment-guide-title">
-      <h2 id="payment-guide-title" class="text-xl font-bold text-gray-900">스캔해서 결제하세요!</h2>
-      <p class="mt-1 text-sm text-gray-500">가맹점 단말기에 QR 코드를 보여주세요.</p>
-    </section>
-
-    <div class="payment-card-ratio relative mt-5 w-full rounded-3xl">
-      <button
-        v-if="!isFlipped"
-        type="button"
-        class="relative block h-full w-full rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-        :disabled="screenState !== 'ready'"
-        aria-label="결제 QR 보기, 비밀번호 인증 필요"
-        @click="handleCardClick"
-      >
-        <img
-          src="@/assets/images/card02.png"
-          alt="아보카도 선불카드 앞면"
-          class="h-full w-full rounded-3xl object-cover shadow-sm"
-        />
-        <div
-          class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+  <div v-else class="relative flex min-h-full flex-col">
+    <Transition name="pin-sheet">
+      <div v-if="showPin" class="absolute inset-0 z-20 flex flex-col bg-white px-6 pb-0 pt-4">
+        <button
+          type="button"
+          class="-ml-2 flex h-10 w-10 items-center justify-center rounded-full text-gray-700"
+          aria-label="비밀번호 입력 취소"
+          @click="cancelPin"
         >
-          <span class="text-xs text-gray-600">잔액 확인</span>
-          <strong class="mt-1 whitespace-nowrap text-base text-gray-900">
-            {{ formatMoney(wallet?.balance) }}원
-          </strong>
-        </div>
-      </button>
+          <ArrowLeft :size="22" />
+        </button>
 
-      <article
-        v-else
-        class="flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_5px_20px_rgba(0,0,0,0.08)]"
+        <div class="flex min-h-0 flex-1 flex-col items-center justify-center py-3 text-center">
+          <img
+            src="@/assets/images/cadoseed.png"
+            alt=""
+            class="h-[180px] w-[180px] object-contain"
+          />
+          <h2 class="mt-3 text-base font-bold text-gray-900">비밀번호 6자리를 입력해 주세요.</h2>
+          <div class="mt-4 flex gap-3" aria-label="비밀번호 입력 상태" aria-live="polite">
+            <span
+              v-for="index in 6"
+              :key="index"
+              class="h-3 w-3 rounded-full"
+              :class="index <= pin.length ? 'bg-avocado-600' : 'bg-gray-200'"
+            />
+          </div>
+        </div>
+
+        <NumberKeypad
+          class="sticky bottom-0 z-0 mt-auto w-full shrink-0 bg-white pb-5 pt-3"
+          mode="pin"
+          @input="appendPin"
+          @delete="deletePin"
+          @cancel="cancelPin"
+        />
+      </div>
+    </Transition>
+
+    <div class="flex min-h-full flex-col px-4 pb-7 pt-4">
+      <div
+        v-if="screenState !== 'ready'"
+        class="mb-4 flex gap-3 rounded-2xl bg-amber-50 p-4"
+        role="alert"
       >
-        <div class="flex items-center justify-between text-xs text-gray-500">
+        <ShieldAlert :size="22" class="shrink-0 text-amber-500" />
+        <div>
+          <p class="text-sm font-semibold text-gray-900">{{ stateTitle }}</p>
+          <p class="mt-1 text-sm leading-5 text-gray-600">{{ stateDescription }}</p>
+        </div>
+      </div>
+
+      <section class="text-center" aria-labelledby="payment-guide-title">
+        <h2 id="payment-guide-title" class="text-xl font-bold text-gray-900">
+          {{ isFlipped ? '스캔해서 결제하세요!' : '카드를 눌러 결제를 시작하세요' }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          {{ isFlipped ? '가게에서 QR 코드를 보여주세요.' : '비밀번호를 누르면 QR코드가 나와요.' }}
+        </p>
+      </section>
+
+      <div class="payment-card-ratio relative mt-5 w-full [perspective:1200px]">
+        <div
+          class="card-flipper relative h-full w-full transition-transform duration-500 ease-out"
+          :class="{ 'is-flipped': isFlipped }"
+        >
           <button
             type="button"
-            class="rounded-md px-1 py-0.5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600"
-            @click="showCardFront"
+            class="card-face absolute inset-0 block h-full w-full overflow-hidden rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            :class="{
+              'pointer-events-none': isFlipped,
+              'card-nudge': !isFlipped && screenState === 'ready'
+            }"
+            :disabled="screenState !== 'ready' || isFlipped"
+            :aria-hidden="isFlipped"
+            :tabindex="isFlipped ? -1 : 0"
+            aria-label="결제 QR 보기, 비밀번호 인증 필요"
+            @click="handleCardClick"
           >
-            카드 앞면
+            <img
+              src="@/assets/images/card02.png"
+              alt="아보카도 선불카드 앞면"
+              class="h-full w-full rounded-3xl object-cover shadow-[0_12px_28px_rgba(0,0,0,0.18)] [transform:scale(1.05)]"
+            />
+            <div
+              class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
+            >
+              <span class="text-xs text-gray-600">잔액 확인</span>
+              <strong class="mt-1 whitespace-nowrap text-base text-gray-900">
+                {{ formatMoney(wallet?.balance) }}원
+              </strong>
+            </div>
           </button>
-          <span
-            class="font-medium tabular-nums"
-            :class="isQrExpired ? 'text-red-500' : 'text-avocado-600'"
+
+          <article
+            class="card-face card-face--back absolute inset-0 flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+            :class="{ 'pointer-events-none': !isFlipped }"
+            :aria-hidden="!isFlipped"
           >
-            {{ formattedQrTime }}
-          </span>
-        </div>
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <button
+                type="button"
+                class="rounded-md px-1 py-0.5 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600"
+                :tabindex="isFlipped ? 0 : -1"
+                @click="showCardFront"
+              >
+                카드 앞면
+              </button>
+              <span
+                class="font-medium tabular-nums"
+                :class="isQrExpired ? 'text-red-500' : 'text-avocado-600'"
+              >
+                {{ formattedQrTime }}
+              </span>
+            </div>
 
-        <div class="flex min-h-0 flex-1 items-center justify-center py-2" aria-live="polite">
-          <LoaderCircle v-if="qrLoading" :size="40" class="animate-spin text-avocado-600" />
-          <div v-else-if="qrError" class="text-center" role="alert">
-            <CircleAlert :size="34" class="mx-auto text-red-500" />
-            <p class="mt-2 text-xs leading-5 text-gray-600">{{ qrError }}</p>
-            <BaseButton class="mt-2" size="sm" @click="retryQrToken">다시 시도</BaseButton>
-          </div>
-          <div v-else-if="isQrExpired" class="text-center" role="status">
-            <ClockAlert :size="34" class="mx-auto text-amber-500" />
-            <p class="mt-2 text-sm font-semibold text-gray-900">{{ qrStateTitle }}</p>
-            <p v-if="qrStateDescription" class="mt-1 text-xs text-gray-500">
-              {{ qrStateDescription }}
-            </p>
-            <BaseButton class="mt-2" size="sm" @click="reissueQrToken">QR 재발급</BaseButton>
-          </div>
-          <img
-            v-else-if="qrDataUrl"
-            :src="qrDataUrl"
-            alt="결제용 QR 코드"
-            class="h-[132px] w-[132px] rounded-lg"
-          />
-        </div>
+            <div class="flex min-h-0 flex-1 items-center justify-center py-2" aria-live="polite">
+              <LoaderCircle v-if="qrLoading" :size="40" class="animate-spin text-avocado-600" />
+              <div v-else-if="qrError" class="text-center" role="alert">
+                <CircleAlert :size="34" class="mx-auto text-red-500" />
+                <p class="mt-2 text-xs leading-5 text-gray-600">{{ qrError }}</p>
+                <BaseButton class="mt-2" size="sm" @click="retryQrToken">다시 시도</BaseButton>
+              </div>
+              <div v-else-if="isQrExpired" class="text-center" role="status">
+                <ClockAlert :size="34" class="mx-auto text-amber-500" />
+                <p class="mt-2 text-sm font-semibold text-gray-900">{{ qrStateTitle }}</p>
+                <p v-if="qrStateDescription" class="mt-1 text-xs text-gray-500">
+                  {{ qrStateDescription }}
+                </p>
+                <BaseButton class="mt-2" size="sm" @click="reissueQrToken">QR 재발급</BaseButton>
+              </div>
+              <img
+                v-else-if="qrDataUrl"
+                :src="qrDataUrl"
+                alt="결제용 QR 코드"
+                class="h-[112px] w-[112px] rounded-lg"
+              />
+            </div>
 
-        <div class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
-          <span class="text-sm text-gray-600">현재 잔액</span>
-          <strong class="text-lg text-avocado-600">{{ formatMoney(wallet?.balance) }}원</strong>
+            <div class="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
+              <span class="text-sm text-gray-600">현재 잔액</span>
+              <strong class="text-lg text-avocado-600">
+                {{ formatMoney(wallet?.balance) }}원
+              </strong>
+            </div>
+          </article>
         </div>
-      </article>
-    </div>
-
-    <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
-      <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-gray-900">최근 결제 내역</h2>
-        <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
-          전체보기 ›
-        </RouterLink>
       </div>
 
-      <ul v-if="recentTransactions.length" class="mt-1 divide-y divide-gray-100">
-        <li v-for="transaction in recentTransactions" :key="transaction.id" class="py-1">
-          <WalletTransactionItem :transaction="transaction" />
-        </li>
-      </ul>
-      <p v-else class="mt-4 text-center text-xs text-gray-400">
-        {{
-          recentPaymentsLoading
-            ? '최근 결제 내역을 불러오는 중이에요.'
-            : recentPaymentsError || '최근 결제 내역이 없어요.'
-        }}
-      </p>
-    </section>
+      <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-gray-900">최근 결제 내역</h2>
+          <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
+            전체보기 ›
+          </RouterLink>
+        </div>
+
+        <ul v-if="recentTransactions.length" class="mt-1 divide-y divide-gray-100">
+          <li v-for="transaction in recentTransactions" :key="transaction.id" class="py-1">
+            <WalletTransactionItem :transaction="transaction" />
+          </li>
+        </ul>
+        <p v-else class="mt-4 text-center text-xs text-gray-400">
+          {{
+            recentPaymentsLoading
+              ? '최근 결제 내역을 불러오는 중이에요.'
+              : recentPaymentsError || '최근 결제 내역이 없어요.'
+          }}
+        </p>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -546,10 +572,12 @@ function trackQrMutation(mutationPromise) {
 }
 
 function resetQrView() {
+  // qrDataUrl은 지우지 않습니다. 카드 앞면으로 뒤집히는 동안 뒷면(QR)이
+  // 잠깐 빈 화면으로 보이지 않도록, 새 QR을 발급할 때(requestQrToken)
+  // 비워질 때까지 마지막 QR 이미지를 그대로 유지합니다.
   isFlipped.value = false
   qrStatus.value = 'IDLE'
   qrToken.value = ''
-  qrDataUrl.value = ''
   qrRemainingSeconds.value = 0
   qrError.value = ''
 }
@@ -664,6 +692,58 @@ onUnmounted(() => {
 
 <style scoped>
 .payment-card-ratio {
-  aspect-ratio: 1488 / 982;
+  aspect-ratio: 1496 / 983;
+}
+
+.card-flipper {
+  transform-style: preserve-3d;
+}
+.card-flipper.is-flipped {
+  transform: rotateY(180deg);
+}
+.card-face {
+  backface-visibility: hidden;
+}
+.card-face--back {
+  transform: rotateY(180deg);
+}
+
+.card-nudge {
+  animation: card-nudge 4s ease-in-out infinite;
+}
+.card-nudge:hover,
+.card-nudge:focus-visible {
+  animation-play-state: paused;
+}
+@keyframes card-nudge {
+  0%,
+  85%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  87% {
+    transform: translateX(-4px) rotate(-1.5deg);
+  }
+  89% {
+    transform: translateX(4px) rotate(1.5deg);
+  }
+  91% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  93% {
+    transform: translateX(3px) rotate(1deg);
+  }
+  95% {
+    transform: translateX(-1px) rotate(-0.5deg);
+  }
+}
+
+.pin-sheet-enter-active,
+.pin-sheet-leave-active {
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.pin-sheet-enter-from,
+.pin-sheet-leave-to {
+  transform: translateY(100%);
 }
 </style>

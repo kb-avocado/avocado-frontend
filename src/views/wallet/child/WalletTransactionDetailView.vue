@@ -34,12 +34,6 @@
         <p class="mt-2 text-2xl font-bold" :class="getWalletTransactionAmountClass(transaction)">
           {{ formatWalletTransactionAmount(transaction) }}
         </p>
-        <span
-          class="mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold"
-          :class="getWalletTransactionStatusClass(transaction)"
-        >
-          {{ getWalletTransactionStatusLabel(transaction) }}
-        </span>
       </section>
 
       <section class="mt-4 rounded-2xl bg-white px-5 py-2 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
@@ -74,8 +68,6 @@ import {
   getBankName,
   getMerchantCategoryLabel,
   getWalletTransactionAmountClass,
-  getWalletTransactionStatusClass,
-  getWalletTransactionStatusLabel,
   getWalletTransactionTitle,
   getWalletTransactionTypeLabel,
   isFailedPayment,
@@ -103,8 +95,7 @@ const detailRows = computed(() => {
   const item = transaction.value
   const rows = [
     { label: '거래 유형', value: getWalletTransactionTypeLabel(item) },
-    { label: '거래 일시', value: formatWalletTransactionDate(item.createdAt, 'full') },
-    { label: '거래 상태', value: getWalletTransactionStatusLabel(item) }
+    { label: '거래 일시', value: formatWalletTransactionDate(item.createdAt, 'full') }
   ]
 
   if (item.counterpartyName) {
@@ -127,10 +118,6 @@ const detailRows = computed(() => {
     rows.push({ label: '가맹점 업종', value: getMerchantCategoryLabel(item.merchantCategory) })
   }
 
-  if (item.memo) {
-    rows.push({ label: '메모', value: item.memo })
-  }
-
   if (item.balanceBefore !== null) {
     rows.push({ label: '거래 전 잔액', value: formatWalletMoney(item.balanceBefore) })
   }
@@ -141,12 +128,6 @@ const detailRows = computed(() => {
 
   if (item.failureCode) {
     rows.push({ label: '실패 코드', value: item.failureCode })
-  }
-
-  rows.push({ label: '거래 번호', value: String(item.transactionId) })
-
-  if (item.traceId) {
-    rows.push({ label: '거래 추적 번호', value: item.traceId })
   }
 
   return rows

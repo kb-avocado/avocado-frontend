@@ -1,12 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col bg-surface">
-    <AppHeader
-      title="알림"
-      show-back
-      :show-bell="false"
-      show-avatar
-      @click-back="router.back()"
-    />
+    <AppHeader title="알림" show-back :show-bell="false" show-avatar @click-back="router.back()" />
 
     <div class="flex-1 p-4 space-y-4">
       <div class="flex items-center justify-between">
@@ -53,10 +47,7 @@
       </div>
 
       <!-- 에러 상태 -->
-      <div
-        v-else-if="error"
-        class="flex flex-col items-center justify-center py-16 text-center"
-      >
+      <div v-else-if="error" class="flex flex-col items-center justify-center py-16 text-center">
         <AlertCircle :size="40" class="text-red-500 mb-3 opacity-70" />
         <p class="text-sm font-medium text-gray-800">{{ error }}</p>
         <button
