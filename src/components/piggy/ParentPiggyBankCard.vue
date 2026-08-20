@@ -271,6 +271,7 @@ function won(amount) {
 
 /* 진행률 */
 const safeRate = computed(() => {
+  if (isCompleted.value) return 100
   const value = Number(props.item.progressRate || 0)
 
   return Math.min(100, Math.max(0, value))
