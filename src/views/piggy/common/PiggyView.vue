@@ -40,7 +40,7 @@
       v-else
       class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
-      {{ tab === 'IN_PROGRESS' ? '진행 중인 저금통이 없습니다.' : '완료된 저금통이 없습니다.' }}
+      {{ emptyMessage }}
     </div>
 
     <template v-if="tab === 'IN_PROGRESS'">
@@ -77,11 +77,35 @@ const store = usePiggyBankStore()
 const route = useRoute()
 const router = useRouter()
 
-const tab = ref(route.query.tab === 'CLOSED' ? 'CLOSED' : 'IN_PROGRESS')
+const VALID_TABS = ['IN_PROGRESS', 'BONUS_UNPAID', 'CLOSED']
+const tab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
-const displayedItems = computed(() => items.value)
+// 프론트 필터 헬퍼
+const isAchieve = (p) => String(p.status ?? '').toUpperCase() === 'ACHIEVE'
+const hasBonus = (p) => String(p.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE'
+const isPaid = (p) => String(p.bonus?.status ?? '').toUpperCase() === 'PAID'
+
+// 탭 → 백엔드 조회 그룹 (보너스미지급/완료는 둘 다 CLOSED로 조회)
+const backendTab = (t) => (t === 'IN_PROGRESS' ? 'IN_PROGRESS' : 'CLOSED')
+
+const displayedItems = computed(() => {
+  if (tab.value === 'IN_PROGRESS') {
+    return store.getChildList('IN_PROGRESS')
+  }
+  const closed = store.getChildList('CLOSED')
+  if (tab.value === 'BONUS_UNPAID') {
+    return closed.filter((p) => isAchieve(p) && hasBonus(p) && !isPaid(p)) // c
+  }
+  return closed.filter((p) => isAchieve(p) && (isPaid(p) || !hasBonus(p))) // d = 완료
+})
+
+const emptyMessage = computed(() => {
+  if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
+  if (tab.value === 'BONUS_UNPAID') return '보너스 미지급 저금통이 없습니다.'
+  return '완료된 저금통이 없습니다.'
+})
 
 function goToCreate() {
   router.push({ name: 'piggyCreate' })
@@ -91,18 +115,15 @@ async function onToggleFavorite(item) {
   try {
     await store.toggleFavorite(item.piggyBankId)
   } catch {
-    // 즐겨찾기 토글 실패는 목록 에러와 분리해 조용히 무시
+    // 즐겨찾기 토글 실패는 조용히 무시
   }
 }
-
-const items = computed(() => store.getChildList(tab.value))
 
 async function load() {
   loading.value = true
   error.value = ''
-
   try {
-    await store.loadChildList(tab.value)
+    await store.loadChildList(backendTab(tab.value))
   } catch (requestError) {
     error.value = requestError.message || '저금통 목록을 불러오지 못했습니다.'
   } finally {
@@ -115,7 +136,6 @@ watch(tab, (val) => {
   router.replace({ query: { ...route.query, tab: val } })
 })
 
-watch(tab, load, {
-  immediate: true
-})
+// 백엔드 조회 그룹이 바뀔 때만 재조회 (보너스미지급 ↔ 완료는 같은 CLOSED라 재조회 안 함)
+watch(() => backendTab(tab.value), load, { immediate: true })
 </script>

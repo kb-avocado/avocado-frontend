@@ -6,7 +6,7 @@
   >
     <header
       class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
-      :class="{ 'opacity-[0.42]': isCompleted }"
+      :class="{ 'opacity-[0.42]': isFinished }"
     >
       <span
         class="w-[46px] h-[46px] grid place-items-center rounded-[14px] text-[21px]"
@@ -53,7 +53,7 @@
     </header>
 
     <!-- 진행률 -->
-    <div class="grid gap-[9px]" :class="{ 'opacity-[0.42]': isCompleted }">
+    <div class="grid gap-[9px]" :class="{ 'opacity-[0.42]': isFinished }">
       <div class="flex items-center justify-between">
         <small class="text-sm" style="color: #72796b">진행률</small>
         <strong class="text-xl" style="color: #000000">{{ safeRate }}%</strong>
@@ -69,7 +69,7 @@
 
     <section
       class="min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
-      :class="{ 'opacity-[0.42]': isCompleted }"
+      :class="{ 'opacity-[0.42]': isFinished }"
     >
       <div class="grid gap-[5px]">
         <small class="text-[11px] font-bold" style="color: #939393">보호자님 추가 보너스</small>
@@ -83,7 +83,7 @@
     </section>
 
     <div
-      v-if="isCompleted"
+      v-if="isFinished"
       class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] text-white text-[15px] text-center shadow-[0_6px_14px_rgba(89,121,177,0.32)]"
       style="background-color: #71a0ef"
     >
@@ -145,6 +145,11 @@ const isCompleted = computed(() =>
 
 const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
 
+const isBonusPaid = computed(() => ['PAID', 'COMPLETED'].includes(bonusStatus.value))
+const hasBonus = computed(() => String(props.item.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE')
+// 최종 완료 = 목표 달성 AND (보너스 없거나 OR 보너스 지급완료)
+const isFinished = computed(() => isCompleted.value && (!hasBonus.value || isBonusPaid.value))
+
 const icon = computed(() => {
   if (props.item.icon) return props.item.icon
 
@@ -180,6 +185,7 @@ function won(amount) {
 }
 
 const safeRate = computed(() => {
+  if (isCompleted.value) return 100
   const value = Number(props.item.progressRate || 0)
   return Math.min(100, Math.max(0, value))
 })

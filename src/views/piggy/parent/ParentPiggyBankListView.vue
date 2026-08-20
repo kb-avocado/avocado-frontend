@@ -8,7 +8,7 @@
       <PiggyBankTabs v-model="tab" />
     </div>
 
-<section
+    <section
       v-if="error"
       class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
     >
@@ -30,9 +30,9 @@
       저금통 목록을 불러오는 중입니다.
     </div>
 
-    <section v-else-if="items.length > 0" class="grid gap-[18px]">
+    <section v-else-if="displayedItems.length > 0" class="grid gap-[18px]">
       <ParentPiggyBankCard
-        v-for="(item, index) in items"
+        v-for="(item, index) in displayedItems"
         :key="item.piggyBankId"
         :item="item"
         :index="index"
@@ -44,10 +44,11 @@
       v-else
       class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
-      {{ tab === 'IN_PROGRESS' ? '진행 중인 저금통이 없습니다.' : '완료된 저금통이 없습니다.' }}
+      {{ emptyMessage }}
     </div>
   </div>
 </template>
+
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -61,7 +62,6 @@ import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
-  // 연결된 아이가 없는 부모는 childId 없이 이 화면에 들어온다.
   childId: {
     type: [String, Number],
     default: ''
@@ -79,11 +79,35 @@ const store = usePiggyBankStore()
 const route = useRoute()
 const router = useRouter()
 
-const tab = ref(route.query.tab === 'CLOSED' ? 'CLOSED' : 'IN_PROGRESS')
+const VALID_TABS = ['IN_PROGRESS', 'BONUS_UNPAID', 'CLOSED']
+const tab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
 
-const items = computed(() => store.getParentList(props.childId, tab.value))
+// 프론트 필터 헬퍼
+const isAchieve = (p) => String(p.status ?? '').toUpperCase() === 'ACHIEVE'
+const hasBonus = (p) => String(p.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE'
+const isPaid = (p) => String(p.bonus?.status ?? '').toUpperCase() === 'PAID'
+
+// 탭 → 백엔드 조회 그룹
+const backendTab = (t) => (t === 'IN_PROGRESS' ? 'IN_PROGRESS' : 'CLOSED')
+
+const displayedItems = computed(() => {
+  if (tab.value === 'IN_PROGRESS') {
+    return store.getParentList(props.childId, 'IN_PROGRESS')
+  }
+  const closed = store.getParentList(props.childId, 'CLOSED')
+  if (tab.value === 'BONUS_UNPAID') {
+    return closed.filter((p) => isAchieve(p) && hasBonus(p) && !isPaid(p)) // c
+  }
+  return closed.filter((p) => isAchieve(p) && (isPaid(p) || !hasBonus(p))) // d = 완료
+})
+
+const emptyMessage = computed(() => {
+  if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
+  if (tab.value === 'BONUS_UNPAID') return '보너스 미지급 저금통이 없습니다.'
+  return '완료된 저금통이 없습니다.'
+})
 
 async function load() {
   if (!hasChildren.value) return
@@ -92,7 +116,7 @@ async function load() {
   error.value = ''
 
   try {
-    await store.loadParentList(props.childId, tab.value)
+    await store.loadParentList(props.childId, backendTab(tab.value))
   } catch (requestError) {
     error.value = requestError.message || '아이의 저금통 목록을 불러오지 못했습니다.'
   } finally {
@@ -100,12 +124,11 @@ async function load() {
   }
 }
 
-// 탭 바뀌면 URL 반영 → 뒤로가기 시 복원
+// 탭 바뀌면 URL 반영
 watch(tab, (val) => {
   router.replace({ query: { ...route.query, tab: val } })
 })
 
-watch(() => [props.childId, tab.value], load, {
-  immediate: true
-})
+// childId 또는 백엔드 조회 그룹이 바뀔 때만 재조회
+watch(() => [props.childId, backendTab(tab.value)], load, { immediate: true })
 </script>
