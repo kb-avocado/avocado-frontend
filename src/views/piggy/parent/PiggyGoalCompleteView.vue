@@ -198,7 +198,11 @@ async function handleSubmit() {
 
   try {
     // 응원 메세지 보내기 함수 활용
-    await sendCheerMessage(piggyBank.value.piggyBankId, { message: message.value })
+    await sendCheerMessage(
+      piggyBank.value.piggyBankId,
+      { message: message.value },
+      route.params.childId
+    )
     await payBonus(piggyBank.value.piggyBankId, route.params.childId)
 
     // 메세지 전송 성공 후, 이미 알고 있는 아이에게 보너스 금액을 기본값으로 채운 송금 화면으로 이동

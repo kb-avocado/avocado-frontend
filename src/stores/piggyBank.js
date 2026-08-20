@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 function createListState() {
   return {
     IN_PROGRESS: [],
+    BONUS_UNPAID: [],
     CLOSED: []
   }
 }

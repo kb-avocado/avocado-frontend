@@ -82,24 +82,7 @@ const tab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'IN_PRO
 const loading = ref(false)
 const error = ref('')
 
-// 프론트 필터 헬퍼
-const isAchieve = (p) => String(p.status ?? '').toUpperCase() === 'ACHIEVE'
-const hasBonus = (p) => String(p.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE'
-const isPaid = (p) => String(p.bonus?.status ?? '').toUpperCase() === 'PAID'
-
-// 탭 → 백엔드 조회 그룹 (보너스미지급/완료는 둘 다 CLOSED로 조회)
-const backendTab = (t) => (t === 'IN_PROGRESS' ? 'IN_PROGRESS' : 'CLOSED')
-
-const displayedItems = computed(() => {
-  if (tab.value === 'IN_PROGRESS') {
-    return store.getChildList('IN_PROGRESS')
-  }
-  const closed = store.getChildList('CLOSED')
-  if (tab.value === 'BONUS_UNPAID') {
-    return closed.filter((p) => isAchieve(p) && hasBonus(p) && !isPaid(p)) // c
-  }
-  return closed.filter((p) => isAchieve(p) && (isPaid(p) || !hasBonus(p))) // d = 완료
-})
+const displayedItems = computed(() => store.getChildList(tab.value))
 
 const emptyMessage = computed(() => {
   if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
@@ -123,7 +106,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    await store.loadChildList(backendTab(tab.value))
+    await store.loadChildList(tab.value)
   } catch (requestError) {
     error.value = requestError.message || '저금통 목록을 불러오지 못했습니다.'
   } finally {
@@ -131,11 +114,9 @@ async function load() {
   }
 }
 
-// 탭 바뀌면 URL 반영
 watch(tab, (val) => {
   router.replace({ query: { ...route.query, tab: val } })
 })
 
-// 백엔드 조회 그룹이 바뀔 때만 재조회 (보너스미지급 ↔ 완료는 같은 CLOSED라 재조회 안 함)
-watch(() => backendTab(tab.value), load, { immediate: true })
+watch(tab, load, { immediate: true })
 </script>
