@@ -215,12 +215,9 @@ export function formatWalletTransactionAmount(transaction) {
 }
 
 export function getWalletTransactionAmountClass(transaction) {
-  if (transaction?.status === 'PENDING') return 'text-amber-600'
-  if (transaction?.status !== 'SUCCESS') return 'text-gray-400'
-
   const direction = getWalletTransactionDirection(transaction)
   if (direction === 'IN') return 'text-avocado-600'
-  if (direction === 'OUT') return 'text-red-500'
+  if (direction === 'OUT') return 'text-orange-500'
   return 'text-gray-700'
 }
 

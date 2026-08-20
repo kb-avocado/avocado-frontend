@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-surface">
+  <div class="h-screen overflow-hidden flex flex-col bg-surface">
     <AppHeader
       title="알림"
       show-back
@@ -8,7 +8,7 @@
       @click-back="router.back()"
     />
 
-    <div class="flex-1 space-y-4 p-4 pb-[calc(var(--nav-height)+1rem)]">
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-4 p-4 pb-[calc(var(--nav-height)+1rem)]">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-avocado-900">알림</h1>
