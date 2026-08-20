@@ -1,7 +1,12 @@
 <template>
   <div class="h-screen overflow-hidden flex flex-col bg-surface">
-    <AppHeader :title="item?.name || '저금통'" show-back :show-bell="false" :show-avatar="false"
-      @click-back="router.back()" />
+    <AppHeader
+      :title="item?.name || '저금통'"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
     <div v-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
@@ -15,16 +20,26 @@
           <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
           <div class="w-40 h-40 overflow-hidden grid place-items-center grow-idle">
             <Transition name="grow" mode="out-in" appear>
-              <img :key="stageLevel" :src="growthImage" alt="저금통 성장" class="w-full h-full object-contain scale-125" />
+              <img
+                :key="stageLevel"
+                :src="growthImage"
+                alt="저금통 성장"
+                class="w-full h-full object-contain scale-125"
+              />
             </Transition>
           </div>
 
           <!-- 단계가 올랐을 경우 효과 -->
           <Transition name="fade">
-            <div v-if="showLevelUpBadge" class="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div
+              v-if="showLevelUpBadge"
+              class="absolute inset-0 pointer-events-none"
+              aria-hidden="true"
+            >
               <span
                 class="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-white text-xs font-bold shadow-md whitespace-nowrap level-up-pop"
-                style="color: #4C7A3D">
+                style="color: #4c7a3d"
+              >
                 🌱 쑥쑥 자랐어요!
               </span>
               <span class="sparkle" style="top: 15%; left: 20%; animation-delay: 0s">✨</span>
@@ -35,14 +50,17 @@
           </Transition>
 
           <!-- 부모 화면 '응원보내기' 버튼과 동일한 스타일 -->
-          <button type="button"
+          <button
+            type="button"
             class="absolute bottom-3 right-4 py-[7px] px-[12px] border-0 rounded-full text-xs font-bold whitespace-nowrap"
-            style="background-color: #fcf7c2; color: #555353" @click="goToCheerMessages">
+            style="background-color: #fcf7c2; color: #555353"
+            @click="goToCheerMessages"
+          >
             부모님 응원보기
           </button>
         </div>
 
-        <PiggyGrowthProgressBar :progress-rate="item.progressRate" />
+        <PiggyGrowthProgressBar :progress-rate="displayRate" />
       </div>
 
       <!-- 남은 금액 / 목표 -->
@@ -149,13 +167,19 @@ const item = computed(() => store.detail)
 
 const isActive = computed(() => item.value?.status === 'ACTIVE')
 
-const remainingAmount = computed(() =>
-  Math.max(0, Number(item.value?.targetAmount || 0) - Number(item.value?.savedAmount || 0))
-)
+const remainingAmount = computed(() => {
+  if (item.value?.status === 'ACHIEVE') return 0
+  return Math.max(0, Number(item.value?.targetAmount || 0) - Number(item.value?.savedAmount || 0))
+})
 
-// 진행률(rate)에 따른 성장 단계(1~5)
+// 완료(ACHIEVE)된 저금통은 잔액이 환급되어 0이라도 진행률은 100%로 표시
+const displayRate = computed(() => {
+  if (item.value?.status === 'ACHIEVE') return 100
+  return Number(item.value?.progressRate || 0)
+})
+
 const stageLevel = computed(() => {
-  const rate = Number(item.value?.progressRate || 0)
+  const rate = displayRate.value
   if (rate < 20) return 1
   if (rate < 40) return 2
   if (rate < 60) return 3
@@ -175,7 +199,7 @@ watch(item, (newItem) => {
   if (!newItem) return
 
   const id = String(newItem.piggyBankId ?? piggyBankId.value)
-  const rate = Number(newItem.progressRate || 0)
+  const rate = newItem.status === 'ACHIEVE' ? 100 : Number(newItem.progressRate || 0)
   const newStage = Math.min(5, Math.floor(rate / 20) + 1)
   const storedStage = readStoredStage(id)
 
@@ -228,7 +252,6 @@ function onDeleted() {
 }
 
 @keyframes grow-sway {
-
   0%,
   100% {
     transform: rotate(-2deg);
@@ -240,11 +263,15 @@ function onDeleted() {
 }
 
 .grow-enter-active {
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.35s ease;
 }
 
 .grow-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .grow-enter-from {
