@@ -16,12 +16,6 @@
         <span class="text-xs text-gray-400">
           {{ formatWalletTransactionDate(transaction.createdAt, dateStyle) }}
         </span>
-        <span
-          class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
-          :class="getWalletTransactionStatusClass(transaction)"
-        >
-          {{ getWalletTransactionStatusLabel(transaction) }}
-        </span>
       </span>
     </span>
 
@@ -51,8 +45,6 @@ import {
   formatWalletTransactionAmount,
   formatWalletTransactionDate,
   getWalletTransactionAmountClass,
-  getWalletTransactionStatusClass,
-  getWalletTransactionStatusLabel,
   getWalletTransactionTitle
 } from '@/utils/walletTransaction'
 
