@@ -58,7 +58,7 @@ const messages = ref([])
 const CARD_COLORS = ['#FFF6F6', '#F1F6FF', '#FFFEEF']
 async function fetchMessages() {
   try {
-    const response = await getCheerMessages(route.params.id)
+    const response = await getCheerMessages(route.params.id, route.params.childId)
 
     messages.value = response.data.data.map((m) => ({
       id: m.cheerMessageId,

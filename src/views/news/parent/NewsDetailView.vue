@@ -84,7 +84,7 @@ async function fetchDetail() {
   try {
     const { data } = await getNewsDetail(route.params.newsId, props.childId)
     news.value = data.data
-    setPageTitle('경제가 쏙쏙! 아보카도 신문')
+    setPageTitle('아보카도 신문')
   } catch (error) {
     console.error('기사 상세 조회 실패:', error)
   }

@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="inline-flex items-center justify-center rounded-full font-medium transition-colors disabled:opacity-40"
+    class="flex items-center justify-center rounded-full font-medium transition-colors disabled:opacity-40"
     :class="[sizeClass, variantClass]"
     :disabled="disabled"
   >
@@ -21,7 +21,10 @@ const props = defineProps({
     type: String,
     default: 'md' // sm | md
   },
-  disabled: { type: Boolean, default: false }
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const variantClass = computed(
@@ -37,7 +40,7 @@ const sizeClass = computed(
   () =>
     ({
       sm: 'h-8 px-3 text-[13px]',
-      md: 'h-11 px-4 text-[14px]'
+      md: 'w-[calc(100%-4rem)] mx-auto h-12 px-4 text-[16px]'
     })[props.size]
 )
 </script>

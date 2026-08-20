@@ -1,25 +1,16 @@
 <template>
   <div class="flex items-center gap-2" role="tablist" aria-label="저금통 상태">
     <button
+      v-for="t in tabs"
+      :key="t.value"
       type="button"
       role="tab"
-      :aria-selected="modelValue === 'IN_PROGRESS'"
-      class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-      :style="tabStyle('IN_PROGRESS')"
-      @click="selectTab('IN_PROGRESS')"
+      :aria-selected="modelValue === t.value"
+      class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap"
+      :style="tabStyle(t.value)"
+      @click="selectTab(t.value)"
     >
-      진행중
-    </button>
-
-    <button
-      type="button"
-      role="tab"
-      :aria-selected="modelValue === 'CLOSED'"
-      class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors"
-      :style="tabStyle('CLOSED')"
-      @click="selectTab('CLOSED')"
-    >
-      완료
+      {{ t.label }}
     </button>
   </div>
 </template>
@@ -33,6 +24,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const tabs = [
+  { value: 'IN_PROGRESS', label: '진행중' },
+  { value: 'BONUS_UNPAID', label: '보너스 대기중' },
+  { value: 'CLOSED', label: '완료' }
+]
 
 function selectTab(tab) {
   emit('update:modelValue', tab)

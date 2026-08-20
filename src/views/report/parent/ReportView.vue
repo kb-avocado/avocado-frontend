@@ -17,14 +17,17 @@
     <!-- 이하 기존 내용 동일 -->
   </div>
 
-  <div v-else class="p-4 text-center text-sm py-10">불러오는 중...</div>
+  <div v-else-if="isLoading" class="p-4 text-center text-sm py-10">불러오는 중...</div>
+
+  <ReportNotReady v-else />
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import ReportBody from '@/components/report/ReportBody.vue'
+import ReportNotReady from '@/components/report/ReportNotReady.vue'
 import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
-import { getReport, getSpendingType } from '@/api/report'
+import { getReport, getSpendingType, isReportNotReady } from '@/api/report'
 import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 import { useAuthStore } from '@/stores/auth'
 import NoChildConnected from '@/components/common/NoChildConnected.vue'
@@ -52,6 +55,7 @@ function getLastMonth() {
 const currentYearMonth = ref(getLastMonth())
 const report = ref(null)
 const spendingType = ref(null)
+const isLoading = ref(true)
 
 const spendingTypeImage = computed(() =>
   spendingType.value ? getSpendingTypeImage(spendingType.value.code) : DEFAULT_SPENDING_TYPE_IMAGE
@@ -60,11 +64,20 @@ const spendingTypeImage = computed(() =>
 async function fetchReport() {
   if (!hasChildren.value) return
 
+  isLoading.value = true
+
   try {
     const { data } = await getReport(currentYearMonth.value, props.childId)
     report.value = data.data
   } catch (error) {
-    console.error('리포트 조회 실패:', error)
+    // 아직 만들어지지 않은 달이면 실패가 아니라 빈 화면으로 안내한다.
+    report.value = null
+
+    if (!isReportNotReady(error)) {
+      console.error('리포트 조회 실패:', error)
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -75,7 +88,12 @@ async function fetchSpendingType() {
     const { data } = await getSpendingType(currentYearMonth.value, props.childId)
     spendingType.value = data.data
   } catch (error) {
-    console.error('소비 유형 조회 실패:', error)
+    // 소비 유형도 리포트가 있어야 나온다. 리포트 쪽에서 이미 안내하므로 조용히 비운다.
+    spendingType.value = null
+
+    if (!isReportNotReady(error)) {
+      console.error('소비 유형 조회 실패:', error)
+    }
   }
 }
 
