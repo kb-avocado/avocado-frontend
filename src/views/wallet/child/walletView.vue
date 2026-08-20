@@ -113,7 +113,7 @@
         >
           <button
             type="button"
-            class="card-face absolute inset-0 block h-full w-full overflow-hidden rounded-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            class="card-face absolute inset-0 block h-full w-full overflow-hidden rounded-3xl text-left shadow-[0_12px_28px_rgba(0,0,0,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
             :class="{
               'pointer-events-none': isFlipped,
               'card-nudge': !isFlipped && screenState === 'ready'
@@ -127,7 +127,7 @@
             <img
               src="@/assets/images/card02.png"
               alt="아보카도 선불카드 앞면"
-              class="h-full w-full rounded-3xl object-cover shadow-[0_12px_28px_rgba(0,0,0,0.18)] [transform:scale(1.05)]"
+              class="h-full w-full rounded-3xl object-contain [transform:scale(1.1)]"
             />
             <div
               class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
@@ -140,7 +140,7 @@
           </button>
 
           <article
-            class="card-face card-face--back absolute inset-0 flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+            class="card-face card-face--back absolute inset-0 flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_12px_28px_rgba(0,0,0,0.1)]"
             :class="{ 'pointer-events-none': !isFlipped }"
             :aria-hidden="!isFlipped"
           >
