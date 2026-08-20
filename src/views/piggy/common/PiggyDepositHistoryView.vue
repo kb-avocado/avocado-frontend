@@ -68,7 +68,7 @@ const deposits = ref([])
 
 onMounted(async () => {
   try {
-    const response = await getDeposits(route.params.id)
+    const response = await getDeposits(route.params.id, route.params.childId)
     deposits.value = response.data.data
   } catch (e) {
     deposits.value = []

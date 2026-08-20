@@ -119,7 +119,7 @@ async function handleSubmit() {
   isSubmitting.value = true
   submitError.value = ''
   try {
-    await sendCheerMessage(route.params.id, { message: message.value })
+    await sendCheerMessage(route.params.id, { message: message.value }, route.params.childId)
 
     // 응원 메세지 전송 후 목록 화면으로 이동
     router.back()

@@ -134,19 +134,26 @@ export const setBonus = (piggyId, payload, childId) =>
   })
 
 /* 저금통 응원 메시지 조회 */
-export const getCheerMessages = (piggyId) =>
-  axiosInstance.get(`/piggybanks/${piggyId}/cheer-messages`)
+export const getCheerMessages = (piggyId, childId) =>
+  axiosInstance.get(`/piggybanks/${piggyId}/cheer-messages`, {
+    params: childId != null ? { childId } : {}
+  })
 
 /* 저금통 응원 메시지 전송 */
-export const sendCheerMessage = (piggyId, payload) =>
-  axiosInstance.post(`/piggybanks/${piggyId}/cheer-messages`, payload)
+export const sendCheerMessage = (piggyId, payload, childId) =>
+  axiosInstance.post(`/piggybanks/${piggyId}/cheer-messages`, payload, {
+    params: childId != null ? { childId } : {}
+  })
 
 /* 저금통 응원 메시지 삭제 */
 export const deleteCheerMessage = (piggyId, messageId) =>
   axiosInstance.delete(`/piggybanks/${piggyId}/cheer-messages/${messageId}`)
 
 /* 저금통 저축(입금) 내역 조회 */
-export const getDeposits = (piggyId) => axiosInstance.get(`/piggybanks/${piggyId}/deposits`)
+export const getDeposits = (piggyId, childId) =>
+  axiosInstance.get(`/piggybanks/${piggyId}/deposits`, {
+    params: childId != null ? { childId } : {}
+  })
 
 /* 저금통 상세 조회 (보너스 정보 포함) */
 export const getPiggyBankDetail = (piggyId, childId) =>
