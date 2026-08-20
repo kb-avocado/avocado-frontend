@@ -14,7 +14,7 @@
         <div class="relative rounded-2xl bg-avocado-50 grid place-items-center min-h-[220px] p-6">
           <!-- 이미지 파일 자체에 여백이 많아서, 고정 박스 + scale로 확대해서 여백을 잘라낸다 -->
           <div class="w-40 h-40 overflow-hidden grid place-items-center grow-idle">
-            <Transition name="grow" mode="out-in">
+            <Transition name="grow" mode="out-in" appear>
               <img :key="stageLevel" :src="growthImage" alt="저금통 성장" class="w-full h-full object-contain scale-125" />
             </Transition>
           </div>
@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PiggyBank } from 'lucide-vue-next'
 
@@ -137,9 +137,13 @@ const showDeleted = ref(false)
 
 const piggyBankId = computed(() => route.params.id)
 
-onMounted(() => {
-  store.loadDetail(piggyBankId.value)
-})
+watch(
+  piggyBankId,
+  (id) => {
+    store.loadDetail(id)
+  },
+  { immediate: true }
+)
 
 const item = computed(() => store.detail)
 
@@ -256,11 +260,13 @@ function onDeleted() {
 .level-up-pop {
   animation: level-up-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 @keyframes level-up-pop {
   0% {
     transform: translate(-50%, -8px) scale(0.6);
     opacity: 0;
   }
+
   100% {
     transform: translate(-50%, 0) scale(1);
     opacity: 1;
@@ -272,15 +278,18 @@ function onDeleted() {
   font-size: 14px;
   animation: sparkle-burst 1s ease-out forwards;
 }
+
 @keyframes sparkle-burst {
   0% {
     transform: scale(0) rotate(0deg);
     opacity: 0;
   }
+
   30% {
     transform: scale(1.2) rotate(90deg);
     opacity: 1;
   }
+
   100% {
     transform: scale(0.4) rotate(180deg) translateY(-14px);
     opacity: 0;

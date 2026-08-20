@@ -8,42 +8,28 @@
       <PiggyBankTabs v-model="tab" />
     </div>
 
-    <section
-      v-if="error"
-      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
-    >
+    <section v-if="error"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]">
       <span aria-hidden="true">!</span>
       <p class="text-xs">{{ error }}</p>
-      <button
-        type="button"
-        class="py-2 px-[10px] border-0 rounded-lg bg-[#a73e33] text-white text-[11px]"
-        @click="load"
-      >
+      <button type="button" class="py-2 px-[10px] border-0 rounded-lg bg-[#a73e33] text-white text-[11px]"
+        @click="load">
         다시 시도
       </button>
     </section>
 
-    <div
-      v-else-if="loading"
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
-    >
+    <div v-else-if="loading"
+      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center">
       저금통 목록을 불러오는 중입니다.
     </div>
 
     <section v-else-if="displayedItems.length > 0" class="grid gap-[18px]">
-      <ParentPiggyBankCard
-        v-for="(item, index) in displayedItems"
-        :key="item.piggyBankId"
-        :item="item"
-        :index="index"
-        :child-id="childId"
-      />
+      <ParentPiggyBankCard v-for="(item, index) in displayedItems" :key="item.piggyBankId" :item="item" :index="index"
+        :child-id="resolvedChildId" />
     </section>
 
-    <div
-      v-else
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
-    >
+    <div v-else
+      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center">
       {{ emptyMessage }}
     </div>
   </div>
@@ -60,6 +46,11 @@ import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
 import NoChildConnected from '@/components/common/NoChildConnected.vue'
 import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
 import { useAuthStore } from '@/stores/auth'
+import { resolveParentChildId } from '@/router/landing'
+
+const resolvedChildId = computed(() =>
+  String(props.childId || resolveParentChildId(authStore.user) || '')
+)
 
 const props = defineProps({
   childId: {
@@ -72,7 +63,7 @@ const authStore = useAuthStore()
 const hasChildren = computed(() => (authStore.user?.child ?? []).length > 0)
 
 const { name: currentChildName, avatarImage: currentChildAvatarImage } = useCurrentChildInfo(
-  computed(() => props.childId)
+  resolvedChildId
 )
 
 const store = usePiggyBankStore()
@@ -94,9 +85,9 @@ const backendTab = (t) => (t === 'IN_PROGRESS' ? 'IN_PROGRESS' : 'CLOSED')
 
 const displayedItems = computed(() => {
   if (tab.value === 'IN_PROGRESS') {
-    return store.getParentList(props.childId, 'IN_PROGRESS')
+    return store.getParentList(resolvedChildId.value, 'IN_PROGRESS')
   }
-  const closed = store.getParentList(props.childId, 'CLOSED')
+  const closed = store.getParentList(resolvedChildId.value, 'CLOSED')
   if (tab.value === 'BONUS_UNPAID') {
     return closed.filter((p) => isAchieve(p) && hasBonus(p) && !isPaid(p)) // c
   }
@@ -111,18 +102,18 @@ const emptyMessage = computed(() => {
 
 async function load() {
   if (!hasChildren.value) return
-
   loading.value = true
   error.value = ''
-
   try {
-    await store.loadParentList(props.childId, backendTab(tab.value))
+    await store.loadParentList(resolvedChildId.value, backendTab(tab.value))
   } catch (requestError) {
     error.value = requestError.message || '아이의 저금통 목록을 불러오지 못했습니다.'
   } finally {
     loading.value = false
   }
 }
+
+watch(() => [resolvedChildId.value, backendTab(tab.value)], load, { immediate: true })
 
 // 탭 바뀌면 URL 반영
 watch(tab, (val) => {
