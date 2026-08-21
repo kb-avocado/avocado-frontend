@@ -11,6 +11,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+
+    allowedHosts: ['.ngrok-free.dev'],
     proxy: {
       // Spring 백엔드로 프록시 (개발 환경)
       '/api': {

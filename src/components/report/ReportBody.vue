@@ -1,36 +1,37 @@
 <template>
   <div class="flex flex-col gap-8">
     <!-- 월 네비게이션 -->
-    <div class="flex items-center justify-center gap-3">
-      <button
-        type="button"
-        class="text-gray-400 disabled:opacity-30"
-        :disabled="!report.navigation.hasPrevious"
-        aria-label="이전 달"
-        @click="$emit('prev-month')"
-      >
-        <ChevronLeft :size="20" />
-      </button>
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-xs font-medium text-gray-400">{{ yearLabel }}</span>
 
-      <div class="flex flex-col items-center leading-tight">
-        <span class="text-xs font-medium text-gray-400">{{ yearLabel }}</span>
+      <div class="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          class="text-gray-400 disabled:opacity-30"
+          :disabled="!report.navigation.hasPrevious"
+          aria-label="이전 달"
+          @click="$emit('prev-month')"
+        >
+          <ChevronLeft :size="20" />
+        </button>
+
         <h2 class="text-lg font-bold text-gray-900">{{ monthLabel }}의 리포트</h2>
-      </div>
 
-      <button
-        type="button"
-        class="text-gray-400 disabled:opacity-30"
-        :disabled="!report.navigation.hasNext"
-        aria-label="다음 달"
-        @click="$emit('next-month')"
-      >
-        <ChevronRight :size="20" />
-      </button>
+        <button
+          type="button"
+          class="text-gray-400 disabled:opacity-30"
+          :disabled="!report.navigation.hasNext"
+          aria-label="다음 달"
+          @click="$emit('next-month')"
+        >
+          <ChevronRight :size="20" />
+        </button>
+      </div>
     </div>
 
     <!-- 소비 스타일 카드 -->
     <div
-      class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] px-5 py-4 flex flex-col items-center gap-3"
+      class="-mt-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] px-5 py-4 flex flex-col items-center gap-3"
     >
       <div v-if="spendingType" class="flex flex-col items-center gap-3 text-center">
         <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-32 object-contain" />
@@ -96,10 +97,10 @@
 
     <!-- 슬라이드 카드 -->
     <div
-      class="relative w-full rounded-3xl shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] overflow-hidden"
+      class="-mt-2 relative w-full rounded-3xl shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] overflow-hidden"
     >
       <!-- 슬라이드 영역 -->
-      <div class="overflow-hidden">
+      <div class="relative overflow-hidden">
         <div
           class="flex touch-pan-y transition-transform duration-300 ease-out"
           :style="{
@@ -110,10 +111,10 @@
           @touchend="onTouchEnd"
         >
           <!-- 1. 이번 달 소비 금액 -->
-          <div class="relative w-full shrink-0 py-6 px-5" style="background-color: #fff8f5">
+          <div class="relative w-full shrink-0 py-4 px-5" style="background-color: #fff8f5">
             <div class="mx-6 flex flex-col gap-5">
               <div>
-                <p class="text-sm" style="color: #9aa090">{{ monthLabel }} 소비 금액</p>
+                <p class="text-sm" style="color: #9aa090">{{ monthLabel }}에 사용한 돈</p>
 
                 <p class="mt-1 text-3xl font-bold" style="color: #1d1b16">
                   {{ animatedTotalSpent.toLocaleString('ko-KR') }}원
@@ -146,10 +147,10 @@
           </div>
 
           <!-- 2. 지출 Top 3 -->
-          <div class="w-full shrink-0 py-6 px-5" style="background-color: #f5faff">
+          <div class="w-full shrink-0 py-4 px-5" style="background-color: #f5faff">
             <div class="mx-6">
               <p class="text-base font-bold mb-4" style="color: #1d1b16">
-                가장 많~은 돈을 쓴 곳! Top 3
+                가장 돈을 많이 쓴 곳은 어디일까?
               </p>
 
               <div class="flex flex-col gap-4">
@@ -190,13 +191,13 @@
           </div>
 
           <!-- 3. 이번 달 저금액 -->
-          <div class="w-full shrink-0 py-6 px-5" style="background-color: #fdf3d1">
+          <div class="w-full shrink-0 py-4 px-5" style="background-color: #fdf3d1">
             <div class="mx-6 pt-1">
               <div class="flex items-center justify-between gap-3">
                 <div>
-                  <p class="text-sm" style="color: #9aa090">{{ monthLabel }} 저금액</p>
+                  <p class="text-sm" style="color: #9aa090">{{ monthLabel }}에 모은 돈</p>
 
-                  <p class="mt-3 text-3xl font-bold" style="color: #1d1b16">
+                  <p class="mt-1 text-3xl font-bold" style="color: #1d1b16">
                     {{ animatedTotalSaved.toLocaleString('ko-KR') }}원
                   </p>
 
@@ -210,9 +211,12 @@
                 />
               </div>
 
-              <div class="flex items-center justify-between mt-6 mb-2">
+              <div
+                class="flex items-center justify-between mt-6 mb-2 pt-4"
+                style="border-top: 1px solid #f0e3b0"
+              >
                 <p class="text-sm" style="color: #9aa090">
-                  {{ monthLabel }} 받은 용돈 중 저금한 만큼은?
+                  {{ monthLabel }}에 받은 용돈, 얼마나 저금했을까요?
                 </p>
 
                 <span class="text-sm font-semibold" style="color: #e0a800">
@@ -236,6 +240,26 @@
             </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 disabled:opacity-30"
+          :disabled="activeSlide === 0"
+          aria-label="이전 카드"
+          @click="goToSlide(activeSlide - 1)"
+        >
+          <ChevronLeft :size="20" />
+        </button>
+
+        <button
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 disabled:opacity-30"
+          :disabled="activeSlide === SLIDE_COUNT - 1"
+          aria-label="다음 카드"
+          @click="goToSlide(activeSlide + 1)"
+        >
+          <ChevronRight :size="20" />
+        </button>
       </div>
 
       <!-- 슬라이드 인디케이터 -->
@@ -257,7 +281,7 @@
 
     <!-- 월별 소비 비교 -->
     <div
-      class="rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
+      class="-mt-2 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
       style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
     >
       <p class="text-base font-bold" style="color: #1d1b16">월별 소비 비교</p>
@@ -318,7 +342,7 @@
 
     <!-- 아보카도 씨의 한마디 -->
     <!-- 조언은 매달 1일 AI 배치가 채운다. 아직 없는 달에는 통째로 감춘다. -->
-    <div v-if="report.advice" class="flex items-end gap-1">
+    <div v-if="report.advice" class="-mt-2 flex items-end gap-1">
       <img
         :src="cadoseedImage"
         alt="아보카도 씨"
@@ -495,10 +519,10 @@ const comparisonText = computed(() => {
   const formattedAmount = Math.abs(difference).toLocaleString('ko-KR')
 
   if (difference > 0) {
-    return `${previousMonthLabel.value}보다 ▲ ${formattedAmount}원`
+    return `${previousMonthLabel.value}보다 ${formattedAmount}원 더 썼어요!`
   }
 
-  return `${previousMonthLabel.value}보다 ▼ ${formattedAmount}원`
+  return `${previousMonthLabel.value}보다 ${formattedAmount}원 덜 썼어요!`
 })
 
 /* 전월 비교 색상 */
