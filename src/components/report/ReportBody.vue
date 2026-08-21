@@ -111,23 +111,31 @@
           @touchend="onTouchEnd"
         >
           <!-- 1. 이번 달 소비 금액 -->
-          <div class="relative w-full shrink-0 py-4 px-5" style="background-color: #fff8f5">
+          <div class="relative w-full shrink-0 py-4 px-4" style="background-color: #fff8f5">
             <div class="mx-6 flex flex-col gap-5">
-              <div>
-                <p class="text-sm" style="color: #9aa090">{{ monthLabel }}에 사용한 돈</p>
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm" style="color: #9aa090">{{ monthLabel }}에 사용한 돈</p>
 
-                <p class="mt-1 text-3xl font-bold" style="color: #1d1b16">
-                  {{ animatedTotalSpent.toLocaleString('ko-KR') }}원
-                </p>
+                  <p class="mt-1 text-3xl font-bold" style="color: #1d1b16">
+                    {{ animatedTotalSpent.toLocaleString('ko-KR') }}원
+                  </p>
+
+                  <!-- 전월 소비 비교 -->
+                  <p
+                    class="mt-3 w-fit rounded-full px-3 py-1.5 text-xs font-medium flex items-center gap-1"
+                    :style="comparisonStyle"
+                  >
+                    {{ comparisonText }}
+                  </p>
+                </div>
+
+                <img
+                  :src="childImage"
+                  alt=""
+                  class="w-20 h-20 object-contain shrink-0 pointer-events-none"
+                />
               </div>
-
-              <!-- 전월 소비 비교 -->
-              <p
-                class="w-fit rounded-full px-3 py-1.5 text-sm font-medium flex items-center gap-1"
-                :style="comparisonStyle"
-              >
-                {{ comparisonText }}
-              </p>
 
               <div
                 class="flex items-center justify-between pt-4"
@@ -147,7 +155,7 @@
           </div>
 
           <!-- 2. 지출 Top 3 -->
-          <div class="w-full shrink-0 py-4 px-5 flex flex-col" style="background-color: #f5faff">
+          <div class="w-full shrink-0 py-4 px-4 flex flex-col" style="background-color: #f5faff">
             <div class="mx-6 flex flex-1 flex-col">
               <p class="text-base font-bold mb-4" style="color: #1d1b16">
                 가장 돈을 많이 쓴 곳은 어디일까요?
@@ -196,7 +204,7 @@
           </div>
 
           <!-- 3. 이번 달 저금액 -->
-          <div class="w-full shrink-0 py-4 px-5" style="background-color: #fdf3d1">
+          <div class="w-full shrink-0 py-4 px-4" style="background-color: #fdf3d1">
             <div class="mx-6 pt-1">
               <div class="flex items-center justify-between gap-3">
                 <div>
@@ -288,67 +296,6 @@
     </div>
 
     <!-- 월별 소비 비교 -->
-    <!-- <div
-      class="-mt-2 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
-      style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
-    >
-      <p class="text-base font-bold" style="color: #1d1b16">달마다 쓴 돈을 비교해 봐요!</p>
-
-      <svg viewBox="0 0 300 130" class="w-full h-36">
-        <polyline
-          ref="polylineRef"
-          :points="chartPolylinePoints"
-          fill="none"
-          stroke="#B49DDB"
-          stroke-width="2"
-          :style="{
-            strokeDasharray: chartPathLength,
-            strokeDashoffset: chartRevealed ? 0 : chartPathLength,
-            transition: 'stroke-dashoffset 0.8s ease-out'
-          }"
-        />
-
-        <g
-          v-for="(point, index) in chartPoints"
-          :key="point.yearMonth"
-          :style="{
-            opacity: chartRevealed ? 1 : 0,
-            transition: `opacity 0.4s ease-out ${0.3 + index * 0.15}s`
-          }"
-        >
-          <circle
-            :cx="point.x"
-            :cy="point.y"
-            r="4"
-            :fill="index === chartPoints.length - 1 ? '#8B6FB8' : '#D6C7EC'"
-          />
-
-          <text
-            :x="point.x"
-            :y="point.y - 10"
-            text-anchor="middle"
-            font-size="11"
-            font-weight="600"
-            fill="#8B6FB8"
-          >
-            {{ point.amount.toLocaleString('ko-KR') }}
-          </text>
-
-          <text
-            :x="point.x"
-            y="124"
-            text-anchor="middle"
-            font-size="11"
-            :fill="index === chartPoints.length - 1 ? '#374151' : '#B49DDB'"
-            :font-weight="index === chartPoints.length - 1 ? '700' : '400'"
-          >
-            {{ point.month }}
-          </text>
-        </g>
-      </svg>
-    </div> -->
-
-    <!-- 월별 소비 비교 (막대그래프) -->
     <div
       ref="chartSectionRef"
       class="-mt-4 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
@@ -414,11 +361,11 @@
       />
 
       <div
-        class="relative flex-1 rounded-2xl bg-avocado-600 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.12)]"
+        class="relative flex-1 rounded-2xl bg-progress-value shadow-[0px_4px_12px_0px_rgba(0,0,0,0.12)]"
         style="padding: 8px 16px 14px"
       >
         <span
-          class="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-avocado-600"
+          class="absolute -left-2 top-1/2 -translate-y-1/2 -z-10 w-3 h-3 bg-progress-value"
           style="clip-path: polygon(100% 0, 100% 100%, 0 50%)"
         />
 
@@ -439,6 +386,7 @@ import { ChevronLeft, ChevronRight, Search, X } from 'lucide-vue-next'
 
 import piggyImage from '@/assets/images/piggypiggy.png'
 import cadoseedImage from '@/assets/images/cadoseed.png'
+import childImage from '@/assets/images/child.png'
 
 const props = defineProps({
   report: {
