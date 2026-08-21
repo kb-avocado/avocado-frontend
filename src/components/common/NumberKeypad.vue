@@ -1,7 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-3 gap-x-3"
-    :class="mode === 'pin' ? 'gap-y-5' : 'gap-y-3'"
+    class="grid grid-cols-3 gap-x-3 gap-y-3"
     role="group"
     :aria-label="mode === 'pin' ? '비밀번호 숫자 키패드' : '금액 숫자 키패드'"
   >
@@ -28,7 +27,7 @@
       @touchstart.prevent="handleFastTouch(handleLeftButton)"
       @click="handleClick(handleLeftButton)"
     >
-      <X v-if="mode === 'pin'" class="h-6 w-6" aria-hidden="true" />
+      <X v-if="mode === 'pin'" class="h-5 w-5" aria-hidden="true" />
 
       <span v-else>00</span>
     </button>
@@ -54,7 +53,7 @@
       @touchstart.prevent="handleFastTouch(() => emit('delete'))"
       @click="handleClick(() => emit('delete'))"
     >
-      <Delete class="h-6 w-6" aria-hidden="true" />
+      <Delete class="h-5 w-5" aria-hidden="true" />
     </button>
   </div>
 </template>
@@ -88,7 +87,7 @@ const keyButtonClass = computed(() => [
   'transition-colors duration-0 hover:bg-avocado-100 active:bg-avocado-300 active:duration-0',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600',
   'disabled:cursor-not-allowed disabled:opacity-40',
-  props.mode === 'pin' ? 'h-16 text-3xl font-bold' : 'h-14 text-base font-normal'
+  props.mode === 'pin' ? 'h-12 text-2xl font-bold' : 'h-12 text-sm font-normal'
 ])
 
 const handleLeftButton = () => {
