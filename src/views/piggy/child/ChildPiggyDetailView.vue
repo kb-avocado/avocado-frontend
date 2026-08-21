@@ -91,7 +91,6 @@
         </div>
         <div class="space-y-3">
           <BaseButton v-if="isActive" variant="primary" class="w-full" @click="goToDeposit">
-            <PiggyBank :size="18" class="mr-1" />
             저금하기
           </BaseButton>
 
