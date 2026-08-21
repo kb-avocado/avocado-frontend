@@ -4,7 +4,7 @@
 
     <p class="text-sm text-gray-500">생성된 리포트가 없습니다.</p>
 
-    <p class="text-xs text-gray-400">리포트는 매달 1일에 지난달 기준으로 만들어져요.</p>
+    <p class="text-xs text-gray-400">리포트는 매월 1일에 지난달 기준으로 만들어져요.</p>
   </div>
 </template>
 

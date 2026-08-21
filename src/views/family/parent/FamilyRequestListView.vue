@@ -48,7 +48,7 @@ onMounted(fetchRequests)
 </script>
 
 <template>
-  <div class="flex min-h-full flex-col gap-4 p-4">
+  <div class="flex min-h-full flex-col gap-4 bg-surface p-4">
     <!-- ── 조회 중 ── -->
     <div v-if="phase === 'loading'" class="flex flex-1 items-center justify-center py-16">
       <span
@@ -129,10 +129,6 @@ onMounted(fetchRequests)
           </button>
         </li>
       </ul>
-
-      <p v-if="openRequests.length > 0" class="text-center text-xs leading-relaxed text-muted">
-        승인해도 바로 연결되지 않아요.<br />자녀가 보호자를 확인해야 연결이 끝나요.
-      </p>
     </template>
   </div>
 </template>
