@@ -30,6 +30,7 @@
 
       <!-- 아이 화면: 즐겨찾기(하트) 토글 -->
       <button
+        v-if="!isCompleted"
         type="button"
         class="flex items-center gap-1.5 py-[7px] px-[12px] border-0 rounded-full cursor-pointer whitespace-nowrap"
         :style="{
