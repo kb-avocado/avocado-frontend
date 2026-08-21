@@ -5,16 +5,20 @@
     <div class="flex-1 flex flex-col transition-transform duration-500 ease-out"
       :class="pageRevealed ? 'translate-y-0' : 'translate-y-full'">
       <div class="flex-1 flex flex-col p-4" v-if="item">
-        <div class="rounded-2xl bg-avocado-100 p-4 text-center space-y-1">
-          <p class="text-sm text-muted">{{ item.name }}</p>
-          <p class="text-xs text-muted">
-            남은 금액
-            <span class="font-semibold text-avocado-900">{{ formatCurrency(remainingAmount) }}</span>
+        <h1 class="text-xl font-bold text-gray-900">{{ item.name }} 저금통에 얼마를 저금할까요?</h1>
+        <p class="mt-2 text-sm text-gray-500">저금통에 모은 돈은 목표를 달성하면 지갑으로 돌아와요.</p>
+
+        <div class="mt-6 rounded-2xl p-5" style="background-color: #eef0fb">
+          <p class="text-xs text-gray-500">{{ item.name }} 저금통</p>
+          <p class="mt-1 text-lg font-bold text-gray-900">
+            현재 {{ formatCurrency(item.savedAmount) }}
+          </p>
+          <p class="mt-1 text-xs text-gray-500">
+            목표까지 <span class="font-semibold text-avocado-900">{{ formatCurrency(remainingAmount) }}</span> 남았어요
           </p>
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center gap-2">
-          <p class="text-sm font-medium text-avocado-900">얼마를 저금할까요?</p>
           <p class="text-3xl font-bold text-avocado-900">
             {{ formatCurrency(Number(amountInput || 0)) }}
           </p>
