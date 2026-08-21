@@ -41,7 +41,7 @@
     <h2 class="mt-5 text-xl font-bold text-gray-900">{{ stateTitle }}</h2>
     <p class="mt-2 max-w-xs text-sm leading-6 text-gray-500">{{ stateDescription }}</p>
     <BaseButton v-if="screenState === 'error'" class="mt-6 h-11 min-w-32" @click="loadWallet">
-      다시 시도
+      돌아가기
     </BaseButton>
   </div>
 
@@ -132,7 +132,7 @@
             <div
               class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
             >
-              <span class="text-xs text-gray-600">잔액 확인</span>
+              <span class="text-xs text-gray-600">내 지갑</span>
               <strong class="mt-1 whitespace-nowrap text-base text-gray-900">
                 {{ formatMoney(wallet?.balance) }}원
               </strong>
@@ -196,14 +196,14 @@
 
       <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-gray-900">나의 지갑 기록</h2>
+          <h2 class="text-sm font-bold text-gray-900">나의 최근 지갑 기록</h2>
           <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
-            전체보기 ›
+            모두보기 ›
           </RouterLink>
         </div>
 
         <ul v-if="recentTransactions.length" class="mt-1 divide-y divide-gray-100">
-          <li v-for="transaction in recentTransactions" :key="transaction.id" class="py-1">
+          <li v-for="transaction in recentTransactions" :key="transaction.id">
             <WalletTransactionItem :transaction="transaction" />
           </li>
         </ul>

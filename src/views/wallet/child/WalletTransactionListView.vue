@@ -69,9 +69,7 @@
       <div v-else-if="errorMessage" class="px-4 py-12 text-center" role="alert">
         <CircleAlert :size="42" class="mx-auto text-red-400" aria-hidden="true" />
         <p class="mt-4 text-sm text-gray-600">{{ errorMessage }}</p>
-        <BaseButton class="mt-5" size="sm" @click="loadTransactions()">
-          다시 불러오기
-        </BaseButton>
+        <BaseButton class="mt-5" size="sm" @click="loadTransactions()"> 다시 불러오기 </BaseButton>
       </div>
 
       <div v-else-if="!transactions.length" class="px-4 py-12 text-center" role="status">
@@ -85,7 +83,7 @@
       </div>
 
       <ul v-else class="divide-y divide-gray-100">
-        <li v-for="transaction in filteredTransactions" :key="transaction.id" class="py-1">
+        <li v-for="transaction in filteredTransactions" :key="transaction.id">
           <WalletTransactionItem :transaction="transaction" date-style="full" />
         </li>
       </ul>
@@ -122,7 +120,7 @@ const TYPE_FILTER_GROUPS = {
 const typeFilterOptions = [
   { value: 'ALL', label: '전체' },
   { value: 'PAYMENT', label: '결제' },
-  { value: 'CHARGE', label: '충전' },
+  { value: 'CHARGE', label: '용돈' },
   { value: 'TRANSFER', label: '송금' },
   { value: 'PIGGY', label: '저금통' }
 ]

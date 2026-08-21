@@ -25,7 +25,12 @@
 
     <!-- ── 조회 완료 ── -->
     <template v-else-if="phase === 'loaded'">
-      <ProfileCard :name="myPage.name" user-type="어린이" :email="myPage.email" :type-image="typeImage" />
+      <ProfileCard
+        :name="myPage.name"
+        user-type="어린이"
+        :email="myPage.email"
+        :type-image="typeImage"
+      />
 
       <ConnectedParent
         v-if="myPage.parentName"
