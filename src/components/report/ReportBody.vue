@@ -56,7 +56,7 @@
         <div ref="popoverWrapperRef" class="relative">
           <button
             type="button"
-            class="text-sm underline underline-offset-2"
+            class="text-xs underline underline-offset-2"
             style="color: #9aa090"
             @click="showTypeInfo = !showTypeInfo"
           >
@@ -502,11 +502,6 @@ function onTouchStart(e) {
 
 function onTouchMove(e) {
   touchDeltaX = e.touches[0].clientX - touchStartX
-
-  // 가로 스와이프 의도가 분명해지면 세로 스크롤로 제스처가 가로채이지 않도록 막는다.
-  if (Math.abs(touchDeltaX) > 10) {
-    e.preventDefault()
-  }
 }
 
 function onTouchEnd() {
