@@ -20,7 +20,7 @@
       </button>
     </div>
 
-    <p class="mt-3 text-xs text-muted">자녀의 앱에서 이 코드를 입력하여 연결하세요.</p>
+    <p class="mt-3 text-xs text-muted">아이의 앱에서 이 코드를 입력하여 연결하세요.</p>
 
     <!--
       코드를 주는 것과 받은 요청을 처리하는 것은 한 흐름이라 같은 카드에 둔다.
