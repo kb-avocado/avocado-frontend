@@ -9,52 +9,30 @@
 
     <form class="mt-8 flex flex-1 flex-col" novalidate @submit.prevent="searchRecipient">
       <div class="space-y-6">
-        <BankSelect
-          v-model="form.bankCode"
-          :banks="banks"
-          :error="errors.bankCode"
-          :disabled="isSearching"
-          @update:model-value="clearFieldError('bankCode')"
-          @blur="validateBank"
-        />
+        <BankSelect v-model="form.bankCode" :banks="banks" :error="errors.bankCode"
+          @update:model-value="clearFieldError('bankCode')" @blur="validateBank" />
 
-        <AccountNumberInput
-          v-model="form.accountNumber"
-          :error="errors.accountNumber"
-          :disabled="isSearching"
-          @update:model-value="clearFieldError('accountNumber')"
-          @blur="validateAccountNumber"
-        />
+        <AccountNumberInput v-model="form.accountNumber" :error="errors.accountNumber"
+          @update:model-value="clearFieldError('accountNumber')" @blur="validateAccountNumber" />
 
-        <p
-          v-if="searchError"
-          role="alert"
-          aria-live="polite"
-          class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
-        >
-          {{ searchError }}
-        </p>
+        <div>
+          <label for="recipient-name" class="mb-2 block text-sm font-medium text-gray-700">
+            받는 사람 이름
+          </label>
+          <input id="recipient-name" v-model="form.recipientName" type="text" placeholder="예: 홍길동"
+            class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 outline-none"
+            @input="clearFieldError('recipientName')" @blur="validateRecipientName" />
+          <p v-if="errors.recipientName" role="alert" class="mt-1 text-xs text-red-500">
+            {{ errors.recipientName }}
+          </p>
+        </div>
 
-        <RecentRecipientList
-          :recipients="recentRecipients"
-          :loading="isRecentLoading"
-          :error="recentError"
-          @retry="fetchRecentRecipients"
-          @select="selectRecentRecipient"
-        />
+        <RecentRecipientList :recipients="recentRecipients" :loading="isRecentLoading" :error="recentError"
+          @retry="fetchRecentRecipients" @select="selectRecentRecipient" />
       </div>
 
-      <BaseButton
-        class="mt-auto h-12 w-full rounded-xl"
-        :disabled="!canSubmit || isSearching"
-        @click="searchRecipient"
-      >
-        <span
-          v-if="isSearching"
-          class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-          aria-hidden="true"
-        />
-        {{ isSearching ? '확인 중...' : '다음' }}
+      <BaseButton class="mt-auto h-12 w-full rounded-xl" :disabled="!canSubmit" @click="searchRecipient">
+        다음
       </BaseButton>
     </form>
   </main>
@@ -91,11 +69,10 @@ const {
   form,
   errors,
   canSubmit,
-  isSearching,
-  searchError,
   clearFieldError,
   validateAccountNumber,
   validateBank,
+  validateRecipientName,
   searchRecipient
 } = useTransferRecipientSearch(selectRecentRecipient)
 

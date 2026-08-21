@@ -1,10 +1,6 @@
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('ko-KR', {
-    style: 'currency',
-    currency: 'KRW'
-  }).format(amount ?? 0)
+  return `${new Intl.NumberFormat('ko-KR').format(amount ?? 0)}원`
 }
-
 
 /* 휴대전화 번호 하이픈 포맷 함수 (010-1234-5678)
    서버가 하이픈이 있는 형식만 받으므로 입력 중에 자동으로 넣어준다. */

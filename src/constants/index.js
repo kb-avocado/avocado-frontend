@@ -14,15 +14,16 @@ export const TRANSFER_RECIPIENT_SEARCH_TYPE = {
   ACCOUNT_NUMBER: 'ACCOUNT_NUMBER'
 }
 
+/* 은행 코드 */
 export const TRANSFER_BANKS = [
-  { code: 'AVOCADO', name: '아보카도 은행' },
-  { code: 'KB', name: 'KB국민은행' },
-  { code: 'SHINHAN', name: '신한은행' },
-  { code: 'HANA', name: '하나은행' },
-  { code: 'WOORI', name: '우리은행' },
-  { code: 'NH', name: 'NH농협은행' },
-  { code: 'KAKAO', name: '카카오뱅크' },
-  { code: 'TOSS', name: '토스뱅크' }
+  { code: '999', name: '아보카도 은행' },
+  { code: '004', name: 'KB국민은행' },
+  { code: '088', name: '신한은행' },
+  { code: '081', name: '하나은행' },
+  { code: '020', name: '우리은행' },
+  { code: '011', name: 'NH농협은행' },
+  { code: '090', name: '카카오뱅크' },
+  { code: '092', name: '토스뱅크' }
 ]
 
 /* 보너스 타입 (이자 / 정액) */

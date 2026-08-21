@@ -138,7 +138,7 @@ let latestEmailCheckId = 0
 
 const submitButtonLabel = computed(() => {
   if (signupStore.type === 'CHILD') {
-    return '회원가입'
+    return '부모 연결하러 가기'
   }
 
   if (signupStore.type === 'PARENT') {
@@ -383,7 +383,7 @@ async function handleSubmit() {
                 type="email"
                 inputmode="email"
                 autocomplete="email"
-                placeholder="abc1234@naver.com"
+                placeholder="이메일을 입력해주세요"
                 class="input-field pr-10"
                 :class="{
                   'input-field--error': fieldErrors.email
@@ -485,6 +485,7 @@ async function handleSubmit() {
           <p v-if="fieldErrors.password" id="password-error" class="field-error">
             {{ fieldErrors.password }}
           </p>
+          <p v-else class="field-hint">* 영문과 숫자를 포함해 8자 이상으로 입력해주세요.</p>
         </div>
 
         <!-- 비밀번호 확인 -->

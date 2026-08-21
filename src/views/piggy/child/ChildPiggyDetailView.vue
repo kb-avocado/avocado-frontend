@@ -56,7 +56,7 @@
             style="background-color: #fcf7c2; color: #555353"
             @click="goToCheerMessages"
           >
-            부모님 응원보기
+            보호자 응원보기
           </button>
         </div>
 
@@ -66,12 +66,12 @@
       <!-- 남은 금액 / 목표 -->
       <div class="mx-2 flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
         <div>
-          <p class="text-xs text-muted">남은 금액</p>
-          <p class="text-xl font-bold text-avocado-900">{{ formatWon(remainingAmount) }}</p>
+          <p class="text-[11px] text-muted">남은 금액</p>
+          <p class="text-lg font-bold text-avocado-900">{{ formatWon(remainingAmount) }}</p>
         </div>
         <div class="text-right">
-          <p class="text-xs text-muted">목표</p>
-          <p class="text-xl font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
+          <p class="text-[11px] text-muted">목표</p>
+          <p class="text-lg font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
         </div>
       </div>
 
@@ -83,13 +83,15 @@
 
       <!-- 안내 문구 + 저금하기 / 삭제하기 -->
       <div class="pt-2">
-        <p v-if="!isActive" class="text-center text-xs text-muted mb-3">
-          저금통 모으기가 완료되어 더이상 저금을 할 수 없어요!
-        </p>
-
+        <div v-if="!isActive" class="flex items-center justify-center gap-2 mb-3">
+          <img :src="cadoseedImage" alt="" aria-hidden="true" class="w-10 h-10 object-contain" />
+          <p class="text-center text-xs text-muted">
+            저금통 모으기가 완료되어 더이상 저금을 할 수 없어요!
+          </p>
+        </div>
         <div class="space-y-3">
-          <BaseButton variant="primary" class="w-full" :disabled="!isActive" @click="goToDeposit">
-            <PiggyBank :size="20" class="mr-1" />
+          <BaseButton v-if="isActive" variant="primary" class="w-full" @click="goToDeposit">
+            <PiggyBank :size="18" class="mr-1" />
             저금하기
           </BaseButton>
 
@@ -124,6 +126,7 @@ import stage2 from '@/assets/images/seed2.png'
 import stage3 from '@/assets/images/seed3.png'
 import stage4 from '@/assets/images/seed4.png'
 import stage5 from '@/assets/images/seed5.png'
+import cadoseedImage from '@/assets/images/cadoseed.png'
 
 const LEVEL_UP_BADGE_DURATION_MS = 5000
 // 저금통별 마지막으로 확인한 단계를 세션 동안 기억해두는 키.

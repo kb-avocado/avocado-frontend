@@ -6,7 +6,7 @@
 
     <section
       v-if="error"
-      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-2xl bg-[#fff1ee] text-[#a73e33]"
     >
       <span aria-hidden="true">!</span>
       <p class="text-xs">{{ error }}</p>
@@ -21,7 +21,7 @@
 
     <div
       v-else-if="loading"
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
       저금통 목록을 불러오는 중입니다.
     </div>
@@ -38,7 +38,7 @@
 
     <div
       v-else
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
       {{ emptyMessage }}
     </div>
@@ -47,15 +47,15 @@
       <button
         v-if="store.childCanCreate"
         type="button"
-        class="w-full min-h-[76px] mt-5 grid place-items-center content-center gap-[3px] border-[1.5px] border-dashed border-[#dce5dc] rounded-[18px] bg-surface text-[#9ba49d] text-[11px]"
+        class="w-full min-h-[76px] mt-5 grid place-items-center content-center gap-[3px] border-[1.5px] border-dashed border-[#dce5dc] rounded-2xl bg-surface text-[#9ba49d] text-[11px]"
         @click="goToCreate"
       >
         <span aria-hidden="true" class="text-[21px]">＋</span>
-        새로운 저금 목표 추가하기
+        새로운 저금통 만들기
       </button>
 
       <p class="mt-[25px] text-xs text-muted leading-relaxed text-center">
-        저금 목표는 최대 {{ store.childMaxCount }}개까지 만들 수 있어요.
+        저금통은 {{ store.childMaxCount }}개까지 만들 수 있어요.
         <strong class="text-gray-600"
           >(현재 {{ store.childActiveCount }}/{{ store.childMaxCount }})</strong
         >

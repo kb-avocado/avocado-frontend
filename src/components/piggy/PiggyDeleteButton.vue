@@ -17,9 +17,12 @@
       @click.self="showModal = false"
     >
       <div class="w-full max-w-[300px] rounded-3xl bg-[#F3F4F6] p-6 text-center shadow-xl">
-        <div class="mx-auto mb-4 w-16 h-16 grid place-items-center rounded-full bg-[#BA1A1A]/10">
-          <Trash2 :size="28" class="text-[#BA1A1A]" />
-        </div>
+        <img
+          :src="sadAvocadoImage"
+          alt=""
+          aria-hidden="true"
+          class="w-24 h-24 mx-auto mb-4 object-contain"
+        />
         <h3 class="text-base font-bold text-[#191D17] mb-2">저금통을 삭제하시겠습니까?</h3>
         <p class="text-xs text-[#43483E] leading-relaxed mb-6">
           삭제하면 지금까지 모든 기록이 사라지고<br />다시 되돌릴 수 없어요.
@@ -31,7 +34,6 @@
             :disabled="deleting"
             @click="handleDelete"
           >
-            <Trash2 :size="16" />
             {{ deleting ? '삭제 중...' : '삭제하기' }}
           </button>
           <button
@@ -52,6 +54,7 @@ import { ref } from 'vue'
 import { Trash2 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
+import sadAvocadoImage from '@/assets/images/ch25.png'
 
 const props = defineProps({
   piggyBankId: {
