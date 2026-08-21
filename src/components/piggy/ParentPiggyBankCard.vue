@@ -1,23 +1,29 @@
 <template>
   <article
-    class="relative p-[16px] grid gap-[13px] rounded-[20px] shadow-[0_7px_19px_rgba(37,54,42,0.08)] cursor-pointer"
-    style="background-color: #f5faff" @click="goToDetail">
-    <header class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
-      :class="{ 'opacity-[0.45]': isFinished }">
-      <span class="w-[46px] h-[46px] grid place-items-center rounded-[14px] text-[21px]"
-        style="background-color: #f3f3f3" aria-hidden="true">
+    class="relative p-[16px] grid gap-[13px] rounded-2xl shadow-[0_7px_19px_rgba(37,54,42,0.08)] cursor-pointer"
+    style="background-color: #f5faff"
+    @click="goToDetail"
+  >
+    <header
+      class="min-w-0 grid grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[11px]"
+      :class="{ 'opacity-[0.45]': isFinished }"
+    >
+      <span
+        class="w-[46px] h-[46px] grid place-items-center rounded-2xl text-[21px]"
+        style="background-color: #f3f3f3"
+        aria-hidden="true"
+      >
         {{ icon }}
       </span>
 
       <!-- 목표명 + D-day -->
       <div class="min-w-0">
-        <h2 class="overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap" style="color: #1d1b16">
+        <h2
+          class="overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap"
+          style="color: #1d1b16"
+        >
           {{ item.name }}
         </h2>
-
-        <p v-if="dday !== null" class="text-xs font-bold mt-0.5" style="color: #e1585a">
-          {{ dday === 0 ? '저금통 완료 D-day' : `저금통 완료 D-${dday}` }}
-        </p>
       </div>
 
       <!--
@@ -27,9 +33,13 @@
         PENDING_ACHIEVE → 숨김
         완료 상태       → 숨김
       -->
-      <button v-if="isActive" type="button"
+      <button
+        v-if="isActive"
+        type="button"
         class="py-[7px] px-[12px] border-0 rounded-full text-xs font-bold whitespace-nowrap"
-        style="background-color: #fcf7c2; color: #555353" @click.stop="goToCheerMessages">
+        style="background-color: #fcf7c2; color: #555353"
+        @click.stop="goToCheerMessages"
+      >
         응원보내기
       </button>
     </header>
@@ -43,17 +53,22 @@
       </div>
 
       <div class="w-full h-2.5 overflow-hidden rounded-full" style="background-color: #ebebeb">
-        <div class="h-full rounded-full transition-[width] duration-700 ease-out" :style="{
-          width: revealed ? `${safeRate}%` : '0%',
-          backgroundColor: progressColor
-        }"></div>
+        <div
+          class="h-full rounded-full transition-[width] duration-700 ease-out"
+          :style="{
+            width: revealed ? `${safeRate}%` : '0%',
+            backgroundColor: progressColor
+          }"
+        ></div>
       </div>
     </div>
 
     <!-- 진행 중인 저금통 -->
-    <section v-if="isActive"
-      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
-      :class="{ 'opacity-[0.45]': isFinished }">
+    <section
+      v-if="isActive"
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white"
+      :class="{ 'opacity-[0.45]': isFinished }"
+    >
       <div class="grid gap-[5px]">
         <small class="text-[11px]" style="color: #939393"> 남은 금액 </small>
 
@@ -72,45 +87,51 @@
     </section>
 
     <!-- 예치기간 대기 중 -->
-    <section v-else-if="isPendingAchieve"
-      class="relative z-[3] min-h-[62px] py-3 px-[14px] flex items-start gap-2 rounded-[13px] bg-white" @click.stop>
+    <section
+      v-else-if="isPendingAchieve"
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] flex items-start gap-2 rounded-2xl bg-white"
+      @click.stop
+    >
       <img :src="cadoseedImage" alt="" aria-hidden="true" class="w-8 h-8 object-contain shrink-0" />
       <p class="text-[12px] leading-relaxed" style="color: #555353">
-        <strong style="color: #e1585a">{{ dday }}일</strong> 뒤 자동으로
-        지갑에 환급돼요.<br />
+        <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
+        있어요.<br />
         <template v-if="hasBonus">
-          보너스 <strong style="color: #4e9440">{{ bonusAmountText }}</strong>는 이후 송금하실 수 있어요.
+          보너스 <strong style="color: #4e9440">{{ bonusAmountText }}</strong
+          >은 <strong style="color: #e1585a">{{ dueDateText }}</strong> 뒤에 송금 할 수 있어요.
         </template>
       </p>
     </section>
 
     <!-- 완료 / 보너스 대기 저금통 -->
-    <section v-else
-      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[13px] bg-white"
-      :class="{ 'opacity-[0.45]': isFinished }" @click.stop>
+    <section
+      v-else
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white"
+      :class="{ 'opacity-[0.45]': isFinished }"
+      @click.stop
+    >
       <div class="grid gap-[5px]">
-        <small class="text-[11px] font-bold" style="color: #939393"> 보호자님 추가 보너스 </small>
+        <small class="text-[11px] font-bold" style="color: #939393"> 보호자 추가 보너스 </small>
 
-        <strong class="text-[13px]" :style="{
-          color: !hasBonus ? '#939393' : isBonusPaid ? '#4e9440' : '#e1585a'
-        }">
+        <strong
+          class="text-[13px]"
+          :style="{
+            color: !hasBonus ? '#939393' : isBonusPaid ? '#4e9440' : '#e1585a'
+          }"
+        >
           {{ !hasBonus ? '없음' : isBonusPaid ? '지급 완료' : '미지급' }}
         </strong>
       </div>
 
-      <button type="button"
-        class="min-w-[91px] h-[38px] border-0 rounded-[10px] bg-avocado-600 text-white text-[11px] font-bold disabled:bg-[#dcead5] disabled:shadow-none"
-        :disabled="!isCompleted || !hasBonus || isBonusPaid" @click.stop="goToBonusTransfer">
+      <button
+        type="button"
+        class="min-w-[91px] h-[38px] border-0 rounded-2xl bg-avocado-600 text-white text-[11px] font-bold disabled:bg-[#dcead5] disabled:shadow-none"
+        :disabled="!isCompleted || !hasBonus || isBonusPaid"
+        @click.stop="goToBonusTransfer"
+      >
         보너스 송금
       </button>
     </section>
-
-    <!-- 최종 완료 오버레이 -->
-    <div v-if="isFinished"
-      class="absolute z-[2] top-[52%] left-1/2 min-w-[140px] py-3 px-[15px] -translate-x-1/2 -translate-y-1/2 rounded-[11px] text-white text-[15px] text-center shadow-[0_6px_14px_rgba(89,121,177,0.32)]"
-      style="background-color: #71a0ef">
-      저금통 깨기 완료!
-    </div>
   </article>
 </template>
 
@@ -164,6 +185,13 @@ const dday = computed(() => {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()) // 오늘 자정
   return Math.max(0, Math.round((complete - today) / 86400000))
+})
+
+const dueDateText = computed(() => {
+  if (!props.item.firstDepositedAt) return ''
+  const s = new Date(props.item.firstDepositedAt)
+  const due = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7)
+  return `${due.getMonth() + 1}월 ${due.getDate()}일`
 })
 
 /* 보너스 송금 화면 */

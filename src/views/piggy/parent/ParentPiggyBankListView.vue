@@ -10,7 +10,7 @@
 
     <section
       v-if="error"
-      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-[13px] bg-[#fff1ee] text-[#a73e33]"
+      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-2xl bg-[#fff1ee] text-[#a73e33]"
     >
       <span aria-hidden="true">!</span>
       <p class="text-xs">{{ error }}</p>
@@ -25,7 +25,7 @@
 
     <div
       v-else-if="loading"
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
       저금통 목록을 불러오는 중입니다.
     </div>
@@ -42,7 +42,7 @@
 
     <div
       v-else
-      class="min-h-[240px] grid place-items-center rounded-[18px] bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
     >
       {{ emptyMessage }}
     </div>
@@ -92,7 +92,7 @@ const displayedItems = computed(() => store.getParentList(resolvedChildId.value,
 
 const emptyMessage = computed(() => {
   if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
-  if (tab.value === 'BONUS_UNPAID') return '보너스 미지급 저금통이 없습니다.'
+  if (tab.value === 'BONUS_UNPAID') return '보너스 대기 중인 저금통이 없습니다.'
   return '완료된 저금통이 없습니다.'
 })
 
