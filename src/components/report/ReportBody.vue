@@ -178,10 +178,11 @@
 
                   <div class="h-2 rounded-full overflow-hidden" style="background-color: #ebebeb">
                     <div
-                      class="h-full rounded-full transition-[width] duration-700 ease-out"
+                      class="h-full rounded-full"
                       :style="{
                         width: topSpotsBarsVisible ? `${spot.percentage}%` : '0%',
-                        backgroundColor: spot.color
+                        backgroundColor: spot.color,
+                        transition: topSpotsBarsVisible ? 'width 0.7s ease-out' : 'none'
                       }"
                     />
                   </div>
@@ -234,10 +235,13 @@
 
               <div class="h-4 rounded-full overflow-hidden" style="background-color: #f3f4f6">
                 <div
-                  class="h-full rounded-full transition-[width] duration-700 ease-out"
+                  class="h-full rounded-full"
                   :style="{
                     backgroundColor: '#f5c518',
-                    width: savingsBarVisible ? `${getPercentage(report.savings.savingsRate)}%` : '0%'
+                    width: savingsBarVisible
+                      ? `${getPercentage(report.savings.savingsRate)}%`
+                      : '0%',
+                    transition: savingsBarVisible ? 'width 0.7s ease-out' : 'none'
                   }"
                 />
               </div>
@@ -367,7 +371,7 @@
               transformOrigin: 'center bottom',
               transformBox: 'fill-box',
               transform: chartRevealed ? 'scaleY(1)' : 'scaleY(0)',
-              transition: `transform 0.6s ease-out ${index * 0.12}s`
+              transition: chartRevealed ? `transform 0.6s ease-out ${index * 0.12}s` : 'none'
             }"
           />
 
@@ -380,7 +384,7 @@
             :fill="index === chartPoints.length - 1 ? '#5B4B8A' : '#8B6FB8'"
             :style="{
               opacity: chartRevealed ? 1 : 0,
-              transition: `opacity 0.4s ease-out ${0.4 + index * 0.12}s`
+              transition: chartRevealed ? `opacity 0.4s ease-out ${0.4 + index * 0.12}s` : 'none'
             }"
           >
             {{ point.amount.toLocaleString('ko-KR') }}원
