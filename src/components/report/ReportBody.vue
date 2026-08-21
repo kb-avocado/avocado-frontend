@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-8 overflow-x-hidden">
+  <div class="flex flex-col gap-8">
     <!-- 월 네비게이션 -->
     <div class="flex items-center justify-center gap-3">
       <button
@@ -12,7 +12,10 @@
         <ChevronLeft :size="20" />
       </button>
 
-      <p class="text-base font-semibold text-gray-900">{{ monthLabel }}의 분석 결과</p>
+      <div class="flex flex-col items-center leading-tight">
+        <span class="text-xs font-medium text-gray-400">{{ yearLabel }}</span>
+        <h2 class="text-lg font-bold text-gray-900">{{ monthLabel }}의 리포트</h2>
+      </div>
 
       <button
         type="button"
@@ -30,7 +33,7 @@
       class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] px-5 py-4 flex flex-col items-center gap-3"
     >
       <div v-if="spendingType" class="flex flex-col items-center gap-3 text-center">
-        <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-28 object-contain" />
+        <img :src="spendingTypeImage" alt="소비 유형" class="w-56 h-32 object-contain" />
 
         <p class="leading-snug">
           <span class="block text-xl font-bold text-gray-900"> {{ subjectLabel }} 유형은 </span>
@@ -93,34 +96,12 @@
 
     <!-- 슬라이드 카드 -->
     <div
-      class="relative w-full rounded-3xl shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] overflow-hidden"
+      class="relative w-full rounded-3xl shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] overflow-hidden"
     >
-      <!-- 왼쪽 화살표 -->
-      <button
-        v-if="activeSlide > 0"
-        type="button"
-        class="absolute left-1 top-[42%] z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-gray-400 transition-colors hover:text-gray-600"
-        aria-label="이전 카드"
-        @click="goToSlide(activeSlide - 1)"
-      >
-        <ChevronLeft :size="28" stroke-width="2.2" />
-      </button>
-
-      <!-- 오른쪽 화살표 -->
-      <button
-        v-if="activeSlide < SLIDE_COUNT - 1"
-        type="button"
-        class="absolute right-1 top-[42%] z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center text-gray-400 transition-colors hover:text-gray-600"
-        aria-label="다음 카드"
-        @click="goToSlide(activeSlide + 1)"
-      >
-        <ChevronRight :size="28" stroke-width="2.2" />
-      </button>
-
       <!-- 슬라이드 영역 -->
       <div class="overflow-hidden">
         <div
-          class="flex transition-transform duration-300 ease-out"
+          class="flex touch-pan-y transition-transform duration-300 ease-out"
           :style="{
             transform: `translateX(-${activeSlide * 100}%)`
           }"
@@ -276,7 +257,7 @@
 
     <!-- 월별 소비 비교 -->
     <div
-      class="rounded-2xl flex flex-col"
+      class="rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
       style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
     >
       <p class="text-base font-bold" style="color: #1d1b16">월별 소비 비교</p>
@@ -444,6 +425,11 @@ function onTouchStart(e) {
 
 function onTouchMove(e) {
   touchDeltaX = e.touches[0].clientX - touchStartX
+
+  // 가로 스와이프 의도가 분명해지면 세로 스크롤로 제스처가 가로채이지 않도록 막는다.
+  if (Math.abs(touchDeltaX) > 10) {
+    e.preventDefault()
+  }
 }
 
 function onTouchEnd() {
@@ -463,6 +449,15 @@ function goToSlide(index) {
 
   activeSlide.value = index
 }
+
+/* 년도 표시 */
+const yearLabel = computed(() => {
+  if (!props.report) return ''
+
+  const [year] = props.report.yearMonth.split('-')
+
+  return `${year}년`
+})
 
 /* 월 표시 */
 const monthLabel = computed(() => {
