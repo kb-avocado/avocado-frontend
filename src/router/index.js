@@ -78,14 +78,14 @@ const routes = [
     path: '/child/home',
     name: 'home',
     component: () => import('@/views/home/child/HomeView.vue'),
-    meta: { title: '아보카도 홈' }
+    meta: { title: '아보카도' }
   },
   {
     path: '/parent/:childId?/home',
     name: 'parent-home',
     component: () => import('@/views/home/parent/HomeView.vue'),
     props: true,
-    meta: { title: '아보카도 홈', audience: 'parent', menu: 'home' }
+    meta: { title: '아보카도', audience: 'parent', menu: 'home' }
   },
   // 가족 연결
   {
