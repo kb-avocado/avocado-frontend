@@ -7,23 +7,7 @@
     :amount="paymentResult.amount"
     :merchant-name="paymentResult.merchantName"
     @confirm="closePaymentResult"
-  >
-    <div
-      v-if="paymentResult.status === 'SUCCESS' && paymentResult.balanceAfter !== null"
-      class="flex items-center justify-between rounded-xl bg-gray-50 px-5 py-4 text-left"
-    >
-      <span class="text-sm text-gray-500">결제 후 잔액</span>
-      <strong class="text-base text-avocado-600">
-        {{ formatMoney(paymentResult.balanceAfter) }}원
-      </strong>
-    </div>
-    <p
-      v-else-if="paymentResult.failureCode"
-      class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
-    >
-      오류 코드: {{ paymentResult.failureCode }}
-    </p>
-  </PaymentResult>
+  />
 
   <div
     v-else-if="['loading', 'error', 'empty'].includes(screenState)"
@@ -311,8 +295,8 @@ const qrStateDescription = computed(() =>
   qrStatus.value === 'INVALID' ? '새 QR을 발급해 다시 시도해 주세요.' : ''
 )
 const resultDescription = computed(() => {
-  if (paymentResult.value?.status === 'SUCCESS') return '결제가 정상적으로 처리되었습니다.'
-  if (paymentResult.value?.failureCode) return '결제를 처리하지 못했습니다.'
+  if (paymentResult.value?.status === 'SUCCESS') return ''
+  if (paymentResult.value?.failureCode) return ''
   return '잠시 후 다시 시도해 주세요.'
 })
 const formattedQrTime = computed(() => {
