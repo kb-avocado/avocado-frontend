@@ -218,7 +218,7 @@ const routes = [
     name: 'transfer-recipient',
     component: () => import('@/views/transfer/common/TransferRecipientView.vue'),
     meta: {
-      title: '송금하기',
+      title: '돈 보내기',
       showBack: true
     }
   },
@@ -231,7 +231,7 @@ const routes = [
       if (!transferStore.recipient) return { name: 'transfer-recipient' }
     },
     meta: {
-      title: '송금하기',
+      title: '돈 보내기',
       showBack: true
     }
   },
@@ -333,13 +333,13 @@ const routes = [
     path: '/parent/mypage',
     name: 'mypageParent',
     component: () => import('@/views/mypage/parent/MyPageParentView.vue'),
-    meta: { title: '마이페이지' }
+    meta: { title: '마이페이지', showBack: true }
   },
   {
     path: '/child/mypage',
     name: 'mypageChild',
     component: () => import('@/views/mypage/child/MyPageChildView.vue'),
-    meta: { title: '마이페이지' }
+    meta: { title: '마이페이지', showBack: true }
   },
 
   // 알림 페이지

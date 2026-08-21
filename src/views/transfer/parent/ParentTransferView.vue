@@ -29,7 +29,7 @@
         :to="{ name: 'parent-home', params: { childId } }"
         class="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-avocado-600 text-sm font-medium text-white"
       >
-        홈으로 돌아가기
+        돌아가기
       </RouterLink>
     </section>
 
