@@ -130,7 +130,7 @@ class="mt-3 rounded-full bg-avocado-600 px-4 py-2 text-sm font-medium text-white
 
 v-else
 
-class="relative flex flex-col items-center text-center overflow-visible"
+class="relative mx-2 flex flex-col items-center text-center overflow-visible"
 
 style="
 
@@ -206,7 +206,7 @@ aria-hidden="true"
 
 alt="저번달 소비 유형 캐릭터"
 
-class="relative w-32 h-32 object-contain mt-2"
+class="relative w-28 h-28 object-contain mt-2"
 
         />
 
@@ -214,11 +214,11 @@ class="relative w-32 h-32 object-contain mt-2"
 
           <p class="text-lg font-bold text-gray-900">{{ selectedChildName }}의 아보카도 지갑</p>
 
-          <p class="text-xs text-gray-400 mt-1">{{ wallet.walletNumber }}</p>
+          <p class="text-[10px] text-gray-400 mt-1">{{ wallet.walletNumber }}</p>
 
         </div>
 
-        <p class="text-3xl font-bold text-gray-900">
+        <p class="-mt-2 text-3xl font-bold text-gray-900">
 
           {{ formatMoney(walletBalance) }}
 
@@ -230,7 +230,7 @@ class="relative w-32 h-32 object-contain mt-2"
 
           :to="{ name: 'parent-transfer', params: { childId } }"
 
-class="w-full text-center bg-white text-sm font-medium py-3 rounded-full flex items-center justify-center gap-1"
+class="w-full h-10 bg-white text-sm font-medium rounded-full flex items-center justify-center gap-1"
 
 style="color: #366a1b"
 
@@ -280,7 +280,7 @@ v-if="!home.piggyBanks?.length"
 
           :to="{ name: 'parent-piggy-list', params: { childId } }"
 
-class="flex items-center justify-between rounded-full bg-white shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] px-6 py-5"
+class="flex items-center justify-between rounded-3xl bg-white shadow-[0px_8px_24px_0px_rgba(54,106,27,0.06)] px-6 py-5"
 
         >
 
