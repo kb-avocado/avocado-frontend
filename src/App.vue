@@ -5,15 +5,19 @@
         v-if="!route.meta.hideLayout"
         :title="pageTitle"
         :show-back="showBack"
+        :show-bell="showHeaderIcons"
+        :show-avatar="showHeaderIcons"
         @click-back="goBack"
         @click-avatar="goMyPage"
         @click-bell="goNotifications"
       />
 
-      <main class="relative flex-1 min-h-0 overflow-y-auto">
+      <main class="relative flex-1 min-h-0 overflow-hidden">
         <RouterView v-slot="{ Component }">
-          <Transition :name="pageTransitionName">
-            <component :is="Component" />
+          <Transition :name="pageTransitionName" :mode="pageTransitionName ? undefined : 'out-in'">
+            <div :key="route.fullPath" class="absolute inset-0 overflow-y-auto">
+              <component :is="Component" />
+            </div>
           </Transition>
         </RouterView>
       </main>
@@ -32,7 +36,19 @@ import { pageTitleOverride } from '@/composables/usePageTitle'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 
-const SLIDE_UP_ROUTE_NAMES = ['childNotifications', 'parentNotifications']
+// 알림/마이페이지/결제하기(아이)/용돈 보내기(부모)처럼 아래에서 슬라이드로 나타나는 라우트는
+// 진입/이탈 방향에 따라 다른 트랜지션 이름을 써서, 들어올 땐 위로 올라오고 뒤로 갈 땐 아래로 내려가게 한다.
+const SLIDE_UP_ROUTE_NAMES = [
+  'childNotifications',
+  'parentNotifications',
+  'mypageChild',
+  'mypageParent',
+  'wallet',
+  'parent-transfer'
+]
+
+// 마이페이지 화면에서는 헤더의 알림/프로필 아이콘을 숨긴다(이미 그 화면에 들어와 있으므로).
+const HIDE_HEADER_ICONS_ROUTE_NAMES = ['mypageChild', 'mypageParent']
 
 const route = useRoute()
 const router = useRouter()
@@ -41,9 +57,8 @@ const notificationStore = useNotificationStore()
 
 const pageTitle = computed(() => pageTitleOverride.value ?? route.meta.title ?? '아보카도')
 const showBack = computed(() => route.meta.showBack === true)
+const showHeaderIcons = computed(() => !HIDE_HEADER_ICONS_ROUTE_NAMES.includes(route.name))
 
-// 알림 페이지처럼 아래에서 슬라이드로 나타나는 라우트는 진입/이탈 방향에 따라
-// 다른 트랜지션 이름을 써서, 들어올 땐 위로 올라오고 뒤로 갈 땐 아래로 내려가게 한다.
 const pageTransitionName = ref('')
 
 router.beforeEach((to, from) => {
@@ -110,8 +125,6 @@ onUnmounted(() => {
 <style>
 .slide-up-enter-active,
 .slide-down-leave-active {
-  position: absolute;
-  inset: 0;
   z-index: 50;
 }
 .slide-up-enter-active {

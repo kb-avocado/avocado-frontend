@@ -48,7 +48,7 @@ onMounted(fetchRequests)
 </script>
 
 <template>
-  <div class="flex min-h-full flex-col gap-4 bg-gray-50 p-4">
+  <div class="flex min-h-full flex-col gap-4 p-4">
     <!-- ── 조회 중 ── -->
     <div v-if="phase === 'loading'" class="flex flex-1 items-center justify-center py-16">
       <span
@@ -84,7 +84,7 @@ onMounted(fetchRequests)
         </div>
         <p class="text-sm font-medium text-gray-800">새로 들어온 연결 요청이 없어요</p>
         <p class="text-xs text-muted">
-          자녀가 마이페이지의 연결 코드를 입력하면<br />여기에서 확인할 수 있어요.
+          아이가 가족 연결 요청을 보내면 여기에서 확인할 수 있어요.
         </p>
       </div>
 

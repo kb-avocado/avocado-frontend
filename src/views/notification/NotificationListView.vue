@@ -144,7 +144,7 @@ const childFilters = [
   { label: '용돈', value: 'WALLET' },
   { label: '저금', value: 'PIGGY_BANK' },
   { label: '리포트', value: 'REPORT' },
-  { label: '가족', value: 'FAMILY' }
+  { label: '기타', value: 'FAMILY' }
 ]
 
 const parentFilters = [

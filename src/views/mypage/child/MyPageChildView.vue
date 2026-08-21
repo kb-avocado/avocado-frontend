@@ -25,7 +25,7 @@
 
     <!-- ── 조회 완료 ── -->
     <template v-else-if="phase === 'loaded'">
-      <ProfileCard :name="myPage.name" user-type="어린이" :email="myPage.email" />
+      <ProfileCard :name="myPage.name" user-type="어린이" :email="myPage.email" :type-image="typeImage" />
 
       <ConnectedParent
         v-if="myPage.parentName"
@@ -34,7 +34,7 @@
       />
 
       <!-- 아직 보호자와 연결되지 않은 아이 계정. 서버가 보호자 정보를 아예 내려주지 않는다. -->
-      <section v-else class="rounded-2xl bg-avocado-100 p-5">
+      <section v-else class="rounded-2xl bg-white p-5">
         <p class="flex items-center gap-2 text-sm font-bold text-gray-900">
           <Users :size="16" class="text-avocado-600" />
           연결된 보호자
@@ -67,6 +67,8 @@ import { useRouter } from 'vue-router'
 import { Settings, Headphones, Users } from 'lucide-vue-next'
 
 import { getMyPage } from '@/api/user'
+import { getSpendingType } from '@/api/report'
+import { getSpendingTypeImage, DEFAULT_SPENDING_TYPE_IMAGE } from '@/constants/spendingTypeImages'
 import ProfileCard from '@/components/mypage/ProfileCard.vue'
 import ConnectedParent from '@/components/mypage/ConnectedParent.vue'
 import MenuList from '@/components/mypage/MenuList.vue'
@@ -77,6 +79,23 @@ const router = useRouter()
 // 'loading' | 'loaded' | 'error'
 const phase = ref('loading')
 const myPage = ref({ name: '', email: '', parentName: '', parentEmail: '' })
+const typeImage = ref(DEFAULT_SPENDING_TYPE_IMAGE)
+
+function getLastMonth() {
+  const now = new Date()
+  const date = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+async function fetchTypeImage(childId) {
+  try {
+    const { data } = await getSpendingType(getLastMonth(), childId)
+    typeImage.value = getSpendingTypeImage(data.data?.code)
+  } catch (error) {
+    console.error('저번달 소비 유형 조회 실패:', error)
+    typeImage.value = DEFAULT_SPENDING_TYPE_IMAGE
+  }
+}
 
 async function fetchMyPage() {
   phase.value = 'loading'
@@ -93,6 +112,7 @@ async function fetchMyPage() {
 
     myPage.value = me
     phase.value = 'loaded'
+    fetchTypeImage(me.userId)
   } catch {
     // 401은 axios 인터셉터가 로그인 화면으로 보낸다.
     phase.value = 'error'
