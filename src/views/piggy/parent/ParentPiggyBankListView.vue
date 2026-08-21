@@ -1,10 +1,10 @@
 <template>
   <NoChildConnected v-if="!hasChildren" />
 
-  <div v-else class="w-full min-h-full pt-[22px] px-5 pb-9 bg-surface">
+  <div v-else class="w-full min-h-full pt-4 px-4 pb-9 bg-surface">
     <CurrentChildBadge :name="currentChildName" :avatar-image="currentChildAvatarImage" />
 
-    <div class="mt-[26px] mb-5">
+    <div class="mb-5">
       <PiggyBankTabs v-model="tab" />
     </div>
 

@@ -6,7 +6,7 @@
       <div class="flex flex-1 flex-col items-center justify-center">
         <CircleCheck :size="52" class="text-avocado-600" />
 
-        <h1 class="mt-5 text-xl font-bold text-gray-900">용돈 보내기를 완료했어요</h1>
+        <h1 class="mt-5 text-xl font-bold text-gray-900">용돈을 보냈어요</h1>
 
         <dl class="mt-8 w-full rounded-2xl bg-gray-50 p-5">
           <div class="flex items-center justify-between">
@@ -41,7 +41,7 @@
       <p class="mt-2 text-sm text-gray-500">아이의 아보카도 지갑으로 바로 충전돼요</p>
 
       <!-- 아이 지갑 잔액 카드 -->
-      <div class="mt-6 rounded-2xl p-5" style="background-color: #eef0fb" aria-live="polite">
+      <div class="mt-5 rounded-2xl p-5" style="background-color: #eef0fb" aria-live="polite">
         <p class="text-xs text-gray-500">{{ childName }}의 아보카도 지갑</p>
 
         <p v-if="walletLoading" class="mt-1 text-sm text-gray-400">잔액을 불러오는 중이에요</p>
@@ -56,7 +56,7 @@
       </div>
 
       <!-- 용돈 -->
-      <p class="mt-8 text-sm font-medium text-gray-700">용돈</p>
+      <p class="mt-6 text-sm font-medium text-gray-700">용돈</p>
 
       <!-- 금액 표시 -->
       <div class="mt-2 flex items-baseline justify-end gap-2">
@@ -76,7 +76,7 @@
       </p>
 
       <!-- 빠른 금액 선택 + 모두 지우기 -->
-      <div class="mt-4 flex items-center justify-center gap-2">
+      <div class="mt-3 flex items-center justify-center gap-2">
         <button
           v-for="quickAmount in QUICK_AMOUNTS"
           :key="quickAmount"
@@ -90,7 +90,7 @@
 
         <button
           type="button"
-          class="h-10 rounded-full bg-gray-100 px-4 text-sm text-gray-500 transition-colors hover:bg-gray-200"
+          class="h-10 rounded-full bg-gray-100 font-bold px-4 text-[10px] text-gray-500 transition-colors hover:bg-gray-200"
           @click="clearAmount"
         >
           모두 지우기
@@ -98,7 +98,7 @@
       </div>
 
       <!-- 키패드 + 보내기 버튼: 위쪽 내용 길이와 상관없이 항상 화면 하단에 고정 -->
-      <div class="sticky bottom-0 z-0 mt-auto -mx-4 w-[calc(100%+2rem)] bg-white px-4 pt-6">
+      <div class="sticky bottom-0 z-0 mt-auto -mx-4 w-[calc(100%+2rem)] bg-white px-4 pt-2">
         <!-- 키패드 -->
         <NumberKeypad
           mode="amount"
@@ -112,16 +112,17 @@
           v-if="sendError"
           role="alert"
           aria-live="polite"
-          class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
+          class="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
         >
           {{ sendError }}
         </p>
 
         <!-- 보내기 버튼 -->
-        <div class="mt-7 px-4">
+        <div class="mt-5 px-4">
           <BaseButton
             variant="primary"
             class="w-full gap-2"
+            style="height: 44px"
             :disabled="!canSubmit || isSending"
             @click="submit"
           >

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-3 gap-x-3 gap-y-3"
+    class="grid max-h-64 grid-cols-3 gap-x-3 gap-y-2"
     role="group"
     :aria-label="mode === 'pin' ? '비밀번호 숫자 키패드' : '금액 숫자 키패드'"
   >
@@ -87,7 +87,7 @@ const keyButtonClass = computed(() => [
   'transition-colors duration-0 hover:bg-avocado-100 active:bg-avocado-300 active:duration-0',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600',
   'disabled:cursor-not-allowed disabled:opacity-40',
-  props.mode === 'pin' ? 'h-12 text-2xl font-bold' : 'h-12 text-sm font-normal'
+  props.mode === 'pin' ? 'h-10 text-2xl font-bold' : 'h-10 text-base font-normal'
 ])
 
 const handleLeftButton = () => {

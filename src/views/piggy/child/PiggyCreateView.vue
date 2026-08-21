@@ -70,7 +70,7 @@
           </button>
           <button
             type="button"
-            class="py-2 px-4 rounded-full text-xs font-medium bg-gray-100 text-gray-500"
+            class="py-2 px-4 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500"
             @click="targetAmount = ''"
           >
             모두 지우기
