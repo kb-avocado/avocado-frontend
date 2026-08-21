@@ -8,16 +8,16 @@
       @click-back="router.back()"
     />
 
-    <div class="flex-1 min-h-0 overflow-y-auto px-5 pt-5 pb-8 space-y-6">
+    <div class="flex-1 min-h-0 overflow-y-auto px-5 pt-4 pb-6 space-y-4">
       <!-- 저금 목표 이름: 신문 챌린지 답변란과 동일한 스타일 -->
       <div>
-        <p class="text-sm font-medium text-[#42493C] mb-2">무엇을 위해 저금하나요?</p>
-        <div class="rounded-xl border border-gray-200 p-3">
+        <p class="text-sm font-medium text-[#42493C] mb-1.5">저금해서 무엇을 하고 싶나요?</p>
+        <div class="rounded-xl border border-gray-200 p-2.5">
           <input
             v-model="name"
             type="text"
             :maxlength="20"
-            placeholder="예: 학용품 사기"
+            placeholder="학용품 사기"
             class="w-full text-sm text-gray-900 outline-none bg-transparent placeholder:text-gray-400"
           />
         </div>
@@ -25,13 +25,13 @@
 
       <!-- 아이콘 선택 -->
       <div>
-        <p class="text-sm font-medium text-[#42493C] mb-2">목표 아이콘 선택</p>
-        <div class="grid grid-cols-4 gap-3 py-2">
+        <p class="text-sm font-medium text-[#42493C] mb-1.5">목표 아이콘 선택</p>
+        <div class="grid grid-cols-4 gap-4 py-1">
           <button
             v-for="icon in icons"
             :key="icon"
             type="button"
-            class="w-full aspect-square grid place-items-center rounded-full text-3xl transition-shadow"
+            class="w-16 h-16 mx-auto aspect-square grid place-items-center rounded-full text-2xl transition-shadow"
             :style="{
               backgroundColor: selectedIcon === icon ? '#F1F6FF' : '#F3F3F3',
               boxShadow: selectedIcon === icon ? '0 0 12px 0 rgba(0, 0, 0, 0.3)' : 'none'
@@ -45,7 +45,7 @@
 
       <!-- 목표 금액: 저금 목표 이름과 동일한 스타일 -->
       <div>
-        <p class="text-sm font-medium text-[#42493C] mb-2">목표 금액</p>
+        <p class="text-sm font-medium text-[#42493C] mb-1.5">목표 금액</p>
         <div class="rounded-xl border border-gray-200 p-3 flex items-center gap-2">
           <input
             v-model="targetAmount"
@@ -62,7 +62,7 @@
             v-for="quick in quickAmounts"
             :key="quick.amount"
             type="button"
-            class="py-2 px-3 rounded-full text-sm font-medium"
+            class="py-2 px-3 rounded-full text-xs font-medium"
             :style="{ backgroundColor: quick.color, color: '#626262' }"
             @click="addAmount(quick.amount)"
           >
@@ -70,7 +70,7 @@
           </button>
           <button
             type="button"
-            class="py-2 px-4 rounded-full text-sm font-medium bg-gray-100 text-gray-500"
+            class="py-2 px-4 rounded-full text-xs font-medium bg-gray-100 text-gray-500"
             @click="targetAmount = ''"
           >
             모두 지우기
@@ -79,9 +79,17 @@
       </div>
 
       <!-- 안내 문구: 신문 리스트 하단 안내문구와 동일한 스타일 -->
-      <p class="text-[13px] font-semibold text-[#E5793A] leading-relaxed rounded-xl p-3">
-        * 처음 돈 넣은 날로부터 모은 돈을 돌려받을 수 있어요!
-      </p>
+      <div
+        class="flex items-center gap-2 text-[13px] font-semibold text-[#E5793A] leading-relaxed rounded-xl p-3"
+      >
+        <img
+          :src="avocadoSeedImage"
+          alt=""
+          aria-hidden="true"
+          class="w-6 h-6 object-contain shrink-0"
+        />
+        <p>처음 돈 넣은 날로부터 모은 돈을 돌려받을 수 있어요!</p>
+      </div>
       <p v-if="errorMessage" class="text-sm text-red-500">{{ errorMessage }}</p>
       <!-- 목표 만들기 버튼: 신문 '활동 완료하기' 버튼과 동일한 스타일 -->
       <BaseButton
@@ -141,6 +149,7 @@ import BaseButton from '@/components/common/BaseButton.vue'
 import BottomNavBar from '@/components/common/BottomNavBar.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import cadoseedImage from '@/assets/images/cheer.png'
+import avocadoSeedImage from '@/assets/images/cadoseed.png'
 const router = useRouter()
 
 const store = usePiggyBankStore()
