@@ -189,10 +189,7 @@ onUnmounted(() => {
         <!-- 텍스트 -->
         <div class="flex flex-col items-center gap-1 text-center">
           <p class="text-xl font-bold leading-relaxed" style="color: var(--color-text-primary)">
-            {{ childInfo.name }}(자녀)님이 가족 연결을 요청했어요.
-          </p>
-          <p v-if="childInfo.createdAt" class="text-xs" style="color: var(--color-text-muted)">
-            {{ new Date(childInfo.createdAt).toLocaleString('ko-KR') }} 요청
+            {{ childInfo.name }}님이 가족 연결을 요청했어요
           </p>
         </div>
 
@@ -229,7 +226,7 @@ onUnmounted(() => {
 
         <!-- 안내 문구 -->
         <p class="text-center text-xs leading-relaxed" style="color: var(--color-text-muted)">
-          잘못된 요청이라면 거절해 주세요.
+          잘못된 요청이면 거절해 주세요.
         </p>
       </template>
 
