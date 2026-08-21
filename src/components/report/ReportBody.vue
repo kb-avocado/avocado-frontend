@@ -342,7 +342,7 @@
 
     <!-- 월별 소비 비교 (막대그래프) -->
     <div
-      class="-mt-2 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
+      class="-mt-4 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
       style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
     >
       <p class="text-base font-bold" style="color: #1d1b16">달마다 쓴 돈을 비교해 봐요!</p>
@@ -397,24 +397,23 @@
 
     <!-- 아보카도 씨의 한마디 -->
     <!-- 조언은 매달 1일 AI 배치가 채운다. 아직 없는 달에는 통째로 감춘다. -->
-    <div v-if="report.advice" class="-mt-2 flex items-end gap-1">
+    <div v-if="report.advice" class="-mt-2 flex items-center gap-1">
       <img
         :src="cadoseedImage"
         alt="아보카도 씨"
-        class="w-32 h-32 object-contain shrink-0 pointer-events-none"
+        class="w-32 h-32 mt-6 object-contain shrink-0 pointer-events-none"
       />
 
-      <div class="relative flex-1 rounded-2xl overflow-hidden" style="min-height: 168px">
-        <img
-          :src="boardImage"
-          alt="칠판"
-          class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+      <div
+        class="relative flex-1 rounded-2xl bg-avocado-600 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.12)]"
+        style="padding: 8px 16px 14px"
+      >
+        <span
+          class="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-avocado-600"
+          style="clip-path: polygon(100% 0, 100% 100%, 0 50%)"
         />
 
-        <div
-          class="relative flex h-full flex-col justify-center gap-1.5 text-white"
-          style="min-height: 168px; padding: 12px 16px 12px 56px"
-        >
+        <div class="relative flex flex-col gap-1.5 text-white">
           <p class="text-sm font-bold">아보카도 씨의 한마디</p>
 
           <p class="text-xs leading-relaxed">{{ report.advice }}</p>
@@ -431,7 +430,6 @@ import { ChevronLeft, ChevronRight, Search, X } from 'lucide-vue-next'
 
 import piggyImage from '@/assets/images/piggypiggy.png'
 import cadoseedImage from '@/assets/images/cadoseed.png'
-import boardImage from '@/assets/images/board.png'
 
 const props = defineProps({
   report: {
