@@ -150,7 +150,7 @@
           <div class="w-full shrink-0 py-4 px-5" style="background-color: #f5faff">
             <div class="mx-6">
               <p class="text-base font-bold mb-4" style="color: #1d1b16">
-                가장 돈을 많이 쓴 곳은 어디일까?
+                가장 돈을 많이 쓴 곳은 어디일까요?
               </p>
 
               <div class="flex flex-col gap-4">
@@ -280,11 +280,11 @@
     </div>
 
     <!-- 월별 소비 비교 -->
-    <div
+    <!-- <div
       class="-mt-2 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
       style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
     >
-      <p class="text-base font-bold" style="color: #1d1b16">월별 소비 비교</p>
+      <p class="text-base font-bold" style="color: #1d1b16">달마다 쓴 돈을 비교해 봐요!</p>
 
       <svg viewBox="0 0 300 130" class="w-full h-36">
         <polyline
@@ -329,6 +329,61 @@
           <text
             :x="point.x"
             y="124"
+            text-anchor="middle"
+            font-size="11"
+            :fill="index === chartPoints.length - 1 ? '#374151' : '#B49DDB'"
+            :font-weight="index === chartPoints.length - 1 ? '700' : '400'"
+          >
+            {{ point.month }}
+          </text>
+        </g>
+      </svg>
+    </div> -->
+
+    <!-- 월별 소비 비교 (막대그래프) -->
+    <div
+      class="-mt-2 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
+      style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
+    >
+      <p class="text-base font-bold" style="color: #1d1b16">달마다 쓴 돈을 비교해 봐요!</p>
+
+      <svg viewBox="0 0 300 130" class="w-full h-36">
+        <line x1="14" y1="100" x2="286" y2="100" stroke="#E3DEF5" stroke-width="1" />
+
+        <g v-for="(point, index) in chartPoints" :key="point.yearMonth">
+          <rect
+            :x="point.barX"
+            :y="point.barY"
+            :width="point.barWidth"
+            :height="point.barHeight"
+            rx="6"
+            :fill="index === chartPoints.length - 1 ? '#8B6FB8' : '#D6C7EC'"
+            :style="{
+              transformOrigin: 'center bottom',
+              transformBox: 'fill-box',
+              transform: chartRevealed ? 'scaleY(1)' : 'scaleY(0)',
+              transition: `transform 0.6s ease-out ${index * 0.12}s`
+            }"
+          />
+
+          <text
+            :x="point.x"
+            :y="point.barY - 8"
+            text-anchor="middle"
+            font-size="11"
+            :font-weight="index === chartPoints.length - 1 ? '700' : '600'"
+            :fill="index === chartPoints.length - 1 ? '#5B4B8A' : '#8B6FB8'"
+            :style="{
+              opacity: chartRevealed ? 1 : 0,
+              transition: `opacity 0.4s ease-out ${0.4 + index * 0.12}s`
+            }"
+          >
+            {{ point.amount.toLocaleString('ko-KR') }}원
+          </text>
+
+          <text
+            :x="point.x"
+            y="118"
             text-anchor="middle"
             font-size="11"
             :fill="index === chartPoints.length - 1 ? '#374151' : '#B49DDB'"
@@ -568,28 +623,33 @@ const chartPoints = computed(() => {
   const values = props.report.monthlyComparison.map((m) => m.amount)
 
   const max = Math.max(...values, 1)
-  const min = Math.min(...values, 0)
-  const range = max - min || 1
 
   const width = 260
   const leftPad = 20
-  const chartHeight = 80
-  const topPad = 24
+  const baselineY = 100
+  const maxBarHeight = 64
+  const minBarHeight = 4
 
   const count = props.report.monthlyComparison.length
+  const slot = width / count
+  const barWidth = Math.min(32, slot * 0.5)
 
-  const step = count > 1 ? width / (count - 1) : 0
+  return props.report.monthlyComparison.map((m, index) => {
+    const barHeight = Math.max(minBarHeight, (m.amount / max) * maxBarHeight)
+    const x = leftPad + slot * (index + 0.5)
 
-  return props.report.monthlyComparison.map((m, index) => ({
-    x: leftPad + index * step,
-    y: topPad + chartHeight - ((m.amount - min) / range) * chartHeight,
-    amount: m.amount,
-    month: m.month,
-    yearMonth: m.yearMonth
-  }))
+    return {
+      x,
+      barX: x - barWidth / 2,
+      barY: baselineY - barHeight,
+      barWidth,
+      barHeight,
+      amount: m.amount,
+      month: m.month,
+      yearMonth: m.yearMonth
+    }
+  })
 })
-
-const chartPolylinePoints = computed(() => chartPoints.value.map((p) => `${p.x},${p.y}`).join(' '))
 
 function getPercentage(value) {
   const percentage = Number(value ?? 0)
@@ -602,8 +662,6 @@ const animatedTotalSpent = ref(0)
 const animatedTotalSaved = ref(0)
 const barsVisible = ref(false)
 const chartRevealed = ref(false)
-const chartPathLength = ref(0)
-const polylineRef = ref(null)
 
 let numberAnimationFrame = null
 
@@ -626,12 +684,6 @@ function animateNumberTo(setter, from, to, duration = NUMBER_ANIMATION_DURATION)
   numberAnimationFrame = requestAnimationFrame(tick)
 }
 
-function updateChartPathLength() {
-  if (polylineRef.value) {
-    chartPathLength.value = polylineRef.value.getTotalLength()
-  }
-}
-
 async function playReportAnimations() {
   if (!props.report) return
 
@@ -641,8 +693,6 @@ async function playReportAnimations() {
   animatedTotalSaved.value = 0
 
   await nextTick()
-
-  updateChartPathLength()
 
   animateNumberTo((v) => (animatedTotalSpent.value = v), 0, props.report.summary.totalSpent)
 
