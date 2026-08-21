@@ -357,15 +357,15 @@
       <img
         :src="cadoseedImage"
         alt="아보카도 씨"
-        class="w-32 h-32 mt-6 object-contain shrink-0 pointer-events-none"
+        class="relative z-10 w-32 h-32 mt-6 object-contain shrink-0 pointer-events-none"
       />
 
       <div
-        class="relative flex-1 rounded-2xl bg-progress-value shadow-[0px_4px_12px_0px_rgba(0,0,0,0.12)]"
-        style="padding: 8px 16px 14px"
+        class="relative z-0 flex-1 rounded-2xl bg-progress-value shadow-[0px_4px_12px_0px_rgba(0,0,0,0.12)]"
+        style="padding: 12px 16px 16px"
       >
         <span
-          class="absolute -left-2 top-1/2 -translate-y-1/2 -z-10 w-3 h-3 bg-progress-value"
+          class="absolute -left-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-progress-value"
           style="clip-path: polygon(100% 0, 100% 100%, 0 50%)"
         />
 
