@@ -103,9 +103,9 @@
       </p>
     </section>
 
-    <!-- 완료 / 보너스 대기 저금통 -->
+    <!-- 완료 / 보너스 대기 저금통: 보너스가 설정된 경우에만 표시 -->
     <section
-      v-else
+      v-else-if="hasBonus"
       class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white"
       :class="{ 'opacity-[0.45]': isFinished }"
       @click.stop

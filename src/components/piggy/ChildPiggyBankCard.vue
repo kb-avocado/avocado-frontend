@@ -23,7 +23,7 @@
         >
           {{ item.name }}
         </h2>
-        <p class="text-xs font-bold mt-0.5" :style="{ color: hasBonus ? '#4e9440' : '#939393' }">
+        <p v-if="hasBonus" class="text-xs font-bold mt-0.5" style="color: #4e9440">
           보호자 추가 보너스 {{ bonusText }}
         </p>
       </div>
