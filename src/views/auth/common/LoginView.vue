@@ -70,7 +70,6 @@ async function handleSubmit() {
       <h1
         class="mt-6 mb-7 text-[22px] font-bold leading-[1.35] tracking-[-0.02em] text-[var(--color-avocado-900)]"
       >
-        반가워요!<br />
         <span class="text-avocado-600 text-4xl">아보카도</span>에 로그인하세요
       </h1>
 
