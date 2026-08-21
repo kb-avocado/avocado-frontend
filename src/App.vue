@@ -15,7 +15,7 @@
       <main class="relative flex-1 min-h-0 overflow-hidden">
         <RouterView v-slot="{ Component }">
           <Transition :name="pageTransitionName" :mode="pageTransitionName ? undefined : 'out-in'">
-            <div :key="route.fullPath" class="absolute inset-0 overflow-y-auto">
+            <div :key="pageKey" class="absolute inset-0 overflow-y-auto">
               <component :is="Component" />
             </div>
           </Transition>
@@ -60,6 +60,16 @@ const showBack = computed(() => route.meta.showBack === true)
 const showHeaderIcons = computed(() => !HIDE_HEADER_ICONS_ROUTE_NAMES.includes(route.name))
 
 const pageTransitionName = ref('')
+
+// 부모 홈은 아이 전환 시 childId만 바뀌고 화면은 그대로 유지되길 기대하며
+// (HomeView.vue의 childId watcher 참고) 컴포넌트 자체를 유지해야 한다.
+// route.fullPath를 키로 쓰면 childId가 바뀔 때마다 화면 전체가 다시 마운트되어
+// 로딩 상태가 초기화되면서 오류 화면이 잠깐 보이는 문제가 있었다.
+const REUSE_ON_PARAM_CHANGE_ROUTE_NAMES = ['parent-home']
+
+const pageKey = computed(() =>
+  REUSE_ON_PARAM_CHANGE_ROUTE_NAMES.includes(route.name) ? route.name : route.fullPath
+)
 
 router.beforeEach((to, from) => {
   if (SLIDE_UP_ROUTE_NAMES.includes(to.name)) {

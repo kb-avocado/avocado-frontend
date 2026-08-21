@@ -357,7 +357,7 @@
   <!-- 오류 -->
 
   <div v-else class="p-4 text-center py-10">
-    <p class="text-sm text-red-500">홈 정보를 불러오지 못했습니다.</p>
+    <p class="text-sm text-500">홈 정보를 불러오지 못했습니다.</p>
 
     <button
       type="button"
