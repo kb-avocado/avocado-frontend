@@ -45,12 +45,12 @@
       <!-- 남은 금액 / 목표 금액 -->
       <div class="mx-2 flex items-center justify-between rounded-2xl bg-avocado-100 p-4">
         <div>
-          <p class="text-xs text-muted">남은 금액</p>
-          <p class="text-xl font-bold text-avocado-900">{{ formatWon(remainingAmount) }}</p>
+          <p class="text-[11px] text-muted">남은 금액</p>
+          <p class="text-lg font-bold text-avocado-900">{{ formatWon(remainingAmount) }}</p>
         </div>
         <div class="text-right">
-          <p class="text-xs text-muted">목표</p>
-          <p class="text-xl font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
+          <p class="text-[11px] text-muted">목표</p>
+          <p class="text-lg font-bold text-avocado-900">{{ formatWon(item.targetAmount) }}</p>
         </div>
       </div>
       <!-- 입금 내역 -->

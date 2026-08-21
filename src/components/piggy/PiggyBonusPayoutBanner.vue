@@ -18,8 +18,8 @@
     <div class="flex items-center gap-2 mx-4">
       <Info :size="16" class="text-avocado-600 shrink-0" />
       <p class="text-xs text-muted leading-relaxed">
-        아이를 위한 응원 보너스를 설정해주세요!<br />
-        보너스는 아이가 저금통을 빨리 채우기 위한 원동력이 됩니다.
+        아이의 목표 달성을 응원하는 보너스를 설정해주세요!<br />
+        보너스와 함께 아이의 즐거운 저축 습관을 응원해 보세요.
       </p>
     </div>
 
