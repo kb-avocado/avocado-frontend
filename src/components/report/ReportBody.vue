@@ -29,16 +29,16 @@
 
     <!-- 소비 스타일 카드 -->
     <div
-      class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] px-5 py-6 flex flex-col items-center gap-5"
+      class="rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] px-5 py-4 flex flex-col items-center gap-3"
     >
       <div
         v-if="spendingType"
-        class="flex flex-col items-center gap-5 text-center"
+        class="flex flex-col items-center gap-3 text-center"
       >
         <img
           :src="spendingTypeImage"
           alt="소비 유형"
-          class="w-56 h-40 object-contain"
+          class="w-56 h-28 object-contain"
         />
 
         <p class="leading-snug">
