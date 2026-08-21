@@ -196,7 +196,7 @@
 
       <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-gray-900">최근 결제 내역</h2>
+          <h2 class="text-sm font-bold text-gray-900">나의 지갑 기록</h2>
           <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
             전체보기 ›
           </RouterLink>
