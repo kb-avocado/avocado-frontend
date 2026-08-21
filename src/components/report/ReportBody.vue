@@ -147,13 +147,13 @@
           </div>
 
           <!-- 2. 지출 Top 3 -->
-          <div class="w-full shrink-0 py-4 px-5" style="background-color: #f5faff">
-            <div class="mx-6">
+          <div class="w-full shrink-0 py-4 px-5 flex flex-col" style="background-color: #f5faff">
+            <div class="mx-6 flex flex-1 flex-col">
               <p class="text-base font-bold mb-4" style="color: #1d1b16">
                 가장 돈을 많이 쓴 곳은 어디일까요?
               </p>
 
-              <div class="flex flex-col gap-4">
+              <div v-if="coloredTopSpots.length > 0" class="flex flex-col gap-4">
                 <div v-for="spot in coloredTopSpots" :key="spot.rank" class="flex flex-col gap-1.5">
                   <div class="flex items-center justify-between text-sm">
                     <span class="flex items-center gap-1.5" style="color: #1d1b16">
@@ -180,12 +180,16 @@
                     <div
                       class="h-full rounded-full transition-[width] duration-700 ease-out"
                       :style="{
-                        width: barsVisible ? `${spot.percentage}%` : '0%',
+                        width: topSpotsBarsVisible ? `${spot.percentage}%` : '0%',
                         backgroundColor: spot.color
                       }"
                     />
                   </div>
                 </div>
+              </div>
+
+              <div v-else class="flex flex-1 items-center justify-center">
+                <p class="text-sm" style="color: #9aa090">소비 내역이 없어요</p>
               </div>
             </div>
           </div>
@@ -233,7 +237,7 @@
                   class="h-full rounded-full transition-[width] duration-700 ease-out"
                   :style="{
                     backgroundColor: '#f5c518',
-                    width: barsVisible ? `${getPercentage(report.savings.savingsRate)}%` : '0%'
+                    width: savingsBarVisible ? `${getPercentage(report.savings.savingsRate)}%` : '0%'
                   }"
                 />
               </div>
@@ -342,6 +346,7 @@
 
     <!-- 월별 소비 비교 (막대그래프) -->
     <div
+      ref="chartSectionRef"
       class="-mt-4 rounded-2xl flex flex-col shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)]"
       style="background-color: #f7f5ff; padding: 24px 20px; gap: 16px; min-height: 236px"
     >
@@ -487,6 +492,8 @@ onBeforeUnmount(() => {
   if (numberAnimationFrame) {
     cancelAnimationFrame(numberAnimationFrame)
   }
+
+  chartObserver?.disconnect()
 })
 
 /* 슬라이드 */
@@ -507,8 +514,10 @@ function onTouchMove(e) {
 function onTouchEnd() {
   if (touchDeltaX < -SWIPE_THRESHOLD && activeSlide.value < SLIDE_COUNT - 1) {
     activeSlide.value += 1
+    revealSlide(activeSlide.value)
   } else if (touchDeltaX > SWIPE_THRESHOLD && activeSlide.value > 0) {
     activeSlide.value -= 1
+    revealSlide(activeSlide.value)
   }
 
   touchDeltaX = 0
@@ -520,6 +529,7 @@ function goToSlide(index) {
   }
 
   activeSlide.value = index
+  revealSlide(index)
 }
 
 /* 년도 표시 */
@@ -653,10 +663,13 @@ function getPercentage(value) {
 /* 애니메이션 */
 const animatedTotalSpent = ref(0)
 const animatedTotalSaved = ref(0)
-const barsVisible = ref(false)
+const topSpotsBarsVisible = ref(false)
+const savingsBarVisible = ref(false)
 const chartRevealed = ref(false)
+const chartSectionRef = ref(null)
 
 let numberAnimationFrame = null
+let chartObserver = null
 
 function animateNumberTo(setter, from, to, duration = NUMBER_ANIMATION_DURATION) {
   const startTime = performance.now()
@@ -677,24 +690,60 @@ function animateNumberTo(setter, from, to, duration = NUMBER_ANIMATION_DURATION)
   numberAnimationFrame = requestAnimationFrame(tick)
 }
 
+/* 카드를 넘길 때마다 해당 슬라이드의 숫자/막대 애니메이션을 다시 재생한다. */
+function revealSlide(index) {
+  if (!props.report) return
+
+  if (index === 0) {
+    animateNumberTo((v) => (animatedTotalSpent.value = v), 0, props.report.summary.totalSpent)
+  } else if (index === 1) {
+    topSpotsBarsVisible.value = false
+
+    requestAnimationFrame(() => {
+      topSpotsBarsVisible.value = true
+    })
+  } else if (index === 2) {
+    animatedTotalSaved.value = 0
+    animateNumberTo((v) => (animatedTotalSaved.value = v), 0, props.report.savings.totalSaved)
+
+    savingsBarVisible.value = false
+
+    requestAnimationFrame(() => {
+      savingsBarVisible.value = true
+    })
+  }
+}
+
+/* 월별 소비 비교 그래프는 스크롤로 화면에 들어왔을 때 애니메이션을 재생한다. */
+function observeChartReveal() {
+  chartObserver?.disconnect()
+
+  if (!chartSectionRef.value) return
+
+  chartObserver = new IntersectionObserver(
+    ([entry]) => {
+      chartRevealed.value = entry.isIntersecting
+    },
+    { threshold: 0.5 }
+  )
+
+  chartObserver.observe(chartSectionRef.value)
+}
+
 async function playReportAnimations() {
   if (!props.report) return
 
-  barsVisible.value = false
-  chartRevealed.value = false
+  activeSlide.value = 0
+  topSpotsBarsVisible.value = false
+  savingsBarVisible.value = false
   animatedTotalSpent.value = 0
   animatedTotalSaved.value = 0
+  chartRevealed.value = false
 
   await nextTick()
 
-  animateNumberTo((v) => (animatedTotalSpent.value = v), 0, props.report.summary.totalSpent)
-
-  animateNumberTo((v) => (animatedTotalSaved.value = v), 0, props.report.savings.totalSaved)
-
-  requestAnimationFrame(() => {
-    barsVisible.value = true
-    chartRevealed.value = true
-  })
+  revealSlide(0)
+  observeChartReveal()
 }
 
 watch(

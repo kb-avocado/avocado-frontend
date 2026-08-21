@@ -86,7 +86,7 @@ const displayedItems = computed(() => store.getChildList(tab.value))
 
 const emptyMessage = computed(() => {
   if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
-  if (tab.value === 'BONUS_UNPAID') return '보너스 미지급 저금통이 없습니다.'
+  if (tab.value === 'BONUS_UNPAID') return '보너스 대기중인 저금통이 없습니다.'
   return '완료된 저금통이 없습니다.'
 })
 
