@@ -54,39 +54,51 @@
     >
       <h3 id="wallet-transaction-list-title" class="sr-only">지갑 거래 목록</h3>
 
-      <div v-if="isLoading" class="space-y-3" role="status" aria-live="polite">
-        <div v-for="index in 6" :key="index" class="flex animate-pulse items-center gap-3 py-2">
-          <span class="h-10 w-10 shrink-0 rounded-full bg-gray-100" />
-          <span class="min-w-0 flex-1">
-            <span class="block h-3.5 w-28 rounded bg-gray-100" />
-            <span class="mt-2 block h-3 w-36 rounded bg-gray-100" />
-          </span>
-          <span class="h-4 w-20 rounded bg-gray-100" />
+      <Transition name="fade" mode="out-in">
+        <div v-if="isLoading" key="loading" class="space-y-3" role="status" aria-live="polite">
+          <div v-for="index in 6" :key="index" class="flex animate-pulse items-center gap-3 py-2">
+            <span class="h-10 w-10 shrink-0 rounded-full bg-gray-100" />
+            <span class="min-w-0 flex-1">
+              <span class="block h-3.5 w-28 rounded bg-gray-100" />
+              <span class="mt-2 block h-3 w-36 rounded bg-gray-100" />
+            </span>
+            <span class="h-4 w-20 rounded bg-gray-100" />
+          </div>
+          <span class="sr-only">전체 거래 내역을 불러오는 중입니다.</span>
         </div>
-        <span class="sr-only">전체 거래 내역을 불러오는 중입니다.</span>
-      </div>
 
-      <div v-else-if="errorMessage" class="px-4 py-12 text-center" role="alert">
-        <CircleAlert :size="42" class="mx-auto text-red-400" aria-hidden="true" />
-        <p class="mt-4 text-sm text-gray-600">{{ errorMessage }}</p>
-        <BaseButton class="mt-5" size="sm" @click="loadTransactions()"> 다시 불러오기 </BaseButton>
-      </div>
+        <div v-else-if="errorMessage" key="error" class="px-4 py-12 text-center" role="alert">
+          <CircleAlert :size="42" class="mx-auto text-red-400" aria-hidden="true" />
+          <p class="mt-4 text-sm text-gray-600">{{ errorMessage }}</p>
+          <BaseButton class="mt-5" size="sm" @click="loadTransactions()"> 다시 불러오기 </BaseButton>
+        </div>
 
-      <div v-else-if="!transactions.length" class="px-4 py-12 text-center" role="status">
-        <ReceiptText :size="42" class="mx-auto text-gray-300" aria-hidden="true" />
-        <p class="mt-4 text-sm text-gray-500">표시할 거래 내역이 없어요.</p>
-      </div>
+        <div
+          v-else-if="!transactions.length"
+          key="empty-all"
+          class="px-4 py-12 text-center"
+          role="status"
+        >
+          <ReceiptText :size="42" class="mx-auto text-gray-300" aria-hidden="true" />
+          <p class="mt-4 text-sm text-gray-500">표시할 거래 내역이 없어요.</p>
+        </div>
 
-      <div v-else-if="!filteredTransactions.length" class="px-4 py-12 text-center" role="status">
-        <ReceiptText :size="42" class="mx-auto text-gray-300" aria-hidden="true" />
-        <p class="mt-4 text-sm text-gray-500">선택한 달에는 기록이 없어요.</p>
-      </div>
+        <div
+          v-else-if="!filteredTransactions.length"
+          key="empty-filtered"
+          class="px-4 py-12 text-center"
+          role="status"
+        >
+          <ReceiptText :size="42" class="mx-auto text-gray-300" aria-hidden="true" />
+          <p class="mt-4 text-sm text-gray-500">선택한 달에는 기록이 없어요.</p>
+        </div>
 
-      <ul v-else class="divide-y divide-gray-100">
-        <li v-for="transaction in filteredTransactions" :key="transaction.id">
-          <WalletTransactionItem :transaction="transaction" date-style="full" />
-        </li>
-      </ul>
+        <ul v-else key="list" class="divide-y divide-gray-100">
+          <li v-for="transaction in filteredTransactions" :key="transaction.id">
+            <WalletTransactionItem :transaction="transaction" date-style="full" />
+          </li>
+        </ul>
+      </Transition>
     </section>
   </div>
 </template>
@@ -259,3 +271,14 @@ onBeforeUnmount(() => {
   requestController?.abort()
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

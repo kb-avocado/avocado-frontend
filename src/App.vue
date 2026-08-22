@@ -14,8 +14,8 @@
 
       <main class="relative flex-1 min-h-0 overflow-hidden">
         <RouterView v-slot="{ Component }">
-          <Transition :name="pageTransitionName" :mode="pageTransitionName ? undefined : 'out-in'">
-            <div :key="pageKey" class="absolute inset-0 overflow-y-auto">
+          <Transition :name="pageTransitionName">
+            <div :key="pageKey" class="absolute inset-0 overflow-y-auto bg-white">
               <component :is="Component" />
             </div>
           </Transition>
@@ -59,13 +59,16 @@ const pageTitle = computed(() => pageTitleOverride.value ?? route.meta.title ?? 
 const showBack = computed(() => route.meta.showBack === true)
 const showHeaderIcons = computed(() => !HIDE_HEADER_ICONS_ROUTE_NAMES.includes(route.name))
 
-const pageTransitionName = ref('')
+const pageTransitionName = ref('fade')
 
 // 부모 홈은 아이 전환 시 childId만 바뀌고 화면은 그대로 유지되길 기대하며
 // (HomeView.vue의 childId watcher 참고) 컴포넌트 자체를 유지해야 한다.
 // route.fullPath를 키로 쓰면 childId가 바뀔 때마다 화면 전체가 다시 마운트되어
 // 로딩 상태가 초기화되면서 오류 화면이 잠깐 보이는 문제가 있었다.
-const REUSE_ON_PARAM_CHANGE_ROUTE_NAMES = ['parent-home']
+// 저금통 목록(아이/부모)도 상태 탭(진행중/보너스 대기중/완료)을 쿼리스트링에 반영해
+// (PiggyView.vue, ParentPiggyBankListView.vue 참고) 같은 이유로 탭을 누를 때마다
+// route.fullPath가 바뀌어 화면 전체가 재마운트되는 문제가 있어 함께 추가한다.
+const REUSE_ON_PARAM_CHANGE_ROUTE_NAMES = ['parent-home', 'piggy', 'parent-piggy-list']
 
 const pageKey = computed(() =>
   REUSE_ON_PARAM_CHANGE_ROUTE_NAMES.includes(route.name) ? route.name : route.fullPath
@@ -77,7 +80,7 @@ router.beforeEach((to, from) => {
   } else if (SLIDE_UP_ROUTE_NAMES.includes(from.name)) {
     pageTransitionName.value = 'slide-down'
   } else {
-    pageTransitionName.value = ''
+    pageTransitionName.value = 'fade'
   }
 })
 
@@ -133,20 +136,38 @@ onUnmounted(() => {
 </script>
 
 <style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-page) ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .slide-up-enter-active,
 .slide-down-leave-active {
   z-index: 50;
 }
 .slide-up-enter-active {
-  transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.32s var(--ease-sheet);
 }
 .slide-down-leave-active {
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.4s var(--ease-sheet);
 }
 .slide-up-enter-from {
   transform: translateY(100%);
 }
 .slide-down-leave-to {
   transform: translateY(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active,
+  .slide-up-enter-active,
+  .slide-down-leave-active {
+    transition: none;
+  }
 }
 </style>

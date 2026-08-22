@@ -8,44 +8,49 @@
       <PiggyBankTabs v-model="tab" />
     </div>
 
-    <section
-      v-if="error"
-      class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-2xl bg-[#fff1ee] text-[#a73e33]"
-    >
-      <span aria-hidden="true">!</span>
-      <p class="text-xs">{{ error }}</p>
-      <button
-        type="button"
-        class="py-2 px-[10px] border-0 rounded-lg bg-[#a73e33] text-white text-[11px]"
-        @click="load"
+    <Transition name="fade" mode="out-in">
+      <section
+        v-if="error"
+        key="error"
+        class="min-h-[72px] p-[14px] grid grid-cols-[auto_1fr_auto] items-center gap-[10px] rounded-2xl bg-[#fff1ee] text-[#a73e33]"
       >
-        다시 시도
-      </button>
-    </section>
+        <span aria-hidden="true">!</span>
+        <p class="text-xs">{{ error }}</p>
+        <button
+          type="button"
+          class="py-2 px-[10px] border-0 rounded-lg bg-[#a73e33] text-white text-[11px]"
+          @click="load"
+        >
+          다시 시도
+        </button>
+      </section>
 
-    <div
-      v-else-if="loading"
-      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
-    >
-      저금통 목록을 불러오는 중입니다.
-    </div>
+      <div
+        v-else-if="loading"
+        key="loading"
+        class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      >
+        저금통 목록을 불러오는 중입니다.
+      </div>
 
-    <section v-else-if="displayedItems.length > 0" class="grid gap-[18px]">
-      <ParentPiggyBankCard
-        v-for="(item, index) in displayedItems"
-        :key="item.piggyBankId"
-        :item="item"
-        :index="index"
-        :child-id="resolvedChildId"
-      />
-    </section>
+      <section v-else-if="displayedItems.length > 0" key="list" class="grid gap-[18px]">
+        <ParentPiggyBankCard
+          v-for="(item, index) in displayedItems"
+          :key="item.piggyBankId"
+          :item="item"
+          :index="index"
+          :child-id="resolvedChildId"
+        />
+      </section>
 
-    <div
-      v-else
-      class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
-    >
-      {{ emptyMessage }}
-    </div>
+      <div
+        v-else
+        key="empty"
+        class="min-h-[240px] grid place-items-center rounded-2xl bg-[#fafcfa] text-[#929a94] text-xs text-center"
+      >
+        {{ emptyMessage }}
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -96,16 +101,23 @@ const emptyMessage = computed(() => {
   return '완료된 저금통이 없습니다.'
 })
 
+// 탭을 빠르게 연속으로 누르면 먼저 보낸 요청이 나중에 응답할 수 있으므로,
+// 가장 최근 요청의 결과만 반영하도록 순번으로 걸러낸다.
+let requestSequence = 0
+
 async function load() {
   if (!hasChildren.value) return
+  const currentSequence = ++requestSequence
   loading.value = true
   error.value = ''
   try {
     await store.loadParentList(resolvedChildId.value, tab.value)
+    if (currentSequence !== requestSequence) return
   } catch (requestError) {
+    if (currentSequence !== requestSequence) return
     error.value = requestError.message || '아이의 저금통 목록을 불러오지 못했습니다.'
   } finally {
-    loading.value = false
+    if (currentSequence === requestSequence) loading.value = false
   }
 }
 
@@ -115,3 +127,14 @@ watch(tab, (val) => {
 
 watch(() => [resolvedChildId.value, tab.value], load, { immediate: true })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

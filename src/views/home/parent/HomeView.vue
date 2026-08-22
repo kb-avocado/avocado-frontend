@@ -285,9 +285,10 @@
             <RouterLink :to="homeTabMoreLink" class="text-sm text-muted"> 모두 보기 </RouterLink>
           </div>
 
+          <Transition name="fade" mode="out-in">
           <!-- 소비 탭 -->
 
-          <div v-if="activeHomeTab === 'SPENDING'" class="grid grid-cols-2 gap-3">
+          <div v-if="activeHomeTab === 'SPENDING'" key="spending" class="grid grid-cols-2 gap-3">
             <RouterLink
               :to="{ name: 'parent-report', params: { childId } }"
               class="rounded-2xl p-4"
@@ -323,7 +324,7 @@
 
           <!-- 신문 탭 -->
 
-          <div v-else class="flex flex-col gap-3">
+          <div v-else key="news" class="flex flex-col gap-3">
             <div v-if="!home.news?.length" class="rounded-2xl bg-gray-50 px-4 py-6 text-center">
               <p class="text-sm text-muted">등록된 신문이 없습니다.</p>
             </div>
@@ -385,6 +386,7 @@
               <ChevronRight v-else :size="18" style="color: #bfbfbf" class="shrink-0" />
             </RouterLink>
           </div>
+          </Transition>
         </section>
       </div>
 

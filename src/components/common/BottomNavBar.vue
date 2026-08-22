@@ -10,17 +10,21 @@
       class="flex-1 flex flex-col items-center gap-1"
     >
       <span
-        class="flex items-center justify-center px-3 py-1 rounded-full"
+        class="flex items-center justify-center px-3 py-1 rounded-full transition-colors duration-200"
         :class="isActive(item) ? 'bg-avocado-100' : ''"
       >
         <component
           :is="item.icon"
           :size="18"
+          class="transition-colors duration-200"
           :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
         />
       </span>
 
-      <span class="text-[11px]" :class="isActive(item) ? 'text-avocado-600' : 'text-muted'">
+      <span
+        class="text-[11px] transition-colors duration-200"
+        :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
+      >
         {{ item.label }}
       </span>
     </RouterLink>
@@ -32,7 +36,10 @@
         <component :is="centerItem.icon" :size="22" class="text-white" />
       </span>
 
-      <span class="text-[11px]" :class="isActive(centerItem) ? 'text-avocado-600' : 'text-muted'">
+      <span
+        class="text-[11px] transition-colors duration-200"
+        :class="isActive(centerItem) ? 'text-avocado-600' : 'text-muted'"
+      >
         {{ centerItem.label }}
       </span>
     </RouterLink>
@@ -44,17 +51,21 @@
       class="flex-1 flex flex-col items-center gap-1"
     >
       <span
-        class="flex items-center justify-center px-3 py-1 rounded-full"
+        class="flex items-center justify-center px-3 py-1 rounded-full transition-colors duration-200"
         :class="isActive(item) ? 'bg-avocado-100' : ''"
       >
         <component
           :is="item.icon"
           :size="18"
+          class="transition-colors duration-200"
           :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
         />
       </span>
 
-      <span class="text-[11px]" :class="isActive(item) ? 'text-avocado-600' : 'text-muted'">
+      <span
+        class="text-[11px] transition-colors duration-200"
+        :class="isActive(item) ? 'text-avocado-600' : 'text-muted'"
+      >
         {{ item.label }}
       </span>
     </RouterLink>
