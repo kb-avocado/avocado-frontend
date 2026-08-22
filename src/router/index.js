@@ -78,14 +78,14 @@ const routes = [
     path: '/child/home',
     name: 'home',
     component: () => import('@/views/home/child/HomeView.vue'),
-    meta: { title: '아보카도 홈' }
+    meta: { title: '아보카도' }
   },
   {
     path: '/parent/:childId?/home',
     name: 'parent-home',
     component: () => import('@/views/home/parent/HomeView.vue'),
     props: true,
-    meta: { title: '아보카도 홈', audience: 'parent', menu: 'home' }
+    meta: { title: '아보카도', audience: 'parent', menu: 'home' }
   },
   // 가족 연결
   {
@@ -155,7 +155,7 @@ const routes = [
     path: '/child/newspaper',
     name: 'newspaper',
     component: () => import('@/views/news/child/NewspaperView.vue'),
-    meta: { title: '아보카도 신문 & 챌린지' }
+    meta: { title: '아보카도 신문' }
   },
   //아이용 신문 세부화면
   {
@@ -169,7 +169,7 @@ const routes = [
     name: 'parent-newspaper',
     component: () => import('@/views/news/parent/NewspaperListView.vue'),
     props: true,
-    meta: { title: '아보카도 신문 & 챌린지', audience: 'parent', menu: 'newspaper' }
+    meta: { title: '아보카도 신문', audience: 'parent', menu: 'newspaper' }
   },
   //부모용 신문 세부화면
   {
@@ -218,7 +218,7 @@ const routes = [
     name: 'transfer-recipient',
     component: () => import('@/views/transfer/common/TransferRecipientView.vue'),
     meta: {
-      title: '송금하기',
+      title: '돈 보내기',
       showBack: true
     }
   },
@@ -231,7 +231,7 @@ const routes = [
       if (!transferStore.recipient) return { name: 'transfer-recipient' }
     },
     meta: {
-      title: '송금하기',
+      title: '돈 보내기',
       showBack: true
     }
   },
@@ -333,13 +333,13 @@ const routes = [
     path: '/parent/mypage',
     name: 'mypageParent',
     component: () => import('@/views/mypage/parent/MyPageParentView.vue'),
-    meta: { title: '마이페이지' }
+    meta: { title: '마이페이지', showBack: true }
   },
   {
     path: '/child/mypage',
     name: 'mypageChild',
     component: () => import('@/views/mypage/child/MyPageChildView.vue'),
-    meta: { title: '마이페이지' }
+    meta: { title: '마이페이지', showBack: true }
   },
 
   // 알림 페이지

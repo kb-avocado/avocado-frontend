@@ -23,7 +23,7 @@
         >
           {{ item.name }}
         </h2>
-        <p class="text-xs font-bold mt-0.5" :style="{ color: hasBonus ? '#4e9440' : '#939393' }">
+        <p v-if="hasBonus" class="text-xs font-bold mt-0.5" style="color: #4e9440">
           보호자 추가 보너스 {{ bonusText }}
         </p>
       </div>
@@ -34,8 +34,8 @@
         type="button"
         class="flex items-center gap-1.5 py-[7px] px-[12px] border-0 rounded-full cursor-pointer whitespace-nowrap"
         :style="{
-          backgroundColor: item.favorite ? '#FD98E7' : '#F3F3F3',
-          color: item.favorite ? '#000000' : '#989898'
+          backgroundColor: item.favorite ? '#FFE1EC' : '#F3F3F3',
+          color: item.favorite ? '#FF5C8A' : '#989898'
         }"
         :aria-pressed="Boolean(item.favorite)"
         :aria-label="item.favorite ? '즐겨찾기 등록됨' : '즐겨찾기 등록 안 됨'"
@@ -75,15 +75,13 @@
 
     <section
       v-if="isPendingAchieve"
-      class="min-h-[62px] py-3 px-[14px] flex items-start gap-2 rounded-2xl bg-white"
+      class="min-h-[62px] py-3 px-[14px] flex items-center gap-2 rounded-2xl bg-white"
     >
       <img :src="cadoseedImage" alt="" aria-hidden="true" class="w-8 h-8 object-contain shrink-0" />
 
       <p v-if="hasBonus" class="text-[12px] leading-relaxed" style="color: #555353">
         <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
         있어요.<br />
-        보너스 <strong style="color: #4e9440">{{ bonusText }}</strong
-        >은 <strong style="color: #e1585a">{{ dueDateText }}</strong> 뒤에 송금할 수 있어요
       </p>
       <p v-else class="text-[12px] leading-relaxed" style="color: #555353">
         <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
@@ -162,13 +160,6 @@ const dday = computed(() => {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()) // 오늘 자정
   return Math.max(0, Math.round((complete - today) / 86400000))
-})
-
-const dueDateText = computed(() => {
-  if (!props.item.firstDepositedAt) return ''
-  const s = new Date(props.item.firstDepositedAt)
-  const due = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7)
-  return `${due.getMonth() + 1}월 ${due.getDate()}일`
 })
 
 const isCompleted = computed(() =>

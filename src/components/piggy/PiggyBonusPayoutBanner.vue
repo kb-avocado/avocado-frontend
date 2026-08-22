@@ -16,7 +16,7 @@
   <div v-else class="space-y-3">
     <!-- 신문 리스트 안내문과 동일한 정보 아이콘 스타일 -->
     <div class="flex items-center gap-2 mx-4">
-      <Info :size="16" class="text-avocado-600 shrink-0" />
+      <img :src="avocadoSeedImage" alt="" aria-hidden="true" class="w-6 h-6 object-contain shrink-0" />
       <p class="text-xs text-muted leading-relaxed">
         아이의 목표 달성을 응원하는 보너스를 설정해주세요!<br />
         보너스와 함께 아이의 즐거운 저축 습관을 응원해 보세요.
@@ -24,10 +24,9 @@
     </div>
 
     <!-- 보너스 송금 화면과 동일한 좌우 여백 -->
-    <div class="px-4">
+    <div class="px-4 pb-4">
       <BaseButton variant="primary" class="w-full gap-2" @click="goToSetup">
         <span>보너스 설정하기</span>
-        <PiggyBank :size="18" />
       </BaseButton>
     </div>
   </div>
@@ -36,9 +35,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { PiggyBank, Info } from 'lucide-vue-next'
+import { PiggyBank } from 'lucide-vue-next'
 
 import BaseButton from '@/components/common/BaseButton.vue'
+import avocadoSeedImage from '@/assets/images/cadoseed.png'
 
 const props = defineProps({
   // 저금통의 아이디

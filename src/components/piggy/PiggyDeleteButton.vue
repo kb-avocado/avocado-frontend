@@ -6,7 +6,6 @@
       class="w-full !text-[#F34242] !border-[#F34242]"
       @click="showModal = true"
     >
-      <Trash2 :size="18" class="mr-1" />
       저금통 삭제하기
     </BaseButton>
 
@@ -51,7 +50,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Trash2 } from 'lucide-vue-next'
 import BaseButton from '@/components/common/BaseButton.vue'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import sadAvocadoImage from '@/assets/images/ch25.png'

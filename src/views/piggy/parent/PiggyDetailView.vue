@@ -8,7 +8,11 @@
       @click-back="router.back()"
     />
 
-    <div v-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
+    <div v-if="loading" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
+      <p class="text-sm text-muted">불러오는 중...</p>
+    </div>
+
+    <div v-else-if="!item" class="flex-1 min-h-0 overflow-y-auto grid place-items-center p-4">
       <p class="text-sm text-muted">저금통 정보를 찾을 수 없어요.</p>
     </div>
 
@@ -76,7 +80,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/common/AppHeader.vue'
@@ -101,11 +105,17 @@ const store = usePiggyBankStore()
 
 const piggyBankId = computed(() => route.params.id)
 const childId = computed(() => route.params.childId)
+const loading = ref(true)
 
 watch(
   piggyBankId,
-  (id) => {
-    store.loadDetail(id, childId.value)
+  async (id) => {
+    loading.value = true
+    try {
+      await store.loadDetail(id, childId.value)
+    } finally {
+      loading.value = false
+    }
   },
   { immediate: true }
 )

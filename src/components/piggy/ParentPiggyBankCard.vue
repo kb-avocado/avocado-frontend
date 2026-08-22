@@ -89,23 +89,23 @@
     <!-- 예치기간 대기 중 -->
     <section
       v-else-if="isPendingAchieve"
-      class="relative z-[3] min-h-[62px] py-3 px-[14px] flex items-start gap-2 rounded-2xl bg-white"
+      class="relative z-[3] min-h-[62px] py-3 px-[14px] flex items-center gap-2 rounded-2xl bg-white"
       @click.stop
     >
       <img :src="cadoseedImage" alt="" aria-hidden="true" class="w-8 h-8 object-contain shrink-0" />
       <p class="text-[12px] leading-relaxed" style="color: #555353">
-        <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
-        있어요.<br />
+        <strong style="color: #e1585a">{{ dday }}일</strong>을 기다리면 아이의 지갑으로 돈이
+        환급돼요.<br />
         <template v-if="hasBonus">
           보너스 <strong style="color: #4e9440">{{ bonusAmountText }}</strong
-          >은 <strong style="color: #e1585a">{{ dueDateText }}</strong> 뒤에 송금 할 수 있어요.
+          >은 <strong style="color: #e1585a">{{ dday }}일</strong> 뒤에 송금할 수 있어요.
         </template>
       </p>
     </section>
 
-    <!-- 완료 / 보너스 대기 저금통 -->
+    <!-- 완료 / 보너스 대기 저금통: 보너스가 설정된 경우에만 표시 -->
     <section
-      v-else
+      v-else-if="hasBonus"
       class="relative z-[3] min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white"
       :class="{ 'opacity-[0.45]': isFinished }"
       @click.stop
@@ -185,13 +185,6 @@ const dday = computed(() => {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()) // 오늘 자정
   return Math.max(0, Math.round((complete - today) / 86400000))
-})
-
-const dueDateText = computed(() => {
-  if (!props.item.firstDepositedAt) return ''
-  const s = new Date(props.item.firstDepositedAt)
-  const due = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7)
-  return `${due.getMonth() + 1}월 ${due.getDate()}일`
 })
 
 /* 보너스 송금 화면 */

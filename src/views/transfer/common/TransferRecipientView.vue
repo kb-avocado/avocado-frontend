@@ -3,35 +3,59 @@
 
   <main v-else class="flex min-h-full flex-col bg-white px-4 pb-5 pt-6">
     <div>
-      <h1 class="text-xl font-bold text-gray-900">누구에게 송금할까요?</h1>
+      <h1 class="text-xl font-bold text-gray-900">누구에게 돈을 보낼까요?</h1>
       <p class="mt-2 text-sm text-gray-500">은행과 계좌번호를 입력해주세요.</p>
     </div>
 
     <form class="mt-8 flex flex-1 flex-col" novalidate @submit.prevent="searchRecipient">
       <div class="space-y-6">
-        <BankSelect v-model="form.bankCode" :banks="banks" :error="errors.bankCode"
-          @update:model-value="clearFieldError('bankCode')" @blur="validateBank" />
+        <BankSelect
+          v-model="form.bankCode"
+          :banks="banks"
+          :error="errors.bankCode"
+          @update:model-value="clearFieldError('bankCode')"
+          @blur="validateBank"
+        />
 
-        <AccountNumberInput v-model="form.accountNumber" :error="errors.accountNumber"
-          @update:model-value="clearFieldError('accountNumber')" @blur="validateAccountNumber" />
+        <AccountNumberInput
+          v-model="form.accountNumber"
+          :error="errors.accountNumber"
+          @update:model-value="clearFieldError('accountNumber')"
+          @blur="validateAccountNumber"
+        />
 
         <div>
           <label for="recipient-name" class="mb-2 block text-sm font-medium text-gray-700">
             받는 사람 이름
           </label>
-          <input id="recipient-name" v-model="form.recipientName" type="text" placeholder="예: 홍길동"
+          <input
+            id="recipient-name"
+            v-model="form.recipientName"
+            type="text"
+            placeholder="이름"
             class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 outline-none"
-            @input="clearFieldError('recipientName')" @blur="validateRecipientName" />
+            @input="clearFieldError('recipientName')"
+            @blur="validateRecipientName"
+          />
           <p v-if="errors.recipientName" role="alert" class="mt-1 text-xs text-red-500">
             {{ errors.recipientName }}
           </p>
         </div>
 
-        <RecentRecipientList :recipients="recentRecipients" :loading="isRecentLoading" :error="recentError"
-          @retry="fetchRecentRecipients" @select="selectRecentRecipient" />
+        <RecentRecipientList
+          :recipients="recentRecipients"
+          :loading="isRecentLoading"
+          :error="recentError"
+          @retry="fetchRecentRecipients"
+          @select="selectRecentRecipient"
+        />
       </div>
 
-      <BaseButton class="mt-auto h-12 w-full rounded-xl" :disabled="!canSubmit" @click="searchRecipient">
+      <BaseButton
+        class="mt-auto h-12 w-full rounded-xl"
+        :disabled="!canSubmit"
+        @click="searchRecipient"
+      >
         다음
       </BaseButton>
     </form>
