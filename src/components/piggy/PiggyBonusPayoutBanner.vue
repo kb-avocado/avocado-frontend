@@ -1,14 +1,8 @@
 <template>
   <!-- 보너스가 이미 설정된 저금통 -->
-  <div
-    v-if="hasBonus"
-    class="space-y-3"
-  >
+  <div v-if="hasBonus" class="space-y-3">
     <!-- 보너스 지급 완료 -->
-    <div
-      v-if="isPaid"
-      class="flex items-center gap-2"
-    >
+    <div v-if="isPaid" class="flex items-center gap-2">
       <img
         :src="avocadoSeedImage"
         alt=""
@@ -16,16 +10,11 @@
         class="w-9 h-9 object-contain shrink-0"
       />
 
-      <p class="text-xs text-gray-400 leading-relaxed">
-        보너스를 지급 완료했어요!
-      </p>
+      <p class="text-xs text-gray-400 leading-relaxed">보너스를 지급 완료했어요!</p>
     </div>
 
     <!-- 보너스 지급 대기중 -->
-    <div
-      v-else-if="isAchieved"
-      class="flex items-center gap-2"
-    >
+    <div v-else-if="isAchieved" class="flex items-center gap-2">
       <img
         :src="avocadoSeedImage"
         alt=""
@@ -33,16 +22,11 @@
         class="w-9 h-9 object-contain shrink-0"
       />
 
-      <p class="text-xs text-gray-400 leading-relaxed">
-        보너스를 아직 지급하지 않았어요!
-      </p>
+      <p class="text-xs text-gray-400 leading-relaxed">보너스를 아직 지급하지 않았어요!</p>
     </div>
 
     <!-- 진행중 저금통 -->
-    <div
-      v-else
-      class="flex items-center gap-2"
-    >
+    <div v-else class="flex items-center gap-2">
       <img
         :src="avocadoSeedImage"
         alt=""
@@ -52,9 +36,7 @@
 
       <p class="text-xs text-gray-400 leading-relaxed">
         목표 달성 시
-        <span class="font-bold text-gray-500">
-          {{ bonusAmount.toLocaleString('ko-KR') }}원
-        </span>
+        <span class="font-bold text-gray-500"> {{ bonusAmount.toLocaleString('ko-KR') }}원 </span>
         이 지급돼요
       </p>
     </div>
@@ -82,10 +64,7 @@
   </div>
 
   <!-- 아직 보너스를 설정하지 않은 저금통 -->
-  <div
-    v-else
-    class="space-y-3"
-  >
+  <div v-else class="space-y-3">
     <!-- 보너스 설정 안내 -->
     <div class="flex items-center gap-2">
       <img
@@ -95,7 +74,11 @@
         class="w-9 h-9 object-contain shrink-0"
       />
 
-      <p class="text-xs text-gray-400 leading-relaxed">
+      <p v-if="isAchieved" class="text-xs text-gray-400 leading-relaxed">
+        이미 완료된 저금통이라 보너스를 설정할 수 없어요!
+      </p>
+
+      <p v-else class="text-xs text-gray-400 leading-relaxed">
         아이의 목표 달성을 응원하는 보너스를 설정해주세요!
         <br />
         보너스와 함께 아이의 즐거운 저축 습관을 응원해 보세요.
@@ -104,31 +87,19 @@
 
     <!-- 보너스 설정 -->
     <div class="px-4 pb-4">
-      <BaseButton
-        variant="primary"
-        class="w-full gap-2"
-        @click="goToSetup"
-      >
-        <span>
-          보너스 설정하기
-        </span>
+      <BaseButton variant="primary" class="w-full gap-2" :disabled="isAchieved" @click="goToSetup">
+        <span> 보너스 설정하기 </span>
       </BaseButton>
     </div>
   </div>
 </template>
 
 <script setup>
-import {
-  computed
-} from 'vue'
+import { computed } from 'vue'
 
-import {
-  useRouter
-} from 'vue-router'
+import { useRouter } from 'vue-router'
 
-import {
-  PiggyBank
-} from 'lucide-vue-next'
+import { PiggyBank } from 'lucide-vue-next'
 
 import BaseButton from '@/components/common/BaseButton.vue'
 
@@ -193,18 +164,12 @@ const props = defineProps({
   }
 })
 
-const router =
-  useRouter()
+const router = useRouter()
 
 /**
  * 보너스 설정 여부
  */
-const hasBonus =
-  computed(
-    () =>
-      props.bonusType &&
-      props.bonusType !== 'NONE'
-  )
+const hasBonus = computed(() => props.bonusType && props.bonusType !== 'NONE')
 
 /**
  * 보너스 지급 대기 상태
@@ -212,22 +177,12 @@ const hasBonus =
  * 목표 달성 + 7일 조건까지 충족하여
  * 보너스 지급이 가능한 상태
  */
-const isAchieved =
-  computed(
-    () =>
-      props.status === 'ACHIEVE'
-  )
+const isAchieved = computed(() => props.status === 'ACHIEVE')
 
 /**
  * 이미 지급 완료됐는지
  */
-const isPaid =
-  computed(
-    () =>
-      Boolean(
-        props.bonusPaidAt
-      )
-  )
+const isPaid = computed(() => Boolean(props.bonusPaidAt))
 
 /**
  * 실제 보너스 지급 가능 여부
@@ -236,13 +191,7 @@ const isPaid =
  * - 보너스 설정됨
  * - 아직 지급되지 않음
  */
-const canPay =
-  computed(
-    () =>
-      isAchieved.value &&
-      hasBonus.value &&
-      !isPaid.value
-  )
+const canPay = computed(() => isAchieved.value && hasBonus.value && !isPaid.value)
 
 /**
  * 실제 지급될 보너스 금액
@@ -253,30 +202,17 @@ const canPay =
  * FIXED
  * → 설정한 금액 그대로
  */
-const bonusAmount =
-  computed(() => {
-    if (!hasBonus.value) {
-      return 0
-    }
+const bonusAmount = computed(() => {
+  if (!hasBonus.value) {
+    return 0
+  }
 
-    if (
-      props.bonusType ===
-      'RATE'
-    ) {
-      return Math.floor(
-        (
-          props.targetAmount *
-          props.bonusValue
-        ) /
-        100
-      )
-    }
+  if (props.bonusType === 'RATE') {
+    return Math.floor((props.targetAmount * props.bonusValue) / 100)
+  }
 
-    return (
-      props.bonusValue ??
-      0
-    )
-  })
+  return props.bonusValue ?? 0
+})
 
 /**
  * 보너스 지급 화면 이동
@@ -290,15 +226,12 @@ function goToPayment() {
   }
 
   router.push({
-    name:
-      'piggyGoalComplete',
+    name: 'piggyGoalComplete',
 
     params: {
-      childId:
-        props.childId,
+      childId: props.childId,
 
-      id:
-        props.piggyBankId
+      id: props.piggyBankId
     }
   })
 }
@@ -308,15 +241,12 @@ function goToPayment() {
  */
 function goToSetup() {
   router.push({
-    name:
-      'piggyBonus',
+    name: 'piggyBonus',
 
     params: {
-      childId:
-        props.childId,
+      childId: props.childId,
 
-      id:
-        props.piggyBankId
+      id: props.piggyBankId
     }
   })
 }
