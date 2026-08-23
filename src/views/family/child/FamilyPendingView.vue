@@ -258,7 +258,7 @@ onUnmounted(() => {
       <!-- ── code 유실 (새로고침 등) ── -->
       <template v-if="phase === 'lost'">
         <div
-          class="flex h-32 w-32 items-center justify-center rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <span class="text-4xl">⚠️</span>
@@ -276,7 +276,7 @@ onUnmounted(() => {
       <!-- ── 요청 전송 중 ── -->
       <template v-else-if="phase === 'sending'">
         <div
-          class="flex h-32 w-32 items-center justify-center rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <span
@@ -296,7 +296,7 @@ onUnmounted(() => {
       <!-- ── 요청 전송 실패 ── -->
       <template v-else-if="phase === 'send_error'">
         <div
-          class="flex h-32 w-32 items-center justify-center rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <span class="text-4xl">😥</span>
@@ -315,14 +315,14 @@ onUnmounted(() => {
       <!-- ── 대기 중 (폴링) ── -->
       <template v-else-if="phase === 'waiting'">
         <div
-          class="flex h-32 w-32 items-center justify-center rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <div
             class="flex h-24 w-24 items-center justify-center rounded-full"
             style="background-color: var(--color-avocado-300)"
           >
-            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <svg class="hourglass" width="44" height="44" viewBox="0 0 44 44" fill="none">
               <path
                 d="M10 6h24M10 38h24M14 6c0 8 8 10 8 16s-8 8-8 16M30 6c0 8-8 10-8 16s8 8 8 16"
                 stroke="var(--color-avocado-900)"
@@ -347,7 +347,7 @@ onUnmounted(() => {
             보호자의 승인을 기다리고 있어요!
           </h1>
           <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            보호자가 승인 버튼을 누르면<br />바로 시작할 수 있어요.
+            보호자가 승인 버튼을 누르면<br />아보카도를 시작할 수 있어요.
           </p>
         </div>
 
@@ -383,8 +383,7 @@ onUnmounted(() => {
         </div>
 
         <p class="text-center text-xs leading-relaxed" style="color: var(--color-text-muted)">
-          승인이 완료되면 자동으로 화면이 넘어갑니다<br />
-          약 {{ remainingMinutes }}분 뒤 자동 확인이 멈춰요
+          {{ remainingMinutes }}분 동안 확인이 없으면 대기 화면으로 돌아가요
         </p>
 
         <p
@@ -410,7 +409,7 @@ onUnmounted(() => {
       <!-- ── 대기 시간 초과 (폴링만 멈춤, 요청은 살아 있음) ── -->
       <template v-else-if="phase === 'timeout'">
         <div
-          class="flex h-32 w-32 items-center justify-center rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <span class="text-4xl">⏰</span>
@@ -472,7 +471,7 @@ onUnmounted(() => {
       <!-- ── 보호자 정보 최종 확인 ── -->
       <template v-else-if="phase === 'confirm' || phase === 'confirming'">
         <div
-          class="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full"
+          class="pulse-glow flex h-32 w-32 items-center justify-center rounded-full"
           style="background-color: var(--color-avocado-100)"
         >
           <img
@@ -489,7 +488,7 @@ onUnmounted(() => {
             {{ parentInfo.name }}님이 맞나요?
           </h1>
           <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            원하셨던 보호자님이 맞는지 확인해주세요.
+            내 보호자가 맞는지 확인해주세요.
           </p>
         </div>
 
@@ -526,10 +525,10 @@ onUnmounted(() => {
             연결이 취소되었어요
           </h1>
           <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            보호자님께 정확한 코드를 다시 받아 시도해주세요.
+            보호자님께 정확한 코드를 받아 다시 시도해주세요.
           </p>
         </div>
-        <BaseButton class="w-full" @click="goToCodeInput"> 코드 다시 입력하기 </BaseButton>
+        <BaseButton class="w-full" @click="goToCodeInput"> 다시 입력하기 </BaseButton>
       </template>
 
       <!-- ── 최종 연결 완료 ── -->
@@ -572,12 +571,51 @@ onUnmounted(() => {
             연결이 완료되었어요!
           </h1>
           <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-            이제 보호자님과 함께 아보카도를 시작해 볼까요?
+            이제 보호자와 함께 아보카도를 시작해 볼까요?
           </p>
         </div>
 
-        <BaseButton class="w-full" @click="goHome"> 시작하기 </BaseButton>
+        <BaseButton class="w-full" @click="goHome"> 아보카도 시작하기 </BaseButton>
       </template>
     </div>
   </main>
 </template>
+<style scoped>
+/* 3초마다 한 번 뒤집히는 모래시계 */
+.hourglass {
+  animation: hourglass-flip 3s ease-in-out infinite;
+}
+
+@keyframes hourglass-flip {
+  0%,
+  60% {
+    transform: rotate(0deg);
+  }
+  80%,
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+/* 기다리는 동안 밝아졌다 어두워지는 배경 */
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hourglass,
+  .pulse-glow {
+    animation: none;
+  }
+}
+</style>

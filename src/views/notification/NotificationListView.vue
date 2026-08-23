@@ -1,8 +1,14 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-surface">
-    <AppHeader title="알림" show-back :show-bell="false" show-avatar @click-back="router.back()" />
+  <div class="h-screen overflow-hidden flex flex-col bg-surface">
+    <AppHeader
+      title="알림"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
-    <div class="flex-1 space-y-4 p-4 pb-[calc(var(--nav-height)+1rem)]">
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-4 p-4 pb-[calc(var(--nav-height)+1rem)]">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-avocado-900">알림</h1>
@@ -138,7 +144,7 @@ const childFilters = [
   { label: '용돈', value: 'WALLET' },
   { label: '저금', value: 'PIGGY_BANK' },
   { label: '리포트', value: 'REPORT' },
-  { label: '가족', value: 'FAMILY' }
+  { label: '기타', value: 'FAMILY' }
 ]
 
 const parentFilters = [

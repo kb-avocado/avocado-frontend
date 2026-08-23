@@ -32,4 +32,8 @@
   /* 프로그레스 바 */
   --color-progress-track: #e9ede3;
   --color-progress-value: #3d7837;
+
+  /* Motion */
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-page: 0.2s;
 }

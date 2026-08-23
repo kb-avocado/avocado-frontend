@@ -1,7 +1,7 @@
 <template>
   <NoChildConnected v-if="!hasChildren" />
 
-  <div v-else-if="report" class="p-4 pb-8 flex flex-col gap-5">
+  <div v-else-if="report" class="p-4 pb-8 flex flex-col">
     <CurrentChildBadge :name="selectedChildName" :avatar-image="spendingTypeImage" />
 
     <ReportBody

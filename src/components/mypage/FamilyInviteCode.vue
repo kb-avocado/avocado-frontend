@@ -2,7 +2,7 @@
   <section class="rounded-2xl bg-avocado-100 p-5">
     <p class="flex items-center gap-2 text-sm font-bold text-gray-900">
       <Share2 :size="16" class="text-avocado-600" />
-      자녀 연결 코드
+      가족 연결 코드
     </p>
 
     <div class="mt-3 flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3">
@@ -20,7 +20,7 @@
       </button>
     </div>
 
-    <p class="mt-3 text-xs text-muted">자녀의 앱에서 이 코드를 입력하여 연결하세요.</p>
+    <p class="mt-3 text-xs text-muted">아이의 앱에서 이 코드를 입력하여 연결하세요.</p>
 
     <!--
       코드를 주는 것과 받은 요청을 처리하는 것은 한 흐름이라 같은 카드에 둔다.

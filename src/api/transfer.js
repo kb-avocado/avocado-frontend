@@ -1,34 +1,27 @@
 import api from './axiosInstance'
 
-// 호출 예시
-// getTransferRecipient('USER_CODE', 'AVO1234')
-// getTransferRecipient('ACCOUNT_NUMBER', '1234567890')
-
-/**
- * 사용자 코드 또는 계좌번호로 송금 대상을 조회합니다.
- *
- * @param {'USER_CODE' | 'ACCOUNT_NUMBER'} searchType
- * @param {string} keyword
- * @param {{ signal?: AbortSignal }} [config]
- */
-export function getTransferRecipient(searchType, keyword, config = {}) {
-  return api.get('/transfers/recipients', {
-    params: {
-      searchType,
-      keyword
-    },
-    signal: config.signal
-  })
-}
-
 /**
  * 최근 송금 대상을 조회합니다.
  *
  * @param {{ signal?: AbortSignal }} [config]
  */
 export function getRecentTransferRecipients(config = {}) {
-  return api.get('/transfers/recent-recipients', {
+  return api.get('/transfers/recipients/recent', {
     signal: config.signal
+  })
+}
+
+/**
+ * 아이 선불지갑에서 내부 지갑 또는 외부 계좌로 송금합니다.
+ *
+ * @param {{ bankCode: string, recipientNumber: string, recipientName: string, amount: number }} payload
+ */
+export function transferFromWallet({ bankCode, recipientNumber, recipientName, amount }) {
+  return api.post('/transfers/wallet', {
+    bankCode,
+    recipientNumber,
+    recipientName,
+    amount: Number(amount)
   })
 }
 

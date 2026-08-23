@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-2 mb-4">
+  <div class="flex items-center gap-2 mb-3">
     <span
       class="w-9 h-9 rounded-full bg-avocado-50 flex items-center justify-center overflow-hidden ring-2 ring-avocado-600 shrink-0"
     >

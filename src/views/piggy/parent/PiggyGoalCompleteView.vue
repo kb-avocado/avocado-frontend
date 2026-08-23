@@ -87,8 +87,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Star, CreditCard, ArrowRight, Smile, Send } from 'lucide-vue-next'
-
+import { CreditCard, ArrowRight, Smile, Send } from 'lucide-vue-next'
 /* 뒤로가기 활성화를 위한 헤더와 NAV import */
 import AppHeader from '@/components/common/AppHeader.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -99,10 +98,6 @@ import cheerImage from '@/assets/images/cheer.png'
 
 import { sendCheerMessage, getPiggyBankDetail, payBonus } from '@/api/piggy'
 import { useAuthStore } from '@/stores/auth'
-
-/* 보너스 -> 송금 */
-import { createTransferQuery } from '@/utils/transfer'
-import { TRANSFER_RECIPIENT_TYPE } from '@/constants'
 
 /* 해당 저금통 정보를 가져오는 composables import */
 import { usePiggyBankDetail } from '@/composables/usePiggyBankDetail'
@@ -198,7 +193,11 @@ async function handleSubmit() {
 
   try {
     // 응원 메세지 보내기 함수 활용
-    await sendCheerMessage(piggyBank.value.piggyBankId, { message: message.value })
+    await sendCheerMessage(
+      piggyBank.value.piggyBankId,
+      { message: message.value },
+      route.params.childId
+    )
     await payBonus(piggyBank.value.piggyBankId, route.params.childId)
 
     // 메세지 전송 성공 후, 이미 알고 있는 아이에게 보너스 금액을 기본값으로 채운 송금 화면으로 이동

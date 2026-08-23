@@ -27,15 +27,17 @@
     </div>
 
     <!-- 챌린지 안내 문구 -->
-    <p class="text-xs text-muted leading-relaxed mb-4">
-      신문 기사를 읽고 <span class="font-bold">챌린지</span>에 참여해요!
-      <br />
-      <span class="font-bold">챌린지</span>를 완료하고 생각하는 힘을 키워요.
-    </p>
+    <div class="flex items-center gap-2 mb-4">
+      <img :src="cadoseedImage" alt="아보카도 씨" class="w-9 h-9 object-contain shrink-0" />
 
-    <div v-if="isLoading" class="text-center text-muted text-sm py-10">
-      불러오는 중...
+      <p class="text-xs text-muted leading-relaxed">
+        신문 기사를 읽고 <span class="font-bold">챌린지</span>에 참여해요!
+        <br />
+        <span class="font-bold">챌린지</span>를 완료하고 생각하는 힘을 키워요.
+      </p>
     </div>
+
+    <div v-if="isLoading" class="text-center text-muted text-sm py-10">불러오는 중...</div>
 
     <div v-else-if="errorMessage" class="text-center text-sm text-red-500 py-10">
       {{ errorMessage }}
@@ -52,16 +54,10 @@
         :to="{
           name: detailRouteName,
           params:
-            childId != null
-              ? { childId: childId, newsId: item.newsId }
-              : { newsId: item.newsId }
+            childId != null ? { childId: childId, newsId: item.newsId } : { newsId: item.newsId }
         }"
         class="relative flex items-center justify-between h-20 pl-5 pr-4 rounded-2xl overflow-visible"
-        :class="
-          item.isNew
-            ? ''
-            : 'bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]'
-        "
+        :class="item.isNew ? '' : 'bg-[#f6f6f6] shadow-[0px_2px_6px_0px_rgba(191,191,191,0.4)]'"
         :style="item.isNew ? { backgroundColor: '#EBF4DD' } : undefined"
       >
         <!-- 티켓 탭 -->
@@ -74,11 +70,7 @@
           <div class="flex items-center gap-2">
             <p
               class="font-semibold truncate"
-              :class="
-                item.isRead
-                  ? 'text-gray-500 font-medium'
-                  : 'text-gray-900 font-bold'
-              "
+              :class="item.isRead ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'"
             >
               {{ item.title }}
             </p>
@@ -95,9 +87,7 @@
             </span>
           </div>
 
-          <p class="text-xs text-muted mt-1">
-            발행일: {{ formatDate(item.publishedAt) }}
-          </p>
+          <p class="text-xs text-muted mt-1">발행일: {{ formatDate(item.publishedAt) }}</p>
         </div>
 
         <img
@@ -107,12 +97,7 @@
           class="w-11 h-11 rounded-full bg-white object-contain shrink-0"
         />
 
-        <ChevronRight
-          v-else
-          :size="18"
-          style="color: #bfbfbf"
-          class="shrink-0"
-        />
+        <ChevronRight v-else :size="18" style="color: #bfbfbf" class="shrink-0" />
       </RouterLink>
     </div>
 
@@ -123,16 +108,11 @@
     >
       <Info :size="13" :stroke-width="1.8" class="shrink-0" />
 
-      <span>
-        실제 어린이 경제신문에서 제공해주는 최신 기사를 일주일마다 업데이트 합니다.
-      </span>
+      <span> 실제 어린이 경제신문에서 제공해주는 최신 기사를 일주일마다 업데이트 합니다. </span>
     </div>
 
     <!-- 페이지네이션 -->
-    <div
-      v-if="totalPages > 1"
-      class="flex items-center justify-center gap-2 mt-4"
-    >
+    <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-4">
       <button
         type="button"
         class="text-muted disabled:opacity-30"
@@ -147,11 +127,7 @@
         :key="p"
         type="button"
         class="w-7 h-7 rounded-full text-sm flex items-center justify-center"
-        :class="
-          page === p - 1
-            ? 'bg-avocado-600 text-white font-medium'
-            : 'text-muted'
-        "
+        :class="page === p - 1 ? 'bg-avocado-600 text-white font-medium' : 'text-muted'"
         @click="goToPage(p - 1)"
       >
         {{ p }}
@@ -173,6 +149,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight, Info } from 'lucide-vue-next'
 
+import cadoseedImage from '@/assets/images/cadoseed.png'
 import ch11 from '@/assets/images/ch11.png'
 import ch12 from '@/assets/images/ch12.png'
 
@@ -204,9 +181,7 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const activeFilter = ref('ALL')
 
-const totalPages = computed(() =>
-  Math.ceil(totalCount.value / PAGE_SIZE)
-)
+const totalPages = computed(() => Math.ceil(totalCount.value / PAGE_SIZE))
 
 const emptyMessage = computed(() => {
   if (activeFilter.value === 'COMPLETED') {
@@ -225,8 +200,7 @@ const badgeImageMap = new Map()
 
 function getBadgeImage(newsId) {
   if (!badgeImageMap.has(newsId)) {
-    const randomImage =
-      BADGE_IMAGES[Math.floor(Math.random() * BADGE_IMAGES.length)]
+    const randomImage = BADGE_IMAGES[Math.floor(Math.random() * BADGE_IMAGES.length)]
 
     badgeImageMap.set(newsId, randomImage)
   }
@@ -239,19 +213,13 @@ async function fetchNews() {
   errorMessage.value = ''
 
   try {
-    const currentFilter = FILTER_OPTIONS.find(
-      (option) => option.key === activeFilter.value
-    )
+    const currentFilter = FILTER_OPTIONS.find((option) => option.key === activeFilter.value)
 
     const { data } = await getNewsList({
       page: page.value,
       size: PAGE_SIZE,
-      ...(props.childId != null
-        ? { childId: props.childId }
-        : {}),
-      ...(currentFilter.completed !== undefined
-        ? { completed: currentFilter.completed }
-        : {})
+      ...(props.childId != null ? { childId: props.childId } : {}),
+      ...(currentFilter.completed !== undefined ? { completed: currentFilter.completed } : {})
     })
 
     newsList.value = data.data.news
@@ -284,7 +252,6 @@ function goToPage(nextPage) {
   if (nextPage < 0 || nextPage > totalPages.value - 1) return
 
   page.value = nextPage
-
   fetchNews()
 }
 

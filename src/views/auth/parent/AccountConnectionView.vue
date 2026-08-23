@@ -101,7 +101,7 @@ async function pasteAccountNumber() {
           계좌를 연결해 주세요
         </h2>
         <p class="text-sm leading-relaxed" style="color: var(--color-text-secondary)">
-          아이의 용돈 지급과 지출 관리를 위해 KB국민은행 계좌가 필요해요.
+          지출 관리를 위해 KB 계좌 등록을 해주세요.
         </p>
       </div>
 
@@ -240,7 +240,7 @@ async function pasteAccountNumber() {
             v-if="loading"
             class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
           />
-          {{ loading ? '연결 중...' : '연결하기 →' }}
+          {{ loading ? '연결 중...' : '연결하기' }}
         </BaseButton>
       </form>
     </div>

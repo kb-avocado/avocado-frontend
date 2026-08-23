@@ -7,23 +7,7 @@
     :amount="paymentResult.amount"
     :merchant-name="paymentResult.merchantName"
     @confirm="closePaymentResult"
-  >
-    <div
-      v-if="paymentResult.status === 'SUCCESS' && paymentResult.balanceAfter !== null"
-      class="flex items-center justify-between rounded-xl bg-gray-50 px-5 py-4 text-left"
-    >
-      <span class="text-sm text-gray-500">결제 후 잔액</span>
-      <strong class="text-base text-avocado-600">
-        {{ formatMoney(paymentResult.balanceAfter) }}원
-      </strong>
-    </div>
-    <p
-      v-else-if="paymentResult.failureCode"
-      class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
-    >
-      오류 코드: {{ paymentResult.failureCode }}
-    </p>
-  </PaymentResult>
+  />
 
   <div
     v-else-if="['loading', 'error', 'empty'].includes(screenState)"
@@ -41,7 +25,7 @@
     <h2 class="mt-5 text-xl font-bold text-gray-900">{{ stateTitle }}</h2>
     <p class="mt-2 max-w-xs text-sm leading-6 text-gray-500">{{ stateDescription }}</p>
     <BaseButton v-if="screenState === 'error'" class="mt-6 h-11 min-w-32" @click="loadWallet">
-      다시 시도
+      돌아가기
     </BaseButton>
   </div>
 
@@ -132,7 +116,7 @@
             <div
               class="absolute bottom-[5%] left-[4%] flex h-[27%] w-[31%] flex-col justify-center bg-transparent px-2"
             >
-              <span class="text-xs text-gray-600">잔액 확인</span>
+              <span class="text-xs text-gray-600">내 지갑</span>
               <strong class="mt-1 whitespace-nowrap text-base text-gray-900">
                 {{ formatMoney(wallet?.balance) }}원
               </strong>
@@ -196,14 +180,14 @@
 
       <section class="mt-6 rounded-2xl bg-white p-4 shadow-[0_4px_18px_rgba(0,0,0,0.06)]">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-gray-900">최근 결제 내역</h2>
+          <h2 class="text-sm font-bold text-gray-900">나의 최근 지갑 기록</h2>
           <RouterLink :to="{ name: 'wallet-transaction-list' }" class="text-xs text-gray-500">
-            전체보기 ›
+            모두보기 ›
           </RouterLink>
         </div>
 
         <ul v-if="recentTransactions.length" class="mt-1 divide-y divide-gray-100">
-          <li v-for="transaction in recentTransactions" :key="transaction.id" class="py-1">
+          <li v-for="transaction in recentTransactions" :key="transaction.id">
             <WalletTransactionItem :transaction="transaction" />
           </li>
         </ul>
@@ -311,8 +295,8 @@ const qrStateDescription = computed(() =>
   qrStatus.value === 'INVALID' ? '새 QR을 발급해 다시 시도해 주세요.' : ''
 )
 const resultDescription = computed(() => {
-  if (paymentResult.value?.status === 'SUCCESS') return '결제가 정상적으로 처리되었습니다.'
-  if (paymentResult.value?.failureCode) return '결제를 처리하지 못했습니다.'
+  if (paymentResult.value?.status === 'SUCCESS') return ''
+  if (paymentResult.value?.failureCode) return ''
   return '잠시 후 다시 시도해 주세요.'
 })
 const formattedQrTime = computed(() => {

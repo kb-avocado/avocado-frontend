@@ -1,36 +1,42 @@
-import { computed, onBeforeUnmount, reactive, ref } from 'vue'
-import { getTransferRecipient } from '@/api/transfer'
-import { TRANSFER_BANKS, TRANSFER_RECIPIENT_SEARCH_TYPE } from '@/constants'
-import { normalizeTransferRecipient, unwrapTransferResponse } from '@/utils/transfer'
+import { computed, reactive } from 'vue'
+import { TRANSFER_BANKS } from '@/constants'
 
 export function useTransferRecipientSearch(onSuccess) {
   const form = reactive({
     bankCode: '',
-    accountNumber: ''
+    accountNumber: '',
+    recipientName: ''
   })
 
   const errors = reactive({
     bankCode: '',
-    accountNumber: ''
+    accountNumber: '',
+    recipientName: ''
   })
-
-  const isSearching = ref(false)
-  const searchError = ref('')
-  let requestSequence = 0
-  let requestController = null
 
   const canSubmit = computed(
     () =>
-      form.bankCode !== '' && form.accountNumber !== '' && !errors.bankCode && !errors.accountNumber
+      form.bankCode !== '' &&
+      form.accountNumber !== '' &&
+      form.recipientName.trim() !== '' &&
+      !errors.bankCode &&
+      !errors.accountNumber &&
+      !errors.recipientName
   )
 
   function clearFieldError(field) {
     errors[field] = ''
-    searchError.value = ''
   }
 
   function validateAccountNumber() {
-    errors.accountNumber = form.accountNumber ? '' : '계좌번호를 입력해주세요.'
+    const value = form.accountNumber.trim()
+    if (!value) {
+      errors.accountNumber = '계좌번호를 입력해주세요.'
+    } else if (!/^\d+$/.test(value)) {
+      errors.accountNumber = '계좌번호는 숫자만 입력해주세요.'
+    } else {
+      errors.accountNumber = ''
+    }
     return !errors.accountNumber
   }
 
@@ -39,78 +45,40 @@ export function useTransferRecipientSearch(onSuccess) {
     return !errors.bankCode
   }
 
+  function validateRecipientName() {
+    errors.recipientName = form.recipientName.trim() ? '' : '받는 사람 이름을 입력해주세요.'
+    return !errors.recipientName
+  }
+
   function validateForm() {
     const isBankValid = validateBank()
     const isAccountNumberValid = validateAccountNumber()
-    return isBankValid && isAccountNumberValid
+    const isNameValid = validateRecipientName()
+    return isBankValid && isAccountNumberValid && isNameValid
   }
 
-  function getSearchErrorMessage(error) {
-    const status = error?.response?.status
+  function searchRecipient() {
+    if (!validateForm()) return
 
-    if (status === 404) return '일치하는 송금 대상을 찾을 수 없어요.'
-    if (status >= 500) return '서버에 문제가 발생했어요. 잠시 후 다시 시도해주세요.'
+    const selectedBank = TRANSFER_BANKS.find((bank) => bank.code === form.bankCode)
 
-    return error?.response?.data?.message ?? '송금 대상을 확인하지 못했어요. 다시 시도해주세요.'
+    onSuccess({
+      name: form.recipientName.trim(),
+      bankCode: form.bankCode,
+      bankName: selectedBank?.name ?? '',
+      accountNumber: form.accountNumber.trim()
+    })
   }
-
-  async function searchRecipient() {
-    if (isSearching.value || !validateForm()) return
-
-    const currentSequence = ++requestSequence
-    requestController?.abort()
-    requestController = new AbortController()
-    isSearching.value = true
-    searchError.value = ''
-
-    try {
-      const response = await getTransferRecipient(
-        TRANSFER_RECIPIENT_SEARCH_TYPE.ACCOUNT_NUMBER,
-        form.accountNumber,
-        { signal: requestController.signal }
-      )
-
-      if (currentSequence !== requestSequence) return
-
-      const selectedBank = TRANSFER_BANKS.find((bank) => bank.code === form.bankCode)
-      const recipient = normalizeTransferRecipient(unwrapTransferResponse(response), {
-        bankCode: form.bankCode,
-        bankName: selectedBank?.name,
-        accountNumber: form.accountNumber
-      })
-
-      if (!recipient) {
-        searchError.value = '송금 대상 정보를 확인할 수 없어요.'
-        return
-      }
-
-      await onSuccess(recipient)
-    } catch (error) {
-      if (currentSequence !== requestSequence || error?.code === 'ERR_CANCELED') return
-      searchError.value = getSearchErrorMessage(error)
-    } finally {
-      if (currentSequence === requestSequence) {
-        isSearching.value = false
-        requestController = null
-      }
-    }
-  }
-
-  onBeforeUnmount(() => {
-    requestSequence += 1
-    requestController?.abort()
-  })
 
   return {
     banks: TRANSFER_BANKS,
     form,
     errors,
     canSubmit,
-    isSearching,
-    searchError,
     clearFieldError,
     validateAccountNumber,
     validateBank,
+    validateRecipientName,
     searchRecipient
   }
 }

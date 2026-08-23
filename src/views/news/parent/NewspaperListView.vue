@@ -6,7 +6,7 @@
       <CurrentChildBadge :name="currentChildName" :avatar-image="currentChildAvatarImage" />
     </div>
 
-    <NewsListBody :child-id="childId" detail-route-name="parent-newspaper-detail" />
+    <NewsListBody class="pb-8" :child-id="childId" detail-route-name="parent-newspaper-detail" />
   </div>
 </template>
 

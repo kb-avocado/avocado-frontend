@@ -1,13 +1,18 @@
 <template>
-  <div class="mx-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-4">
+  <div
+    class="mx-2 rounded-2xl bg-white border border-[#E8EDE4] shadow-[0px_4px_20px_0px_rgba(0,0,0,0.08)] p-4"
+  >
     <p v-if="deposits.length === 0" class="text-sm text-muted text-center py-6">
       아직 저금한 기록이 없어요.
     </p>
 
     <template v-else>
       <div>
-        <div v-for="(deposit, index) in visibleDeposits" :key="deposit.depositId"
-          class="flex items-start justify-between py-5 first:pt-0 last:pb-0">
+        <div
+          v-for="(deposit, index) in visibleDeposits"
+          :key="deposit.depositId"
+          class="flex items-start justify-between py-5 first:pt-0 last:pb-0"
+        >
           <div class="flex gap-3">
             <p class="w-9 shrink-0 text-xs text-muted">
               {{
@@ -15,8 +20,8 @@
               }}
             </p>
             <div>
-              <p class="text-base font-bold text-gray-600">내 아보카도 지갑</p>
-              <p class="text-xs text-muted mt-0.5">{{ formatTime(deposit.depositedAt) }}</p>
+              <p class="text-sm font-bold text-gray-600">내 아보카도 지갑</p>
+              <p class="text-[11px] text-muted mt-0.5">{{ formatTime(deposit.depositedAt) }}</p>
             </div>
           </div>
           <div class="text-right">
@@ -26,8 +31,11 @@
         </div>
       </div>
 
-      <RouterLink v-if="deposits.length > VISIBLE_COUNT" :to="historyRoute"
-        class="block w-full mt-2 pt-3 border-t border-avocado-100 text-sm text-muted text-center">
+      <RouterLink
+        v-if="deposits.length > VISIBLE_COUNT"
+        :to="historyRoute"
+        class="block w-full mt-2 pt-3 border-t border-avocado-100 text-sm text-muted text-center"
+      >
         모두 보기 ({{ deposits.length }})
       </RouterLink>
     </template>
@@ -63,9 +71,9 @@ const visibleDeposits = computed(() => deposits.value.slice(0, VISIBLE_COUNT))
 const historyRoute = computed(() =>
   props.childId != null
     ? {
-      name: 'parentPiggyDepositHistory',
-      params: { childId: props.childId, id: props.piggyBankId }
-    }
+        name: 'parentPiggyDepositHistory',
+        params: { childId: props.childId, id: props.piggyBankId }
+      }
     : { name: 'piggyDepositHistory', params: { id: props.piggyBankId } }
 )
 

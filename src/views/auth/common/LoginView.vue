@@ -70,7 +70,6 @@ async function handleSubmit() {
       <h1
         class="mt-6 mb-7 text-[22px] font-bold leading-[1.35] tracking-[-0.02em] text-[var(--color-avocado-900)]"
       >
-        반가워요!<br />
         <span class="text-avocado-600 text-4xl">아보카도</span>에 로그인하세요
       </h1>
 
@@ -86,7 +85,7 @@ async function handleSubmit() {
             inputmode="email"
             autocomplete="email"
             required
-            placeholder="you@avocado.kr"
+            placeholder="avocado@avocado.com"
             class="w-full rounded-xl border bg-[var(--color-surface)] px-3.5 py-2.5 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
             :class="
               fieldErrors.email
@@ -114,7 +113,7 @@ async function handleSubmit() {
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
               required
-              placeholder="비밀번호 입력"
+              placeholder="비밀번호"
               class="w-full rounded-xl border bg-[var(--color-surface)] py-2.5 pl-3.5 pr-16 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
               :class="
                 fieldErrors.password

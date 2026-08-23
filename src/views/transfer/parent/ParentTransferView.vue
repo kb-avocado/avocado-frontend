@@ -6,7 +6,7 @@
       <div class="flex flex-1 flex-col items-center justify-center">
         <CircleCheck :size="52" class="text-avocado-600" />
 
-        <h1 class="mt-5 text-xl font-bold text-gray-900">용돈 보내기를 완료했어요</h1>
+        <h1 class="mt-5 text-xl font-bold text-gray-900">용돈을 보냈어요</h1>
 
         <dl class="mt-8 w-full rounded-2xl bg-gray-50 p-5">
           <div class="flex items-center justify-between">
@@ -29,25 +29,25 @@
         :to="{ name: 'parent-home', params: { childId } }"
         class="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-avocado-600 text-sm font-medium text-white"
       >
-        홈으로 돌아가기
+        돌아가기
       </RouterLink>
     </section>
 
     <!-- 금액 입력 -->
     <form v-else class="flex flex-1 flex-col" novalidate @submit.prevent="submit">
       <!-- 상단 타이틀 -->
-      <h1 class="text-xl font-bold text-gray-900">{{ childName }}에게 얼마를 보낼까요?</h1>
+      <h1 class="text-lg font-bold text-gray-900">{{ childName }}에게 용돈을 보내요</h1>
 
-      <p class="mt-2 text-sm text-gray-500">보호자님의 계좌에서 아이 지갑으로 바로 충전돼요.</p>
+      <p class="mt-2 text-sm text-gray-500">아이의 아보카도 지갑으로 바로 충전돼요</p>
 
       <!-- 아이 지갑 잔액 카드 -->
-      <div class="mt-6 rounded-2xl p-5" style="background-color: #eef0fb" aria-live="polite">
+      <div class="mt-5 rounded-2xl p-5" style="background-color: #eef0fb" aria-live="polite">
         <p class="text-xs text-gray-500">{{ childName }}의 아보카도 지갑</p>
 
         <p v-if="walletLoading" class="mt-1 text-sm text-gray-400">잔액을 불러오는 중이에요</p>
 
         <p v-else-if="wallet" class="mt-1 text-lg font-bold text-gray-900">
-          현재 {{ formatMoney(wallet.balance) }}원
+          {{ formatMoney(wallet.balance) }}원
         </p>
 
         <p v-else class="mt-1 text-sm text-gray-500">
@@ -55,25 +55,14 @@
         </p>
       </div>
 
-      <!-- 보낼 금액 -->
-      <label for="transfer-amount" class="mt-8 block text-sm font-medium text-gray-700">
-        보낼 금액
-      </label>
+      <!-- 용돈 -->
+      <p class="mt-6 text-sm font-medium text-gray-700">용돈</p>
 
-      <!-- 금액 입력 -->
-      <div class="mt-2 flex items-baseline gap-2">
-        <input
-          id="transfer-amount"
-          v-model="amountText"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-          placeholder="0"
-          class="min-w-0 flex-1 border-0 bg-transparent text-right text-3xl font-bold text-gray-900 outline-none ring-0 placeholder:text-gray-300 focus:border-0 focus:outline-none focus:ring-0"
-          :disabled="isSending"
-          :aria-invalid="Boolean(amountError)"
-          @input="onAmountInput"
-        />
+      <!-- 금액 표시 -->
+      <div class="mt-2 flex items-baseline justify-end gap-2">
+        <p class="min-w-0 flex-1 text-right text-2xl font-bold text-gray-900" aria-live="polite">
+          {{ formatMoney(amount) }}
+        </p>
 
         <span class="text-lg font-medium text-gray-700"> 원 </span>
       </div>
@@ -87,7 +76,7 @@
       </p>
 
       <!-- 빠른 금액 선택 + 모두 지우기 -->
-      <div class="mt-4 flex items-center justify-center gap-2">
+      <div class="mt-3 flex items-center justify-center gap-2">
         <button
           v-for="quickAmount in QUICK_AMOUNTS"
           :key="quickAmount"
@@ -101,39 +90,51 @@
 
         <button
           type="button"
-          class="h-10 rounded-full bg-gray-100 px-4 text-sm text-gray-500 transition-colors hover:bg-gray-200"
+          class="h-10 rounded-full bg-gray-100 font-bold px-4 text-[10px] text-gray-500 transition-colors hover:bg-gray-200"
           @click="clearAmount"
         >
           모두 지우기
         </button>
       </div>
 
-      <!-- 송금 오류 -->
-      <p
-        v-if="sendError"
-        role="alert"
-        aria-live="polite"
-        class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
-      >
-        {{ sendError }}
-      </p>
+      <!-- 키패드 + 보내기 버튼: 위쪽 내용 길이와 상관없이 항상 화면 하단에 고정 -->
+      <div class="sticky bottom-0 z-0 mt-auto -mx-4 w-[calc(100%+2rem)] bg-white px-4 pt-2">
+        <!-- 키패드 -->
+        <NumberKeypad
+          mode="amount"
+          :disabled="isSending"
+          @input="appendDigit"
+          @delete="deleteDigit"
+        />
 
-      <!-- 보내기 버튼 -->
-      <div class="mt-7 px-4">
-        <BaseButton
-          variant="primary"
-          class="w-full gap-2"
-          :disabled="!canSubmit || isSending"
-          @click="submit"
+        <!-- 송금 오류 -->
+        <p
+          v-if="sendError"
+          role="alert"
+          aria-live="polite"
+          class="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
         >
-          <span
-            v-if="isSending"
-            class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-            aria-hidden="true"
-          />
+          {{ sendError }}
+        </p>
 
-          {{ isSending ? '보내는 중...' : '보내기' }}
-        </BaseButton>
+        <!-- 보내기 버튼 -->
+        <div class="mt-5 px-4">
+          <BaseButton
+            variant="primary"
+            class="w-full gap-2"
+            style="height: 44px"
+            :disabled="!canSubmit || isSending"
+            @click="submit"
+          >
+            <span
+              v-if="isSending"
+              class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+              aria-hidden="true"
+            />
+
+            {{ isSending ? '보내는 중...' : '보내기' }}
+          </BaseButton>
+        </div>
       </div>
     </form>
   </main>
@@ -146,6 +147,7 @@ import { storeToRefs } from 'pinia'
 import { CircleCheck } from 'lucide-vue-next'
 
 import BaseButton from '@/components/common/BaseButton.vue'
+import NumberKeypad from '@/components/common/NumberKeypad.vue'
 
 import { transferAccountToWallet } from '@/api/transfer'
 import { useAuthStore } from '@/stores/auth'
@@ -153,6 +155,7 @@ import { useWalletStore } from '@/stores/wallet'
 
 const QUICK_AMOUNTS = [10000, 30000, 50000]
 const MAX_AMOUNT = 1000000
+const MAX_AMOUNT_LENGTH = 9 // 최대 9자리까지만 입력 허용
 
 const props = defineProps({
   childId: {
@@ -168,8 +171,7 @@ const walletStore = useWalletStore()
 
 const { wallet, loading: walletLoading, error: walletError } = storeToRefs(walletStore)
 
-const amountText = ref('')
-const amountError = ref('')
+const amountInput = ref('')
 const sendError = ref('')
 const isSending = ref(false)
 const result = ref(null)
@@ -182,7 +184,13 @@ const childName = computed(
 )
 
 /* 실제 송금 금액 */
-const amount = computed(() => Number(amountText.value.replace(/,/g, '')) || 0)
+const amount = computed(() => Number(amountInput.value || 0))
+
+/* 금액 오류 */
+const amountError = computed(() => {
+  if (amount.value > MAX_AMOUNT) return `한 번에 ${formatMoney(MAX_AMOUNT)}원까지 보낼 수 있어요.`
+  return ''
+})
 
 /* 송금 버튼 활성화 조건 */
 const canSubmit = computed(() => amount.value > 0 && !amountError.value)
@@ -192,31 +200,30 @@ function formatMoney(value) {
   return Number(value ?? 0).toLocaleString('ko-KR')
 }
 
-/* 송금 금액 설정 */
-function setAmount(value) {
-  const clamped = Math.min(Math.max(value, 0), MAX_AMOUNT)
-
-  amountText.value = clamped === 0 ? '' : formatMoney(clamped)
-
-  amountError.value =
-    value > MAX_AMOUNT ? `한 번에 ${formatMoney(MAX_AMOUNT)}원까지 보낼 수 있어요.` : ''
-
+/* 키패드 숫자 입력 */
+function appendDigit(value) {
   sendError.value = ''
+  if (amountInput.value.length >= MAX_AMOUNT_LENGTH) return
+  if (amountInput.value === '' && value === '00') return // 처음부터 00 입력은 무시
+  amountInput.value += value
 }
 
-/* 직접 금액 입력 */
-function onAmountInput() {
-  setAmount(Number(amountText.value.replace(/[^\d]/g, '')) || 0)
+/* 키패드 한 자리 지우기 */
+function deleteDigit() {
+  sendError.value = ''
+  amountInput.value = amountInput.value.slice(0, -1)
 }
 
 /* 빠른 금액 추가 */
 function addAmount(value) {
-  setAmount(amount.value + value)
+  sendError.value = ''
+  amountInput.value = String(Math.min(amount.value + value, MAX_AMOUNT))
 }
 
 /* 입력 금액 전체 삭제 */
 function clearAmount() {
-  setAmount(0)
+  sendError.value = ''
+  amountInput.value = ''
 }
 
 /* 송금 실패 메시지 */
@@ -277,7 +284,7 @@ function applyInitialAmountFromQuery() {
   const initialAmount = Number(route.query.amount)
 
   if (Number.isFinite(initialAmount) && initialAmount > 0) {
-    setAmount(initialAmount)
+    amountInput.value = String(Math.min(initialAmount, MAX_AMOUNT))
   }
 }
 

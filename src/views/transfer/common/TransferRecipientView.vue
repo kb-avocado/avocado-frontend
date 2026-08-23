@@ -3,7 +3,7 @@
 
   <main v-else class="flex min-h-full flex-col bg-white px-4 pb-5 pt-6">
     <div>
-      <h1 class="text-xl font-bold text-gray-900">누구에게 송금할까요?</h1>
+      <h1 class="text-xl font-bold text-gray-900">누구에게 돈을 보낼까요?</h1>
       <p class="mt-2 text-sm text-gray-500">은행과 계좌번호를 입력해주세요.</p>
     </div>
 
@@ -13,7 +13,6 @@
           v-model="form.bankCode"
           :banks="banks"
           :error="errors.bankCode"
-          :disabled="isSearching"
           @update:model-value="clearFieldError('bankCode')"
           @blur="validateBank"
         />
@@ -21,19 +20,27 @@
         <AccountNumberInput
           v-model="form.accountNumber"
           :error="errors.accountNumber"
-          :disabled="isSearching"
           @update:model-value="clearFieldError('accountNumber')"
           @blur="validateAccountNumber"
         />
 
-        <p
-          v-if="searchError"
-          role="alert"
-          aria-live="polite"
-          class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600"
-        >
-          {{ searchError }}
-        </p>
+        <div>
+          <label for="recipient-name" class="mb-2 block text-sm font-medium text-gray-700">
+            받는 사람 이름
+          </label>
+          <input
+            id="recipient-name"
+            v-model="form.recipientName"
+            type="text"
+            placeholder="이름"
+            class="w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-900 outline-none"
+            @input="clearFieldError('recipientName')"
+            @blur="validateRecipientName"
+          />
+          <p v-if="errors.recipientName" role="alert" class="mt-1 text-xs text-red-500">
+            {{ errors.recipientName }}
+          </p>
+        </div>
 
         <RecentRecipientList
           :recipients="recentRecipients"
@@ -46,15 +53,10 @@
 
       <BaseButton
         class="mt-auto h-12 w-full rounded-xl"
-        :disabled="!canSubmit || isSearching"
+        :disabled="!canSubmit"
         @click="searchRecipient"
       >
-        <span
-          v-if="isSearching"
-          class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-          aria-hidden="true"
-        />
-        {{ isSearching ? '확인 중...' : '다음' }}
+        다음
       </BaseButton>
     </form>
   </main>
@@ -91,11 +93,10 @@ const {
   form,
   errors,
   canSubmit,
-  isSearching,
-  searchError,
   clearFieldError,
   validateAccountNumber,
   validateBank,
+  validateRecipientName,
   searchRecipient
 } = useTransferRecipientSearch(selectRecentRecipient)
 

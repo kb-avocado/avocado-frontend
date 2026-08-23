@@ -204,23 +204,18 @@ export function formatWalletMoney(value) {
 export function formatWalletTransactionAmount(transaction) {
   if (transaction?.amount === null || transaction?.amount === undefined) return '금액 정보 없음'
 
+  const direction = getWalletTransactionDirection(transaction)
   let prefix = ''
-  if (transaction.status === 'SUCCESS') {
-    const direction = getWalletTransactionDirection(transaction)
-    if (direction === 'IN') prefix = '+'
-    if (direction === 'OUT') prefix = '-'
-  }
+  if (direction === 'IN') prefix = '+'
+  if (direction === 'OUT') prefix = '-'
 
   return `${prefix}${Number(transaction.amount).toLocaleString('ko-KR')}원`
 }
 
 export function getWalletTransactionAmountClass(transaction) {
-  if (transaction?.status === 'PENDING') return 'text-amber-600'
-  if (transaction?.status !== 'SUCCESS') return 'text-gray-400'
-
   const direction = getWalletTransactionDirection(transaction)
   if (direction === 'IN') return 'text-avocado-600'
-  if (direction === 'OUT') return 'text-red-500'
+  if (direction === 'OUT') return 'text-orange-500'
   return 'text-gray-700'
 }
 

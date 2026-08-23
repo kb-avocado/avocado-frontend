@@ -13,7 +13,7 @@
             <span class="text-4xl font-bold text-avocado-600">가</span
             ><span class="text-base font-normal text-avocado-600">치있는 </span>
             <span class="text-4xl font-bold text-avocado-600">도</span
-            ><span class="text-base font-normal text-avocado-600">전</span>
+            ><span class="text-base font-normal text-avocado-600">약</span>
           </p>
           <p
             v-else
