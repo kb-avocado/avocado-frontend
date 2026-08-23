@@ -1,122 +1,97 @@
 <template>
-  <div
-    class="grid max-h-64 grid-cols-3 gap-x-3 gap-y-2"
-    role="group"
-    :aria-label="mode === 'pin' ? '비밀번호 숫자 키패드' : '금액 숫자 키패드'"
-  >
-    <!-- 1~9 -->
-    <button
-      v-for="key in keys"
-      :key="key"
-      type="button"
-      :class="keyButtonClass"
-      :aria-label="`${key} 입력`"
-      :disabled="disabled"
-      @touchstart.prevent="handleFastTouch(() => emit('input', String(key)))"
-      @click="handleClick(() => emit('input', String(key)))"
-    >
-      {{ key }}
-    </button>
+  <div class="w-full">
+    <div class="grid grid-cols-3">
+      <!-- 1 ~ 9 -->
+      <button
+        v-for="number in NUMBER_KEYS"
+        :key="number"
+        type="button"
+        class="flex h-16 items-center justify-center rounded-xl text-xl font-medium text-gray-900 transition-colors
+               active:bg-avocado-100 active:text-avocado-700
+               disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="disabled"
+        @click="handleInput(number)"
+      >
+        {{ number }}
+      </button>
 
-    <!-- 왼쪽 아래: 00 또는 취소 -->
-    <button
-      type="button"
-      :class="keyButtonClass"
-      :aria-label="mode === 'pin' ? '입력 취소' : '00 입력'"
-      :disabled="disabled"
-      @touchstart.prevent="handleFastTouch(handleLeftButton)"
-      @click="handleClick(handleLeftButton)"
-    >
-      <X v-if="mode === 'pin'" class="h-5 w-5" aria-hidden="true" />
+      <!-- 00 -->
+      <button
+        type="button"
+        class="flex h-16 items-center justify-center rounded-xl text-xl font-medium text-gray-900 transition-colors
+               active:bg-avocado-100 active:text-avocado-700
+               disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="disabled"
+        @click="handleInput('00')"
+      >
+        00
+      </button>
 
-      <span v-else>00</span>
-    </button>
+      <!-- 0 -->
+      <button
+        type="button"
+        class="flex h-16 items-center justify-center rounded-xl text-xl font-medium text-gray-900 transition-colors
+               active:bg-avocado-100 active:text-avocado-700
+               disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="disabled"
+        @click="handleInput('0')"
+      >
+        0
+      </button>
 
-    <!-- 0 -->
-    <button
-      type="button"
-      :class="keyButtonClass"
-      aria-label="0 입력"
-      :disabled="disabled"
-      @touchstart.prevent="handleFastTouch(() => emit('input', '0'))"
-      @click="handleClick(() => emit('input', '0'))"
-    >
-      0
-    </button>
-
-    <!-- 삭제 -->
-    <button
-      type="button"
-      :class="keyButtonClass"
-      aria-label="한 자리 지우기"
-      :disabled="disabled"
-      @touchstart.prevent="handleFastTouch(() => emit('delete'))"
-      @click="handleClick(() => emit('delete'))"
-    >
-      <Delete class="h-5 w-5" aria-hidden="true" />
-    </button>
+      <!-- 한 자리 삭제 -->
+      <button
+        type="button"
+        class="flex h-16 items-center justify-center rounded-xl text-gray-900 transition-colors
+               active:bg-avocado-100 active:text-avocado-700
+               disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="disabled"
+        aria-label="한 자리 지우기"
+        @click="handleDelete"
+      >
+        <Delete :size="22" />
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Delete, X } from 'lucide-vue-next'
+import { Delete } from 'lucide-vue-next'
 
-const props = defineProps({
+defineProps({
   mode: {
     type: String,
-    default: 'amount',
-    validator: (value) => ['amount', 'pin'].includes(value)
+    default: 'amount'
   },
+
   disabled: {
     type: Boolean,
     default: false
   }
 })
 
-const emit = defineEmits({
-  input: (value) => ['0', '00', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(value),
-  delete: () => true,
-  cancel: () => true
-})
-
-const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-const keyButtonClass = computed(() => [
-  'flex items-center justify-center rounded-2xl text-gray-900',
-  'transition-colors duration-0 hover:bg-avocado-100 active:bg-avocado-300 active:duration-0',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-avocado-600',
-  'disabled:cursor-not-allowed disabled:opacity-40',
-  props.mode === 'pin' ? 'h-10 text-2xl font-bold' : 'h-10 text-base font-normal'
+const emit = defineEmits([
+  'input',
+  'delete'
 ])
 
-const handleLeftButton = () => {
-  if (props.mode === 'pin') {
-    emit('cancel')
-    return
-  }
+const NUMBER_KEYS = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9'
+]
 
-  emit('input', '00')
+function handleInput(value) {
+  emit('input', value)
 }
 
-// 터치 기기에서 touchend 이후 발생하는 click까지 기다리지 않고
-// touchstart 시점에 바로 입력을 반영해 빠른 연속 터치를 지원한다.
-// 대신 뒤따라오는 유령 클릭(ghost click)은 무시해서 중복 입력을 막는다.
-let ignoreNextClick = false
-
-const handleFastTouch = (action) => {
-  if (props.disabled) return
-
-  ignoreNextClick = true
-  action()
-}
-
-const handleClick = (action) => {
-  if (ignoreNextClick) {
-    ignoreNextClick = false
-    return
-  }
-
-  action()
+function handleDelete() {
+  emit('delete')
 }
 </script>

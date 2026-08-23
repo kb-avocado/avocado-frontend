@@ -2,9 +2,13 @@ import axiosInstance from './axiosInstance'
 
 /**
  * 최근 7일 알림 목록을 조회합니다.
+ *
+ * @param {{ page?: number, size?: number }} params
  */
-export function getNotifications() {
-  return axiosInstance.get('/notifications')
+export function getNotifications(params = {}) {
+  return axiosInstance.get('/notifications', {
+    params
+  })
 }
 
 /**
@@ -20,7 +24,9 @@ export function getUnreadNotificationCount() {
  * @param {string|number} notificationId
  */
 export function markNotificationAsRead(notificationId) {
-  return axiosInstance.patch(`/notifications/${notificationId}/read`)
+  return axiosInstance.patch(
+    `/notifications/${notificationId}/read`
+  )
 }
 
 /**
@@ -36,22 +42,28 @@ export function markAllNotificationsAsRead() {
  * @param {string|number} notificationId
  */
 export function getNotification(notificationId) {
-  return axiosInstance.get(`/notifications/${notificationId}`)
+  return axiosInstance.get(
+    `/notifications/${notificationId}`
+  )
 }
 
 /**
- * 알림을 삭제합니다.
+ * 알림 삭제
  *
  * @param {string|number} notificationId
  */
 export function deleteNotification(notificationId) {
-  return axiosInstance.delete(`/notifications/${notificationId}`)
+  return axiosInstance.delete(
+    `/notifications/${notificationId}`
+  )
 }
 
 /**
- * SSE 실시간 알림 구독 URL을 반환합니다.
+ * SSE 실시간 알림 구독 URL
  */
 export function getNotificationSubscribeUrl() {
-  const baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
-  return `${baseURL.replace(/\/$/, '')}/notifications/subscribe`
+  const baseURL =
+    import.meta.env.VITE_API_BASE_URL || '/api'
+
+  return `${baseURL.replace(/\/*$/, '')}/notifications/subscribe`
 }
