@@ -8,14 +8,14 @@
       <LogOut :size="16" />
       로그아웃
     </button>
-
-    <ConfirmModal
-      v-model="showModal"
-      title="로그아웃 하시겠습니까?"
-      description="다시 이용하려면 로그인이 필요해요."
-      confirm-label="로그아웃"
-      @confirm="handleLogout"
-    />
+<ConfirmModal
+  v-model="showModal"
+  variant="danger"
+  title="로그아웃 하시겠습니까?"
+  description="다시 이용하려면 로그인이 필요해요."
+  confirm-label="로그아웃"
+  @confirm="handleLogout"
+/>
   </div>
 </template>
 
