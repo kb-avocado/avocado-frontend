@@ -3,7 +3,7 @@
     <AppHeader
       title="저금통 만들기"
       show-back
-      :show-bell="true"
+      :show-bell="false"
       :show-avatar="false"
       @click-back="router.back()"
     />
@@ -21,9 +21,7 @@
       <div>
         <!-- 저금 목표 이름 -->
         <div>
-          <p class="text-sm font-medium text-[#42493C] mb-1.5">
-            저금해서 무엇을 하고 싶나요?
-          </p>
+          <p class="text-sm font-medium text-[#42493C] mb-1.5">저금해서 무엇을 하고 싶나요?</p>
 
           <div class="rounded-xl border border-gray-200 p-2.5">
             <input
@@ -38,9 +36,7 @@
 
         <!-- 아이콘 선택 -->
         <div class="mt-4">
-          <p class="text-sm font-medium text-[#42493C] mb-1.5">
-            목표 아이콘 선택
-          </p>
+          <p class="text-sm font-medium text-[#42493C] mb-1.5">목표 아이콘 선택</p>
 
           <div class="grid grid-cols-4 gap-4 py-1">
             <button
@@ -49,15 +45,9 @@
               type="button"
               class="w-16 h-16 mx-auto aspect-square grid place-items-center rounded-full text-2xl transition-shadow"
               :style="{
-                backgroundColor:
-                  selectedIcon === icon
-                    ? '#F1F6FF'
-                    : '#F3F3F3',
+                backgroundColor: selectedIcon === icon ? '#F1F6FF' : '#F3F3F3',
 
-                boxShadow:
-                  selectedIcon === icon
-                    ? '0 0 12px 0 rgba(0, 0, 0, 0.3)'
-                    : 'none'
+                boxShadow: selectedIcon === icon ? '0 0 12px 0 rgba(0, 0, 0, 0.3)' : 'none'
               }"
               @click="selectedIcon = icon"
             >
@@ -68,9 +58,7 @@
 
         <!-- 목표 금액 -->
         <div class="mt-4">
-          <p class="text-sm font-medium text-[#42493C] mb-1.5">
-            목표 금액
-          </p>
+          <p class="text-sm font-medium text-[#42493C] mb-1.5">목표 금액</p>
 
           <!--
             금액 표시 영역
@@ -79,39 +67,25 @@
           <button
             type="button"
             data-keypad-trigger
-            :data-keypad-active="
-              showKeypad
-                ? 'true'
-                : 'false'
-            "
+            :data-keypad-active="showKeypad ? 'true' : 'false'"
             class="w-full flex items-baseline justify-end gap-2 py-2"
             @click="openKeypad"
           >
             <p
               class="min-w-0 flex-1 text-right text-2xl font-bold"
-              :class="
-                targetAmount
-                  ? 'text-gray-900'
-                  : 'text-gray-400'
-              "
+              :class="targetAmount ? 'text-gray-900' : 'text-gray-400'"
               aria-live="polite"
             >
               {{ formatMoney(targetAmount) }}
             </p>
 
-            <span class="text-lg font-medium text-gray-700">
-              원
-            </span>
+            <span class="text-lg font-medium text-gray-700"> 원 </span>
           </button>
 
           <!-- 구분선 -->
           <div
             class="border-t transition-colors"
-            :class="
-              showKeypad
-                ? 'border-avocado-500'
-                : 'border-gray-200'
-            "
+            :class="showKeypad ? 'border-avocado-500' : 'border-gray-200'"
           />
 
           <!-- 빠른 금액 추가 -->
@@ -142,29 +116,18 @@
           </div>
 
           <!-- 아보카도씨 Tip -->
-          <div
-            ref="tipWrapperRef"
-            class="relative mt-3"
-          >
-            <button
-              type="button"
-              class="flex items-center gap-2 text-left"
-              @click="toggleTip"
-            >
+          <div ref="tipWrapperRef" class="relative mt-3">
+            <button type="button" class="flex items-center gap-2 text-left" @click="toggleTip">
               <img
                 :src="avocadoSeedImage"
                 alt="아보카도 씨"
                 class="w-9 h-9 object-contain shrink-0"
               />
 
-              <span
-                class="text-xs font-medium text-gray-400 underline underline-offset-2"
-              >
+              <span class="text-xs font-medium text-gray-400 underline underline-offset-2">
                 아보카도씨의
 
-                <span class="font-semibold text-[#E5793A]">
-                  Tip!
-                </span>
+                <span class="font-semibold text-[#E5793A]"> Tip! </span>
               </span>
             </button>
 
@@ -195,18 +158,14 @@
                   <p class="text-sm font-semibold text-gray-500">
                     아보카도씨의
 
-                    <span class="font-bold text-[#E5793A]">
-                      Tip!
-                    </span>
+                    <span class="font-bold text-[#E5793A]"> Tip! </span>
                   </p>
                 </div>
 
                 <p class="text-sm text-gray-500 leading-relaxed pr-5">
                   처음 돈을 넣은 날로부터
 
-                  <span class="font-semibold text-gray-600">
-                    최소 7일
-                  </span>
+                  <span class="font-semibold text-gray-600"> 최소 7일 </span>
 
                   이 지나야 모은 돈을 돌려받을 수 있어요.
                 </p>
@@ -214,9 +173,7 @@
                 <p class="mt-2 text-sm text-gray-500 leading-relaxed pr-5">
                   저금통을 삭제하면 모은 돈을
 
-                  <span class="font-semibold text-gray-600">
-                    바로 다시 돌려받을 수 있어요.
-                  </span>
+                  <span class="font-semibold text-gray-600"> 바로 다시 돌려받을 수 있어요. </span>
                 </p>
               </div>
             </Transition>
@@ -225,10 +182,7 @@
       </div>
 
       <!-- 입력/서버 오류 -->
-      <p
-        v-if="errorMessage"
-        class="mt-3 text-sm text-red-500"
-      >
+      <p v-if="errorMessage" class="mt-3 text-sm text-red-500">
         {{ errorMessage }}
       </p>
 
@@ -236,10 +190,7 @@
         키패드가 닫혀 있을 때
         일반 저금통 만들기 버튼
       -->
-      <div
-        v-if="!showKeypad"
-        class="mt-auto pt-4"
-      >
+      <div v-if="!showKeypad" class="mt-auto pt-4">
         <BaseButton
           variant="primary"
           class="w-full"
@@ -311,18 +262,11 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  computed
-} from 'vue'
+import { ref, computed } from 'vue'
 
-import {
-  useRouter
-} from 'vue-router'
+import { useRouter } from 'vue-router'
 
-import {
-  X
-} from 'lucide-vue-next'
+import { X } from 'lucide-vue-next'
 
 import AppHeader from '@/components/common/AppHeader.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
@@ -331,43 +275,26 @@ import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import ResultModal from '@/components/common/ResultModal.vue'
 import NumberKeypadPanel from '@/components/common/NumberKeypadPanel.vue'
 
-import {
-  usePiggyBankStore
-} from '@/stores/piggyBank'
+import { usePiggyBankStore } from '@/stores/piggyBank'
 
 import avocadoSeedImage from '@/assets/images/cadoseed.png'
 
-const router =
-  useRouter()
+const router = useRouter()
 
-const store =
-  usePiggyBankStore()
+const store = usePiggyBankStore()
 
-const icons = [
-  '🚗',
-  '🎮',
-  '🎂',
-  '📚',
-  '👕',
-  '⚽',
-  '⭐',
-  '❤️'
-]
+const icons = ['🚗', '🎮', '🎂', '📚', '👕', '⚽', '⭐', '❤️']
 
-const name =
-  ref('')
+const name = ref('')
 
-const selectedIcon =
-  ref('🎮')
+const selectedIcon = ref('🎮')
 
-const targetAmount =
-  ref('')
+const targetAmount = ref('')
 
 /**
  * 공통 키패드 표시 여부
  */
-const showKeypad =
-  ref(false)
+const showKeypad = ref(false)
 
 const quickAmounts = [
   {
@@ -384,50 +311,34 @@ const quickAmounts = [
   }
 ]
 
-const isSubmitting =
-  ref(false)
+const isSubmitting = ref(false)
 
-const errorMessage =
-  ref('')
+const errorMessage = ref('')
 
-const showConfirmModal =
-  ref(false)
+const showConfirmModal = ref(false)
 
-const showSuccessModal =
-  ref(false)
+const showSuccessModal = ref(false)
 
-const showErrorModal =
-  ref(false)
+const showErrorModal = ref(false)
 
-const modalErrorMessage =
-  ref('')
+const modalErrorMessage = ref('')
 
-const showTip =
-  ref(false)
+const showTip = ref(false)
 
-const tipWrapperRef =
-  ref(null)
+const tipWrapperRef = ref(null)
 
 /**
  * 만들기 가능 여부
  */
-const canSubmit =
-  computed(
-    () =>
-      name.value.trim().length > 0 &&
-      Number(targetAmount.value) > 0 &&
-      !isSubmitting.value
-  )
+const canSubmit = computed(
+  () => name.value.trim().length > 0 && Number(targetAmount.value) > 0 && !isSubmitting.value
+)
 
 /**
  * 금액 표시
  */
 function formatMoney(value) {
-  return Number(
-    value || 0
-  ).toLocaleString(
-    'ko-KR'
-  )
+  return Number(value || 0).toLocaleString('ko-KR')
 }
 
 /**
@@ -449,15 +360,11 @@ function openKeypad() {
  *
  * 금액을 더하면서 키패드도 함께 열어줌
  */
-function handleQuickAmount(
-  amount
-) {
+function handleQuickAmount(amount) {
   showTip.value = false
   showKeypad.value = true
 
-  addAmount(
-    amount
-  )
+  addAmount(amount)
 }
 
 /**
@@ -483,38 +390,27 @@ function toggleTip() {
     showKeypad.value = false
   }
 
-  showTip.value =
-    !showTip.value
+  showTip.value = !showTip.value
 }
 
 /**
  * 키패드 숫자 입력
  */
-function appendDigit(
-  value
-) {
+function appendDigit(value) {
   errorMessage.value = ''
 
   /**
    * 첫 입력으로 00 방지
    */
-  if (
-    targetAmount.value === '' &&
-    value === '00'
-  ) {
+  if (targetAmount.value === '' && value === '00') {
     return
   }
 
   /**
    * 앞자리 0 방지
    */
-  if (
-    targetAmount.value === '0'
-  ) {
-    targetAmount.value =
-      value === '00'
-        ? '0'
-        : value
+  if (targetAmount.value === '0') {
+    targetAmount.value = value === '00' ? '0' : value
 
     return
   }
@@ -522,18 +418,13 @@ function appendDigit(
   /**
    * 너무 긴 금액 입력 방지
    */
-  const nextValue =
-    targetAmount.value +
-    value
+  const nextValue = targetAmount.value + value
 
-  if (
-    nextValue.length > 9
-  ) {
+  if (nextValue.length > 9) {
     return
   }
 
-  targetAmount.value =
-    nextValue
+  targetAmount.value = nextValue
 }
 
 /**
@@ -542,29 +433,16 @@ function appendDigit(
 function deleteDigit() {
   errorMessage.value = ''
 
-  targetAmount.value =
-    targetAmount.value.slice(
-      0,
-      -1
-    )
+  targetAmount.value = targetAmount.value.slice(0, -1)
 }
 
 /**
  * 빠른 금액 추가
  */
-function addAmount(
-  amount
-) {
+function addAmount(amount) {
   errorMessage.value = ''
 
-  targetAmount.value =
-    String(
-      Number(
-        targetAmount.value ||
-        0
-      ) +
-      amount
-    )
+  targetAmount.value = String(Number(targetAmount.value || 0) + amount)
 }
 
 /**
@@ -595,46 +473,33 @@ function openCreateConfirm() {
   showKeypad.value = false
   showTip.value = false
 
-  showConfirmModal.value =
-    true
+  showConfirmModal.value = true
 }
 
 /**
  * 실제 저금통 생성
  */
 async function handleSubmit() {
-  if (
-    !canSubmit.value ||
-    isSubmitting.value
-  ) {
+  if (!canSubmit.value || isSubmitting.value) {
     return
   }
 
-  isSubmitting.value =
-    true
+  isSubmitting.value = true
 
-  errorMessage.value =
-    ''
+  errorMessage.value = ''
 
-  modalErrorMessage.value =
-    ''
+  modalErrorMessage.value = ''
 
   try {
     await store.createPiggyBank({
-      name:
-        name.value.trim(),
+      name: name.value.trim(),
 
-      targetAmount:
-        Number(
-          targetAmount.value
-        ),
+      targetAmount: Number(targetAmount.value),
 
-      icon:
-        selectedIcon.value
+      icon: selectedIcon.value
     })
 
-    showSuccessModal.value =
-      true
+    showSuccessModal.value = true
 
     /**
      * 성공 모달 표시 후
@@ -645,18 +510,12 @@ async function handleSubmit() {
         name: 'piggy'
       })
     }, 1500)
-
   } catch (e) {
-    modalErrorMessage.value =
-      e?.message ||
-      '저금통 생성에 실패했어요. 다시 시도해주세요.'
+    modalErrorMessage.value = e?.message || '저금통 생성에 실패했어요. 다시 시도해주세요.'
 
-    showErrorModal.value =
-      true
-
+    showErrorModal.value = true
   } finally {
-    isSubmitting.value =
-      false
+    isSubmitting.value = false
   }
 }
 </script>
