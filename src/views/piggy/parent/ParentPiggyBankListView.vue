@@ -8,6 +8,8 @@
       <PiggyBankTabs v-model="tab" />
     </div>
 
+    <PiggyTabDescription :tab="tab" audience="parent" />
+
     <Transition name="fade" mode="out-in">
       <section
         v-if="error"
@@ -33,9 +35,9 @@
         저금통 목록을 불러오는 중입니다.
       </div>
 
-      <section v-else-if="displayedItems.length > 0" key="list" class="grid gap-[18px]">
+      <section v-else-if="pagedItems.length > 0" key="list" class="grid gap-[18px]">
         <ParentPiggyBankCard
-          v-for="(item, index) in displayedItems"
+          v-for="(item, index) in pagedItems"
           :key="item.piggyBankId"
           :item="item"
           :index="index"
@@ -51,6 +53,14 @@
         {{ emptyMessage }}
       </div>
     </Transition>
+
+    <!-- 완료·보너스 대기 탭은 목록이 계속 쌓이므로 페이지 단위로 나눠 보여준다. -->
+    <PaginationBar
+      v-if="!loading && !error"
+      v-model:page="page"
+      :total-pages="totalPages"
+      @change="scrollToTop"
+    />
   </div>
 </template>
 
@@ -63,9 +73,14 @@ import PiggyBankTabs from '@/components/piggy/PiggyBankTabs.vue'
 import ParentPiggyBankCard from '@/components/piggy/ParentPiggyBankCard.vue'
 import CurrentChildBadge from '@/components/common/CurrentChildBadge.vue'
 import NoChildConnected from '@/components/common/NoChildConnected.vue'
+import PaginationBar from '@/components/common/PaginationBar.vue'
+import PiggyTabDescription from '@/components/piggy/PiggyTabDescription.vue'
 import { useCurrentChildInfo } from '@/composables/useCurrentChildInfo'
 import { useAuthStore } from '@/stores/auth'
 import { resolveParentChildId } from '@/router/landing'
+
+/* 한 페이지에 보여줄 저금통 개수 */
+const PAGE_SIZE = 5
 
 const props = defineProps({
   childId: {
@@ -92,14 +107,26 @@ const VALID_TABS = ['IN_PROGRESS', 'BONUS_UNPAID', 'CLOSED']
 const tab = ref(VALID_TABS.includes(route.query.tab) ? route.query.tab : 'IN_PROGRESS')
 const loading = ref(false)
 const error = ref('')
+const page = ref(0)
 
 const displayedItems = computed(() => store.getParentList(resolvedChildId.value, tab.value))
+
+const totalPages = computed(() => Math.ceil(displayedItems.value.length / PAGE_SIZE))
+
+const pagedItems = computed(() => {
+  const start = page.value * PAGE_SIZE
+  return displayedItems.value.slice(start, start + PAGE_SIZE)
+})
 
 const emptyMessage = computed(() => {
   if (tab.value === 'IN_PROGRESS') return '진행 중인 저금통이 없습니다.'
   if (tab.value === 'BONUS_UNPAID') return '보너스 대기중인 저금통이 없습니다.'
   return '완료된 저금통이 없습니다.'
 })
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // 탭을 빠르게 연속으로 누르면 먼저 보낸 요청이 나중에 응답할 수 있으므로,
 // 가장 최근 요청의 결과만 반영하도록 순번으로 걸러낸다.
@@ -123,6 +150,18 @@ async function load() {
 
 watch(tab, (val) => {
   router.replace({ query: { ...route.query, tab: val } })
+})
+
+// 탭이나 아이가 바뀌면 항상 첫 페이지부터 본다.
+watch([tab, resolvedChildId], () => {
+  page.value = 0
+})
+
+// 목록이 줄어 현재 페이지가 사라지면 마지막 페이지로 당겨준다.
+watch(totalPages, (total) => {
+  if (total > 0 && page.value > total - 1) {
+    page.value = total - 1
+  }
 })
 
 watch(() => [resolvedChildId.value, tab.value], load, { immediate: true })

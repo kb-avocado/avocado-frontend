@@ -1,12 +1,26 @@
 <template>
   <div class="min-h-screen flex flex-col bg-white overflow-hidden">
-    <AppHeader title="저금하기" show-back :show-bell="false" :show-avatar="false" @click-back="router.back()" />
+    <AppHeader
+      title="저금하기"
+      show-back
+      :show-bell="false"
+      :show-avatar="false"
+      @click-back="router.back()"
+    />
 
-    <div class="flex-1 flex flex-col transition-transform duration-500 ease-out"
-      :class="pageRevealed ? 'translate-y-0' : 'translate-y-full'">
-      <div class="flex-1 flex flex-col p-4" v-if="item">
+    <div
+      class="flex-1 min-h-0 flex flex-col transition-transform duration-500 ease-out"
+      :class="pageRevealed ? 'translate-y-0' : 'translate-y-full'"
+    >
+      <div
+        v-if="item"
+        data-keypad-scroll-container
+        class="flex-1 min-h-0 overflow-y-auto flex flex-col p-4"
+      >
         <h1 class="text-xl font-bold text-gray-900">{{ item.name }} 저금통에 얼마를 저금할까요?</h1>
-        <p class="mt-2 text-sm text-gray-500">저금통에 모은 돈은 목표를 달성하면 지갑으로 돌아와요.</p>
+        <p class="mt-2 text-sm text-gray-500">
+          저금통에 모은 돈은 목표를 달성하면 지갑으로 돌아와요.
+        </p>
 
         <div class="mt-6 rounded-2xl p-5" style="background-color: #eef0fb">
           <p class="text-xs text-gray-500">{{ item.name }} 저금통</p>
@@ -14,26 +28,75 @@
             현재 {{ formatCurrency(item.savedAmount) }}
           </p>
           <p class="mt-1 text-xs text-gray-500">
-            목표까지 <span class="font-semibold text-avocado-900">{{ formatCurrency(remainingAmount) }}</span> 남았어요
+            목표까지
+            <span class="font-semibold text-avocado-900">
+              {{ formatCurrency(remainingAmount) }}
+            </span>
+            남았어요
           </p>
         </div>
 
-        <div class="flex-1 flex flex-col items-center justify-center gap-2">
-          <p class="text-3xl font-bold text-avocado-900">
-            {{ formatCurrency(Number(amountInput || 0)) }}
-          </p>
-          <p v-if="errorMessage" class="text-sm text-red-500 text-center">{{ errorMessage }}</p>
-        </div>
+        <!-- 금액 -->
+        <p class="mt-6 text-sm font-medium text-gray-700">저금할 금액</p>
 
-        <NumberKeypad mode="amount" @input="appendDigit" @delete="deleteDigit" />
+        <!-- 금액 표시: 누르면 키패드가 올라온다 -->
+        <button
+          type="button"
+          data-keypad-trigger
+          :data-keypad-active="showKeypad ? 'true' : 'false'"
+          class="mt-2 flex w-full items-baseline justify-end gap-2"
+          @click="openKeypad"
+        >
+          <p
+            class="min-w-0 flex-1 text-right text-2xl font-bold"
+            :class="amountInput ? 'text-gray-900' : 'text-gray-400'"
+            aria-live="polite"
+          >
+            {{ formatMoney(Number(amountInput || 0)) }}
+          </p>
+          <span class="text-lg font-medium text-gray-700">원</span>
+        </button>
+
+        <!-- 구분선 -->
+        <div
+          class="mt-2 border-t transition-colors"
+          :class="showKeypad ? 'border-avocado-500' : 'border-gray-200'"
+        />
+
+        <p v-if="errorMessage" class="mt-2 text-sm text-red-500">
+          {{ errorMessage }}
+        </p>
       </div>
 
-      <div class="p-4">
+      <!-- 키패드가 닫혀 있을 때의 저금하기 버튼 -->
+      <div v-if="!showKeypad" class="p-4">
         <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">
           {{ isSubmitting ? '저금하는 중...' : '저금하기' }}
         </BaseButton>
       </div>
     </div>
+
+    <!-- 공통 키패드 -->
+    <NumberKeypadPanel
+      v-model="showKeypad"
+      overlay
+      :with-bottom-nav="false"
+      mode="amount"
+      :disabled="isSubmitting"
+      @input="appendDigit"
+      @delete="deleteDigit"
+    >
+      <p v-if="errorMessage" class="mt-3 px-4 text-sm text-red-500">
+        {{ errorMessage }}
+      </p>
+
+      <!-- 키패드 바로 아래 저금하기 -->
+      <div class="mt-3 px-4">
+        <BaseButton variant="primary" class="w-full" :disabled="!canSubmit" @click="handleSubmit">
+          {{ isSubmitting ? '저금하는 중...' : '저금하기' }}
+        </BaseButton>
+      </div>
+    </NumberKeypadPanel>
 
     <!-- 저금 성공 팝업 -->
     <ResultModal v-model="showSuccess" variant="success" :message="successMessage" />
@@ -46,13 +109,13 @@ import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/common/AppHeader.vue'
 import BaseButton from '@/components/common/BaseButton.vue'
-import NumberKeypad from '@/components/common/NumberKeypad.vue'
+import NumberKeypadPanel from '@/components/common/NumberKeypadPanel.vue'
+import ResultModal from '@/components/common/ResultModal.vue'
 
 import { depositToPiggyBank } from '@/api/piggy'
 import { usePiggyBankStore } from '@/stores/piggyBank'
 import { isValidAmount } from '@/utils/validators'
 import { formatCurrency } from '@/utils/format'
-import ResultModal from '@/components/common/ResultModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -79,7 +142,20 @@ const errorMessage = ref('')
 const showSuccess = ref(false)
 const successMessage = ref('저금되었어요')
 const pageRevealed = ref(false)
+const showKeypad = ref(false)
+
 const MAX_AMOUNT_LENGTH = 9 // 최대 9자리(약 9억 9999만원)까지만 입력 허용
+
+/* 금액 표시 (원 단위 구분) */
+function formatMoney(value) {
+  return Number(value ?? 0).toLocaleString('ko-KR')
+}
+
+/* 키패드 열기 */
+function openKeypad() {
+  errorMessage.value = ''
+  showKeypad.value = true
+}
 
 /* 키패드 숫자 입력 */
 function appendDigit(value) {
@@ -115,6 +191,8 @@ async function handleSubmit() {
     successMessage.value = response.data.data.goalReached
       ? '목표를 다 모았어요! 🎉'
       : '저금되었어요'
+
+    showKeypad.value = false
     showSuccess.value = true
 
     setTimeout(() => {

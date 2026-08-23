@@ -1,24 +1,18 @@
 <template>
-  <Transition
-    name="keypad"
-    @after-enter="handleAfterEnter"
-    @after-leave="handleAfterLeave"
-  >
+  <Transition name="keypad" @after-enter="handleAfterEnter" @after-leave="handleAfterLeave">
     <div
       v-if="modelValue"
       ref="panelRef"
       :class="
         overlay
-          ? 'fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[430px] bg-white px-4 pt-3 pb-[calc(var(--nav-height)+0.75rem)] shadow-[0_-8px_24px_rgba(0,0,0,0.08)]'
+          ? [
+              'fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[430px] bg-white px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)]',
+              withBottomNav ? 'pb-[calc(var(--nav-height)+0.75rem)]' : 'pb-4'
+            ]
           : 'w-full bg-white'
       "
     >
-      <NumberKeypad
-        :mode="mode"
-        :disabled="disabled"
-        @input="handleInput"
-        @delete="handleDelete"
-      />
+      <NumberKeypad :mode="mode" :disabled="disabled" @input="handleInput" @delete="handleDelete" />
 
       <slot />
     </div>
@@ -26,11 +20,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  watch,
-  onBeforeUnmount
-} from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 
 import NumberKeypad from '@/components/common/NumberKeypad.vue'
 
@@ -43,6 +33,16 @@ const props = defineProps({
   mode: {
     type: String,
     default: 'amount'
+  },
+  /*
+   * 하단 네비게이션이 있는 화면인지 여부
+   *
+   * false
+   * → 네비게이션 높이만큼의 여백을 넣지 않는다
+   */
+  withBottomNav: {
+    type: Boolean,
+    default: true
   },
 
   disabled: {
@@ -63,11 +63,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits([
-  'update:modelValue',
-  'input',
-  'delete'
-])
+const emit = defineEmits(['update:modelValue', 'input', 'delete'])
 
 const panelRef = ref(null)
 
@@ -98,9 +94,7 @@ function handleDelete() {
  * 현재 활성화된 입력 영역
  */
 function getActiveTrigger() {
-  return document.querySelector(
-    '[data-keypad-trigger][data-keypad-active="true"]'
-  )
+  return document.querySelector('[data-keypad-trigger][data-keypad-active="true"]')
 }
 
 /*
@@ -120,21 +114,14 @@ function handleOutsideClick(event) {
   /*
    * 키패드 안쪽 클릭이면 유지
    */
-  if (
-    panel.contains(
-      event.target
-    )
-  ) {
+  if (panel.contains(event.target)) {
     return
   }
 
   /*
    * 숫자 입력 영역을 다시 누른 경우도 유지
    */
-  const trigger =
-    event.target.closest(
-      '[data-keypad-trigger]'
-    )
+  const trigger = event.target.closest('[data-keypad-trigger]')
 
   if (trigger) {
     return
@@ -144,10 +131,7 @@ function handleOutsideClick(event) {
    * 나머지 화면 클릭
    * → 키패드 닫기
    */
-  emit(
-    'update:modelValue',
-    false
-  )
+  emit('update:modelValue', false)
 }
 
 /*
@@ -159,71 +143,47 @@ function prepareScrollSpace() {
     return
   }
 
-  const panel =
-    panelRef.value
+  const panel = panelRef.value
 
-  const trigger =
-    getActiveTrigger()
+  const trigger = getActiveTrigger()
 
-  if (
-    !panel ||
-    !trigger
-  ) {
+  if (!panel || !trigger) {
     return
   }
 
-  const scrollContainer =
-    trigger.closest(
-      '[data-keypad-scroll-container]'
-    )
+  const scrollContainer = trigger.closest('[data-keypad-scroll-container]')
 
   if (!scrollContainer) {
     return
   }
 
-  activeScrollContainer =
-    scrollContainer
+  activeScrollContainer = scrollContainer
 
   /*
    * 기존 inline padding-bottom 저장
    */
-  originalInlinePaddingBottom =
-    scrollContainer.style
-      .paddingBottom || ''
+  originalInlinePaddingBottom = scrollContainer.style.paddingBottom || ''
 
   /*
    * 현재 실제 padding-bottom
    */
-  const computedStyle =
-    window.getComputedStyle(
-      scrollContainer
-    )
+  const computedStyle = window.getComputedStyle(scrollContainer)
 
-  const currentPaddingBottom =
-    parseFloat(
-      computedStyle.paddingBottom
-    ) || 0
+  const currentPaddingBottom = parseFloat(computedStyle.paddingBottom) || 0
 
   /*
    * 실제 키패드 전체 높이
    * + 입력창과 키패드 사이 여유
    */
-  const panelHeight =
-    panel.getBoundingClientRect()
-      .height
+  const panelHeight = panel.getBoundingClientRect().height
 
-  const extraSpace =
-    panelHeight + 32
+  const extraSpace = panelHeight + 32
 
   /*
    * 키패드가 차지하는 만큼
    * 스크롤 영역 아래쪽 공간 확보
    */
-  scrollContainer.style.paddingBottom =
-    `${
-      currentPaddingBottom +
-      extraSpace
-    }px`
+  scrollContainer.style.paddingBottom = `${currentPaddingBottom + extraSpace}px`
 }
 
 /*
@@ -234,23 +194,15 @@ function ensureTriggerVisible() {
     return
   }
 
-  const panel =
-    panelRef.value
+  const panel = panelRef.value
 
-  const trigger =
-    getActiveTrigger()
+  const trigger = getActiveTrigger()
 
-  if (
-    !panel ||
-    !trigger
-  ) {
+  if (!panel || !trigger) {
     return
   }
 
-  const scrollContainer =
-    trigger.closest(
-      '[data-keypad-scroll-container]'
-    )
+  const scrollContainer = trigger.closest('[data-keypad-scroll-container]')
 
   if (!scrollContainer) {
     return
@@ -262,21 +214,16 @@ function ensureTriggerVisible() {
    */
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      const panelRect =
-        panel.getBoundingClientRect()
+      const panelRect = panel.getBoundingClientRect()
 
-      const triggerRect =
-        trigger.getBoundingClientRect()
+      const triggerRect = trigger.getBoundingClientRect()
 
       /*
        * 입력창과 키패드 사이 간격
        */
       const SAFE_GAP = 20
 
-      const overlap =
-        triggerRect.bottom +
-        SAFE_GAP -
-        panelRect.top
+      const overlap = triggerRect.bottom + SAFE_GAP - panelRect.top
 
       /*
        * 키패드가 입력창을 덮고 있다면
@@ -284,11 +231,9 @@ function ensureTriggerVisible() {
        */
       if (overlap > 0) {
         scrollContainer.scrollBy({
-          top:
-            overlap + 8,
+          top: overlap + 8,
 
-          behavior:
-            'smooth'
+          behavior: 'smooth'
         })
       }
     })
@@ -312,43 +257,30 @@ function handleAfterEnter() {
   /*
    * 3. 외부 클릭 이벤트 등록
    */
-  outsideClickTimer =
-    setTimeout(() => {
-      document.addEventListener(
-        'click',
-        handleOutsideClick
-      )
+  outsideClickTimer = setTimeout(() => {
+    document.addEventListener('click', handleOutsideClick)
 
-      outsideClickTimer =
-        null
-    }, 0)
+    outsideClickTimer = null
+  }, 0)
 }
 
 /*
  * 키패드 닫힌 뒤
  */
 function handleAfterLeave() {
-  document.removeEventListener(
-    'click',
-    handleOutsideClick
-  )
+  document.removeEventListener('click', handleOutsideClick)
 
   /*
    * 우리가 추가했던
    * padding-bottom 원상복구
    */
   if (activeScrollContainer) {
-    activeScrollContainer
-      .style
-      .paddingBottom =
-        originalInlinePaddingBottom
+    activeScrollContainer.style.paddingBottom = originalInlinePaddingBottom
   }
 
-  activeScrollContainer =
-    null
+  activeScrollContainer = null
 
-  originalInlinePaddingBottom =
-    ''
+  originalInlinePaddingBottom = ''
 }
 
 /*
@@ -358,34 +290,23 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (outsideClickTimer) {
-      clearTimeout(
-        outsideClickTimer
-      )
+      clearTimeout(outsideClickTimer)
 
-      outsideClickTimer =
-        null
+      outsideClickTimer = null
     }
 
     if (!isOpen) {
-      document.removeEventListener(
-        'click',
-        handleOutsideClick
-      )
+      document.removeEventListener('click', handleOutsideClick)
     }
   }
 )
 
 onBeforeUnmount(() => {
   if (outsideClickTimer) {
-    clearTimeout(
-      outsideClickTimer
-    )
+    clearTimeout(outsideClickTimer)
   }
 
-  document.removeEventListener(
-    'click',
-    handleOutsideClick
-  )
+  document.removeEventListener('click', handleOutsideClick)
 
   /*
    * 화면 이동 등의 이유로
@@ -393,10 +314,7 @@ onBeforeUnmount(() => {
    * padding 원상복구
    */
   if (activeScrollContainer) {
-    activeScrollContainer
-      .style
-      .paddingBottom =
-        originalInlinePaddingBottom
+    activeScrollContainer.style.paddingBottom = originalInlinePaddingBottom
   }
 })
 </script>
