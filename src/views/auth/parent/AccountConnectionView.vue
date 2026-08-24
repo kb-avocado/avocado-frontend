@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { createAccount } from '@/api/account'
 import BaseButton from '@/components/common/BaseButton.vue'
 import SignupHeader from '@/components/common/SignupHeader.vue'
+import NumberKeypadPanel from '@/components/common/NumberKeypadPanel.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -19,6 +20,7 @@ const form = ref({
 const agreed = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
+const showKeypad = ref(false)
 
 const selectedBank = computed(
   () => BANKS.find((bank) => bank.code === form.value.bankCode) ?? BANKS[0]
@@ -42,8 +44,21 @@ function sanitizeAccountNumber(value) {
   return value.replace(/\D/g, '').slice(0, accountNumberLength.value)
 }
 
-function handleAccountNumberInput(event) {
-  form.value.accountNumber = sanitizeAccountNumber(event.target.value)
+function openKeypad() {
+  errorMessage.value = ''
+  showKeypad.value = true
+}
+
+/* 키패드 숫자 입력 */
+function appendDigit(value) {
+  errorMessage.value = ''
+  form.value.accountNumber = sanitizeAccountNumber(form.value.accountNumber + value)
+}
+
+/* 한 자리 삭제 */
+function deleteDigit() {
+  errorMessage.value = ''
+  form.value.accountNumber = form.value.accountNumber.slice(0, -1)
 }
 
 // 자릿수가 더 짧은 은행으로 바꾸면 이미 입력해 둔 번호가 새 한도를 넘는다.
@@ -70,7 +85,7 @@ async function handleSubmit() {
       // 계좌 등록은 서버에서 이미 끝나 사용자가 다시 시도할 일이 없다.
       // 갱신에 실패해도 화면을 막지 않는다. 이어지는 홈 이동에서 가드가 다시 물어본다.
     }
-
+    showKeypad.value = false
     router.push({ name: 'home' })
   } catch (error) {
     errorMessage.value = error?.response?.data?.message ?? '계좌 연결 중 오류가 발생했습니다.'
@@ -94,7 +109,10 @@ async function pasteAccountNumber() {
     <!-- 헤더 -->
     <SignupHeader title="계좌 연결하기" @click-back="router.back()" />
 
-    <div class="mx-auto flex w-full max-w-sm flex-col gap-8 px-6 pt-8 pb-12">
+    <div
+      data-keypad-scroll-container
+      class="mx-auto flex w-full max-w-sm flex-col gap-8 px-6 pt-8 pb-12"
+    >
       <!-- 타이틀 -->
       <div class="flex flex-col gap-2">
         <h2 class="text-2xl font-bold" style="color: var(--color-text-primary)">
@@ -160,19 +178,23 @@ async function pasteAccountNumber() {
           </div>
           <div
             class="flex items-center gap-2 rounded-2xl px-4 py-3"
-            style="background-color: var(--color-surface); border: 1px solid var(--color-border)"
+            :style="`background-color: var(--color-surface); border: 1px solid ${
+              showKeypad ? 'var(--color-avocado-600)' : 'var(--color-border)'
+            }`"
           >
-            <input
+            <button
               id="accountNumber"
-              v-model="form.accountNumber"
-              type="text"
-              inputmode="numeric"
-              :maxlength="accountNumberLength"
-              :placeholder="`숫자 ${accountNumberLength}자리를 입력해 주세요`"
-              class="flex-1 bg-transparent text-[15px] outline-none placeholder:text-sm"
-              style="color: var(--color-text-primary)"
-              @input="handleAccountNumberInput"
-            />
+              type="button"
+              data-keypad-trigger
+              :data-keypad-active="showKeypad ? 'true' : 'false'"
+              class="flex-1 bg-transparent text-left text-[15px] outline-none"
+              :style="`color: ${
+                form.accountNumber ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+              }`"
+              @click="openKeypad"
+            >
+              {{ form.accountNumber || `숫자 ${accountNumberLength}자리를 입력해 주세요` }}
+            </button>
             <button
               type="button"
               class="shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition active:opacity-75"
@@ -235,8 +257,12 @@ async function pasteAccountNumber() {
         </p>
 
         <!-- 연결하기 버튼 -->
-        <BaseButton type="submit" class="w-full" :disabled="!canSubmit || loading">
-          <span
+        <BaseButton
+          v-if="!showKeypad"
+          type="submit"
+          class="w-full"
+          :disabled="!canSubmit || loading"
+          ><span
             v-if="loading"
             class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
           />
@@ -244,6 +270,25 @@ async function pasteAccountNumber() {
         </BaseButton>
       </form>
     </div>
+    <!-- 공통 키패드 -->
+    <NumberKeypadPanel
+      v-model="showKeypad"
+      overlay
+      mode="amount"
+      :disabled="loading"
+      @input="appendDigit"
+      @delete="deleteDigit"
+    >
+      <div class="mt-3 px-4">
+        <BaseButton class="w-full" :disabled="!canSubmit || loading" @click="handleSubmit">
+          <span
+            v-if="loading"
+            class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+          />
+          {{ loading ? '연결 중...' : '연결하기' }}
+        </BaseButton>
+      </div>
+    </NumberKeypadPanel>
   </main>
 </template>
 

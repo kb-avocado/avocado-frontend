@@ -18,12 +18,12 @@ const fieldErrors = ref({ email: '', password: '' })
 const validators = {
   // TODO: 이메일이 아이디로 대체되면 문구/입력 속성 교체 (형식 규칙과 안내 문구를 아이디 기준으로)
   email(value) {
-    if (!value) return '이메일을 입력해주세요.'
+    if (!value) return '이메일을 입력해 주세요.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return '이메일 형식이 올바르지 않습니다.'
     return ''
   },
   password(value) {
-    if (!value) return '비밀번호를 입력해주세요.'
+    if (!value) return '비밀번호를 입력해 주세요.'
     return ''
   }
 }
@@ -85,7 +85,7 @@ async function handleSubmit() {
             inputmode="email"
             autocomplete="email"
             required
-            placeholder="avocado@avocado.com"
+            placeholder="이메일을 입력해 주세요"
             class="w-full rounded-xl border bg-[var(--color-surface)] px-3.5 py-2.5 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
             :class="
               fieldErrors.email
@@ -113,7 +113,7 @@ async function handleSubmit() {
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
               required
-              placeholder="비밀번호"
+              placeholder="비밀번호를 입력해 주세요"
               class="w-full rounded-xl border bg-[var(--color-surface)] py-2.5 pl-3.5 pr-16 text-[15px] text-[var(--color-avocado-900)] outline-none transition placeholder:text-[var(--color-text-secondary)] focus:bg-[var(--color-surface)] focus:ring-4"
               :class="
                 fieldErrors.password

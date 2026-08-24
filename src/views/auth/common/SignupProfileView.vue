@@ -383,7 +383,7 @@ async function handleSubmit() {
                 type="email"
                 inputmode="email"
                 autocomplete="email"
-                placeholder="이메일을 입력해주세요"
+                placeholder="이메일을 입력해 주세요"
                 class="input-field pr-10"
                 :class="{
                   'input-field--error': fieldErrors.email
@@ -461,7 +461,7 @@ async function handleSubmit() {
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="비밀번호를 입력해주세요"
+              placeholder="비밀번호를 입력해 주세요"
               class="input-field pr-16"
               :class="{
                 'input-field--error': fieldErrors.password
@@ -504,7 +504,7 @@ async function handleSubmit() {
               v-model="form.passwordConfirm"
               :type="showPasswordConfirm ? 'text' : 'password'"
               autocomplete="new-password"
-              placeholder="비밀번호를 다시 입력해주세요"
+              placeholder="비밀번호를 다시 입력해 주세요"
               class="input-field pr-16"
               :class="{
                 'input-field--error': fieldErrors.passwordConfirm

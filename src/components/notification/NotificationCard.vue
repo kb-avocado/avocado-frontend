@@ -40,15 +40,7 @@
               class="w-2 h-2 rounded-full bg-red-500"
               aria-label="읽지 않은 알림"
             />
-            <!-- 삭제 버튼 -->
-            <button
-              type="button"
-              class="ml-1 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="알림 삭제"
-              @click.stop="$emit('delete')"
-            >
-              <Trash2 :size="15" />
-            </button>
+         
           </div>
         </div>
 

@@ -1,32 +1,94 @@
 <template>
-  <div v-if="hasBonus" class="space-y-2">
-    <p class="text-xs text-muted text-center">
-      <template v-if="isPaid">보너스를 지급 완료 했어요!</template>
-      <template v-else-if="isAchieved">보너스를 아직 지급하지 않았어요!</template>
-      <template v-else
-        >목표 달성 시 <span class="font-bold">{{ bonusAmount.toLocaleString('ko-KR') }}원</span>이
-        지급돼요</template
-      >
-    </p>
-    <BaseButton variant="primary" class="w-full gap-2" :disabled="!canPay" @click="goToPayment">
+  <!-- 보너스가 이미 설정된 저금통 -->
+  <div v-if="hasBonus" class="space-y-3">
+    <!-- 보너스 지급 완료 -->
+    <div v-if="isPaid" class="flex items-center gap-2">
+      <img
+        :src="avocadoSeedImage"
+        alt=""
+        aria-hidden="true"
+        class="w-9 h-9 object-contain shrink-0"
+      />
+
+      <p class="text-xs text-gray-400 leading-relaxed">보너스를 지급 완료했어요!</p>
+    </div>
+
+    <!-- 보너스 지급 대기중 -->
+    <div v-else-if="isAchieved" class="flex items-center gap-2">
+      <img
+        :src="avocadoSeedImage"
+        alt=""
+        aria-hidden="true"
+        class="w-9 h-9 object-contain shrink-0"
+      />
+
+      <p class="text-xs text-gray-400 leading-relaxed">보너스를 아직 지급하지 않았어요!</p>
+    </div>
+
+    <!-- 진행중 저금통 -->
+    <div v-else class="flex items-center gap-2">
+      <img
+        :src="avocadoSeedImage"
+        alt=""
+        aria-hidden="true"
+        class="w-9 h-9 object-contain shrink-0"
+      />
+
+      <p class="text-xs text-gray-400 leading-relaxed">
+        목표 달성 시
+        <span class="font-bold text-gray-500"> {{ bonusAmount.toLocaleString('ko-KR') }}원 </span>
+        이 지급돼요
+      </p>
+    </div>
+
+    <!--
+      보너스 지급 버튼
+
+      진행중 저금통에서는 아예 보여주지 않는다.
+      - ACHIEVE → 보너스 지급하기
+      - 지급 완료 → 지급 완료
+    -->
+    <BaseButton
+      v-if="isAchieved || isPaid"
+      variant="primary"
+      class="w-full gap-2"
+      :disabled="!canPay"
+      @click="goToPayment"
+    >
       <PiggyBank :size="18" />
-      <span>{{ isPaid ? '지급 완료' : '보너스 지급하기' }}</span>
+
+      <span>
+        {{ isPaid ? '지급 완료' : '보너스 지급하기' }}
+      </span>
     </BaseButton>
   </div>
+
+  <!-- 아직 보너스를 설정하지 않은 저금통 -->
   <div v-else class="space-y-3">
-    <!-- 신문 리스트 안내문과 동일한 정보 아이콘 스타일 -->
-    <div class="flex items-center gap-2 mx-4">
-      <img :src="avocadoSeedImage" alt="" aria-hidden="true" class="w-6 h-6 object-contain shrink-0" />
-      <p class="text-xs text-muted leading-relaxed">
-        아이의 목표 달성을 응원하는 보너스를 설정해주세요!<br />
+    <!-- 보너스 설정 안내 -->
+    <div class="flex items-center gap-2">
+      <img
+        :src="avocadoSeedImage"
+        alt=""
+        aria-hidden="true"
+        class="w-9 h-9 object-contain shrink-0"
+      />
+
+      <p v-if="isAchieved" class="text-xs text-gray-400 leading-relaxed">
+        이미 완료된 저금통이라 보너스를 설정할 수 없어요!
+      </p>
+
+      <p v-else class="text-xs text-gray-400 leading-relaxed">
+        아이의 목표 달성을 응원하는 보너스를 설정해주세요!
+        <br />
         보너스와 함께 아이의 즐거운 저축 습관을 응원해 보세요.
       </p>
     </div>
 
-    <!-- 보너스 송금 화면과 동일한 좌우 여백 -->
+    <!-- 보너스 설정 -->
     <div class="px-4 pb-4">
-      <BaseButton variant="primary" class="w-full gap-2" @click="goToSetup">
-        <span>보너스 설정하기</span>
+      <BaseButton variant="primary" class="w-full gap-2" :disabled="isAchieved" @click="goToSetup">
+        <span> 보너스 설정하기 </span>
       </BaseButton>
     </div>
   </div>
@@ -34,44 +96,68 @@
 
 <script setup>
 import { computed } from 'vue'
+
 import { useRouter } from 'vue-router'
+
 import { PiggyBank } from 'lucide-vue-next'
 
 import BaseButton from '@/components/common/BaseButton.vue'
+
 import avocadoSeedImage from '@/assets/images/cadoseed.png'
 
 const props = defineProps({
-  // 저금통의 아이디
+  /**
+   * 저금통 ID
+   */
   piggyBankId: {
     type: [String, Number],
     required: true
   },
-  // 저금통의 상태
+
+  /**
+   * 저금통 상태
+   */
   status: {
     type: String,
     required: true
   },
-  // NONE, RATE, FIXED
+
+  /**
+   * NONE / RATE / FIXED
+   */
   bonusType: {
     type: String,
     default: 'NONE'
   },
-  // 정액 금액 또는 비율
+
+  /**
+   * 정액 금액 또는 비율
+   */
   bonusValue: {
     type: Number,
     default: 0
   },
-  // 지급된 적 있으면 날짜 문자열, 없으면 null
+
+  /**
+   * 지급된 적이 있으면 날짜
+   * 미지급이면 null
+   */
   bonusPaidAt: {
     type: String,
     default: null
   },
-  // RATE 타입일 경우 계산
+
+  /**
+   * RATE 타입 계산용 목표 금액
+   */
   targetAmount: {
     type: Number,
     default: 0
   },
-  // 아이 ID
+
+  /**
+   * 아이 ID
+   */
   childId: {
     type: [String, Number],
     required: true
@@ -80,38 +166,88 @@ const props = defineProps({
 
 const router = useRouter()
 
-/* 보너스가 설정돼있는지 */
+/**
+ * 보너스 설정 여부
+ */
 const hasBonus = computed(() => props.bonusType && props.bonusType !== 'NONE')
 
-/* 목표 최종 달성(7일 경과 확정) 상태인지 확인 */
+/**
+ * 보너스 지급 대기 상태
+ *
+ * 목표 달성 + 7일 조건까지 충족하여
+ * 보너스 지급이 가능한 상태
+ */
 const isAchieved = computed(() => props.status === 'ACHIEVE')
 
-/* 보너스가 이미 지급됐는지 확인 */
-const isPaid = computed(() => !!props.bonusPaidAt)
+/**
+ * 이미 지급 완료됐는지
+ */
+const isPaid = computed(() => Boolean(props.bonusPaidAt))
 
-/* 만기달성 + 보너스 설정 + 아직 미지급이어야 지급 가능 */
+/**
+ * 실제 보너스 지급 가능 여부
+ *
+ * - ACHIEVE 상태
+ * - 보너스 설정됨
+ * - 아직 지급되지 않음
+ */
 const canPay = computed(() => isAchieved.value && hasBonus.value && !isPaid.value)
 
-/* 보너스가 RATE 타입일 경우 계산 */
+/**
+ * 실제 지급될 보너스 금액
+ *
+ * RATE
+ * → 목표 금액 × 비율
+ *
+ * FIXED
+ * → 설정한 금액 그대로
+ */
 const bonusAmount = computed(() => {
-  if (!hasBonus.value) return 0
+  if (!hasBonus.value) {
+    return 0
+  }
+
   if (props.bonusType === 'RATE') {
     return Math.floor((props.targetAmount * props.bonusValue) / 100)
   }
+
   return props.bonusValue ?? 0
 })
 
-/* 보너스 송금 버튼 클릭시 축하 및 보너스 송금 화면으로 이동 */
+/**
+ * 보너스 지급 화면 이동
+ *
+ * 진행중에서는 버튼 자체가 없기 때문에
+ * ACHIEVE 상태에서만 실행된다.
+ */
 function goToPayment() {
-  if (!canPay.value) return
+  if (!canPay.value) {
+    return
+  }
+
   router.push({
     name: 'piggyGoalComplete',
-    params: { childId: props.childId, id: props.piggyBankId }
+
+    params: {
+      childId: props.childId,
+
+      id: props.piggyBankId
+    }
   })
 }
 
-/* 보너스 설정 버튼 클릭시 설정 화면으로 이동. 보너스는 저금통당 한 번만 설정할 수 있다. */
+/**
+ * 보너스 설정 화면 이동
+ */
 function goToSetup() {
-  router.push({ name: 'piggyBonus', params: { childId: props.childId, id: props.piggyBankId } })
+  router.push({
+    name: 'piggyBonus',
+
+    params: {
+      childId: props.childId,
+
+      id: props.piggyBankId
+    }
+  })
 }
 </script>

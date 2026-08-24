@@ -234,8 +234,11 @@ import {
   normalizeWalletTransaction
 } from '@/utils/walletTransaction'
 
+// 화면에 보여줄 최근 지갑 기록 개수
 const RECENT_PAYMENTS_SIZE = 3
 
+// 숨김 처리되는 거래가 있을 수 있으므로 서버에서는 여유 있게 조회
+const RECENT_PAYMENTS_FETCH_SIZE = 10
 const USE_WALLET_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_WALLET_MOCK === 'true'
 const MOCK_WALLET = {
   walletId: 1,
@@ -636,10 +639,18 @@ async function loadWallet() {
 
 async function loadRecentPayments() {
   if (USE_WALLET_MOCK) return
+
   recentPaymentsLoading.value = true
   recentPaymentsError.value = ''
+
   try {
-    const response = await getWalletTransactions({ page: 0, size: RECENT_PAYMENTS_SIZE })
+    // 화면에는 3개만 보여주지만,
+    // 필터링으로 일부 거래가 제외될 수 있으므로 서버에서는 여유 있게 조회한다.
+    const response = await getWalletTransactions({
+      page: 0,
+      size: RECENT_PAYMENTS_FETCH_SIZE
+    })
+
     const items = response.data?.data?.items
 
     if (!Array.isArray(items)) {

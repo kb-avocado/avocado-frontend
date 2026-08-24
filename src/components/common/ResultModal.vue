@@ -6,16 +6,31 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
       >
         <div
-          class="w-full max-w-xs rounded-2xl bg-white p-8 flex flex-col items-center gap-3 shadow-lg"
+          class="w-full max-w-[300px] rounded-3xl bg-white p-6 text-center shadow-xl"
         >
-          <div
-            class="w-14 h-14 rounded-full flex items-center justify-center"
-            :class="isSuccess ? 'bg-avocado-50' : 'bg-red-50'"
+          <!-- 캐릭터 이미지 -->
+          <img
+            :src="modalImage"
+            alt=""
+            aria-hidden="true"
+            class="w-28 h-28 mx-auto mb-3 object-contain"
+          />
+
+          <!-- 제목 -->
+          <h3
+            v-if="title"
+            class="text-lg font-bold text-gray-900"
           >
-            <CheckCircle v-if="isSuccess" :size="28" class="text-avocado-600" />
-            <XCircle v-else :size="28" class="text-red-500" />
-          </div>
-          <p class="text-sm font-medium text-gray-900">{{ message }}</p>
+            {{ title }}
+          </h3>
+
+          <!-- 결과 메시지 -->
+          <p
+            v-if="message"
+            class="mt-2 text-sm leading-relaxed text-gray-600"
+          >
+            {{ message }}
+          </p>
         </div>
       </div>
     </Transition>
@@ -23,29 +38,96 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue'
-import { CheckCircle, XCircle } from 'lucide-vue-next'
+import {
+  computed,
+  watch,
+  onBeforeUnmount
+} from 'vue'
 
-// variant: 'success' | 'delete'
+import positiveAvocadoImage from '@/assets/images/cheer.png'
+import negativeAvocadoImage from '@/assets/images/ch25.png'
+
 const props = defineProps({
-  modelValue: { type: Boolean, required: true },
-  variant: { type: String, default: 'success' }, // 'success' | 'delete'
-  message: { type: String, default: '' },
-  autoCloseMs: { type: Number, default: 1200 }
+  modelValue: {
+    type: Boolean,
+    required: true
+  },
+
+  /*
+   * success
+   * → 긍정 이미지
+   *
+   * error / delete / danger
+   * → 슬픈 이미지
+   */
+  variant: {
+    type: String,
+    default: 'success'
+  },
+
+  title: {
+    type: String,
+    default: ''
+  },
+
+  message: {
+    type: String,
+    default: ''
+  },
+
+  autoCloseMs: {
+    type: Number,
+    default: 1500
+  }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits([
+  'update:modelValue'
+])
 
-const isSuccess = computed(() => props.variant === 'success')
+let timer = null
+
+const isNegative = computed(() =>
+  ['error', 'delete', 'danger'].includes(
+    props.variant
+  )
+)
+
+const modalImage = computed(() =>
+  isNegative.value
+    ? negativeAvocadoImage
+    : positiveAvocadoImage
+)
 
 watch(
   () => props.modelValue,
   (isOpen) => {
-    if (isOpen) {
-      setTimeout(() => emit('update:modelValue', false), props.autoCloseMs)
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+
+    if (
+      isOpen &&
+      props.autoCloseMs > 0
+    ) {
+      timer = setTimeout(() => {
+        emit(
+          'update:modelValue',
+          false
+        )
+
+        timer = null
+      }, props.autoCloseMs)
     }
   }
 )
+
+onBeforeUnmount(() => {
+  if (timer) {
+    clearTimeout(timer)
+  }
+})
 </script>
 
 <style scoped>
@@ -53,6 +135,7 @@ watch(
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

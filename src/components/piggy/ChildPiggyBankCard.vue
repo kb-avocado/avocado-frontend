@@ -15,7 +15,8 @@
       >
         {{ icon }}
       </span>
-      <!--  D-day 추가 -->
+
+      <!-- 목표명 + 보호자 추가 보너스 -->
       <div class="min-w-0">
         <h2
           class="overflow-hidden text-base font-bold text-ellipsis whitespace-nowrap"
@@ -23,12 +24,17 @@
         >
           {{ item.name }}
         </h2>
-        <p v-if="hasBonus" class="text-xs font-bold mt-0.5" style="color: #4e9440">
+
+        <p
+          v-if="hasBonus"
+          class="text-xs font-bold mt-0.5"
+          style="color: #4e9440"
+        >
           보호자 추가 보너스 {{ bonusText }}
         </p>
       </div>
 
-      <!-- 아이 화면: 즐겨찾기(하트) 토글 -->
+      <!-- 즐겨찾기 -->
       <button
         v-if="!isCompleted"
         type="button"
@@ -38,7 +44,11 @@
           color: item.favorite ? '#FF5C8A' : '#989898'
         }"
         :aria-pressed="Boolean(item.favorite)"
-        :aria-label="item.favorite ? '즐겨찾기 등록됨' : '즐겨찾기 등록 안 됨'"
+        :aria-label="
+          item.favorite
+            ? '즐겨찾기 등록됨'
+            : '즐겨찾기 등록 안 됨'
+        "
         @click.stop="toggleFavorite"
       >
         <svg
@@ -54,62 +64,203 @@
             fill="currentColor"
           />
         </svg>
-        <span class="text-[11px] font-bold">즐겨찾기</span>
+
+        <span class="text-[11px] font-bold">
+          즐겨찾기
+        </span>
       </button>
     </header>
 
     <!-- 진행률 -->
-    <div class="grid gap-[9px]" :class="{ 'opacity-[0.45]': isFinished }">
+    <div
+      class="grid gap-[9px]"
+      :class="{ 'opacity-[0.45]': isFinished }"
+    >
       <div class="flex items-center justify-between">
-        <small class="text-sm" style="color: #72796b">진행률</small>
-        <strong class="text-xl" style="color: #000000">{{ safeRate }}%</strong>
+        <small
+          class="text-sm"
+          style="color: #72796b"
+        >
+          진행률
+        </small>
+
+        <strong
+          class="text-xl"
+          style="color: #000000"
+        >
+          {{ safeRate }}%
+        </strong>
       </div>
 
-      <div class="w-full h-2.5 overflow-hidden rounded-full" style="background-color: #ebebeb">
+      <div
+        class="w-full h-2.5 overflow-hidden rounded-full"
+        style="background-color: #ebebeb"
+      >
         <div
           class="h-full rounded-full transition-[width] duration-700 ease-out"
-          :style="{ width: revealed ? `${safeRate}%` : '0%', backgroundColor: progressColor }"
+          :style="{
+            width: revealed ? `${safeRate}%` : '0%',
+            backgroundColor: progressColor
+          }"
         ></div>
       </div>
     </div>
 
+    <!-- 100% 달성 후 7일 대기 중 -->
     <section
       v-if="isPendingAchieve"
-      class="min-h-[62px] py-3 px-[14px] flex items-center gap-2 rounded-2xl bg-white"
+      class="min-h-[82px] py-3 px-[14px] flex items-center gap-3 rounded-2xl bg-white"
+      @click.stop
     >
-      <img :src="cadoseedImage" alt="" aria-hidden="true" class="w-8 h-8 object-contain shrink-0" />
+      <!-- 아보카도씨 -->
+      <img
+        :src="cadoseedImage"
+        alt=""
+        aria-hidden="true"
+        class="w-8 h-8 object-contain shrink-0"
+      />
 
-      <p v-if="hasBonus" class="text-[12px] leading-relaxed" style="color: #555353">
-        <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
-        있어요.<br />
-      </p>
-      <p v-else class="text-[12px] leading-relaxed" style="color: #555353">
-        <strong style="color: #e1585a">{{ dday }}일만 더</strong> 기다리면 모은 돈을 돌려받을 수
-        있어요
-      </p>
+      <!-- 대기 안내 + Q -->
+      <div class="min-w-0 flex flex-col gap-2">
+        <p
+          class="text-[12px] leading-relaxed"
+          style="color: #555353"
+        >
+          <strong style="color: #e1585a">
+            {{ dday }}일만 더
+          </strong>
+          기다리면 모은 돈을 돌려받을 수 있어요.
+        </p>
+
+        <button
+          v-if="showSevenDayQuestion"
+          type="button"
+          class="w-fit text-[12px] underline underline-offset-2 text-left"
+          style="color: #9aa090"
+          @click.stop="showSevenDayInfo = true"
+        >
+          Q. 왜 {{ dday }}일을 더 기다려야 할까요?
+        </button>
+      </div>
     </section>
 
+    <!-- 일반 진행 / 완료 -->
     <section
       v-else
       class="min-h-[62px] py-3 px-[14px] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white"
       :class="{ 'opacity-[0.45]': isFinished }"
     >
       <div class="grid gap-[5px]">
-        <small class="text-[11px] font-bold" style="color: #939393">남은 금액</small>
-        <strong class="text-[13px]" style="color: #000000">{{ won(remainingAmount) }}</strong>
+        <small
+          class="text-[11px] font-bold"
+          style="color: #939393"
+        >
+          남은 금액
+        </small>
+
+        <strong
+          class="text-[13px]"
+          style="color: #000000"
+        >
+          {{ won(remainingAmount) }}
+        </strong>
       </div>
 
       <div class="grid gap-[5px] text-right">
-        <small class="text-[11px] font-bold" style="color: #939393">목표</small>
-        <strong class="text-[13px]" style="color: #000000">{{ won(item.targetAmount) }}</strong>
+        <small
+          class="text-[11px] font-bold"
+          style="color: #939393"
+        >
+          목표
+        </small>
+
+        <strong
+          class="text-[13px]"
+          style="color: #000000"
+        >
+          {{ won(item.targetAmount) }}
+        </strong>
       </div>
     </section>
+
+    <!-- 7일 규칙 안내 모달 -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showSevenDayInfo"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
+          @click.self="showSevenDayInfo = false"
+        >
+          <div
+            class="relative w-full max-w-[320px] rounded-3xl bg-white p-6 shadow-xl"
+            @click.stop
+          >
+            <!-- 닫기 -->
+            <button
+              type="button"
+              class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"
+              aria-label="닫기"
+              @click="showSevenDayInfo = false"
+            >
+              <X :size="19" />
+            </button>
+
+            <!-- 아보카도씨 -->
+            <img
+              :src="cadoseedImage"
+              alt=""
+              aria-hidden="true"
+              class="w-20 h-20 mx-auto object-contain"
+            />
+
+            <!-- 제목 -->
+            <h3
+              class="mt-3 text-xl font-bold text-center text-gray-900"
+            >
+              왜
+              <span style="color: #f47a3c">
+                7일
+              </span>
+              을 기다려야 할까요?
+            </h3>
+
+            <!-- 설명 -->
+            <div
+              class="mt-6 rounded-2xl bg-gray-50 p-5 text-sm leading-[1.8] text-gray-600"
+            >
+              <p>
+                저금통을 빠르게 꽉 채워도<br>
+                <strong class="font-bold text-gray-800">
+                  처음 돈을 넣은 날부터 7일이 지나야<br>
+                </strong>
+                보너스를 받을 수 있어요.
+              </p>
+
+              <p class="mt-4">
+                목표를 향해
+                <strong class="font-bold text-gray-800">
+                  차곡차곡 돈을 모으고
+                </strong>,<br>
+                조금 기다리는 연습도 해봐요!
+              </p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </article>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref
+} from 'vue'
+
 import { useRouter } from 'vue-router'
+import { X } from 'lucide-vue-next'
+
 import cadoseedImage from '@/assets/images/cadoseed.png'
 
 const props = defineProps({
@@ -117,18 +268,25 @@ const props = defineProps({
     type: Object,
     required: true
   },
+
   index: {
     type: Number,
     default: 0
   }
 })
 
-const emit = defineEmits(['toggle-favorite'])
+const emit = defineEmits([
+  'toggle-favorite'
+])
 
 const router = useRouter()
 
-// 화면 진입 시 0% → 실제 진행률로 슈욱 차오르는 연출
+// 진행률 애니메이션
 const revealed = ref(false)
+
+// 7일 규칙 안내 모달
+const showSevenDayInfo = ref(false)
+
 onMounted(() => {
   requestAnimationFrame(() => {
     revealed.value = true
@@ -136,83 +294,293 @@ onMounted(() => {
 })
 
 function goToDetail() {
-  router.push({ name: 'piggyChildDetail', params: { id: props.item.piggyBankId } })
+  router.push({
+    name: 'piggyChildDetail',
+    params: {
+      id: props.item.piggyBankId
+    }
+  })
 }
 
 function toggleFavorite() {
-  emit('toggle-favorite', props.item)
+  emit(
+    'toggle-favorite',
+    props.item
+  )
 }
 
-const normalizedStatus = computed(() => String(props.item.status ?? '').toUpperCase())
-
-const isPendingAchieve = computed(() => normalizedStatus.value === 'PENDING_ACHIEVE')
-
-const remainingAmount = computed(() => {
-  if (isCompleted.value) return 0
-  return Math.max(0, Number(props.item.targetAmount || 0) - Number(props.item.savedAmount || 0))
-})
-
-// D-day 추가
-const dday = computed(() => {
-  if (normalizedStatus.value !== 'PENDING_ACHIEVE' || !props.item.firstDepositedAt) return null
-  const s = new Date(props.item.firstDepositedAt)
-  const complete = new Date(s.getFullYear(), s.getMonth(), s.getDate() + 7) // 완료일 자정
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()) // 오늘 자정
-  return Math.max(0, Math.round((complete - today) / 86400000))
-})
-
-const isCompleted = computed(() =>
-  ['ACHIEVE', 'ACHIEVED', 'COMPLETED'].includes(normalizedStatus.value)
+// 서버 상태
+const normalizedStatus = computed(() =>
+  String(
+    props.item.status ?? ''
+  ).toUpperCase()
 )
 
-const bonusStatus = computed(() => String(props.item.bonus?.status ?? '').toUpperCase())
+// 100% 달성 + 7일 대기 중
+const isPendingAchieve = computed(
+  () =>
+    normalizedStatus.value ===
+    'PENDING_ACHIEVE'
+)
 
-const isBonusPaid = computed(() => ['PAID', 'COMPLETED'].includes(bonusStatus.value))
-const hasBonus = computed(() => String(props.item.bonus?.type ?? 'NONE').toUpperCase() !== 'NONE')
-// 최종 완료 = 목표 달성 AND (보너스 없거나 OR 보너스 지급완료)
-const isFinished = computed(() => isCompleted.value && (!hasBonus.value || isBonusPaid.value))
+// 완료 상태
+const isCompleted = computed(() =>
+  [
+    'ACHIEVE',
+    'ACHIEVED',
+    'COMPLETED'
+  ].includes(
+    normalizedStatus.value
+  )
+)
 
+// 남은 금액
+const remainingAmount = computed(() => {
+  if (isCompleted.value) {
+    return 0
+  }
+
+  return Math.max(
+    0,
+    Number(
+      props.item.targetAmount || 0
+    ) -
+      Number(
+        props.item.savedAmount || 0
+      )
+  )
+})
+
+// 남은 대기 날짜
+const dday = computed(() => {
+  if (
+    normalizedStatus.value !==
+      'PENDING_ACHIEVE' ||
+    !props.item.firstDepositedAt
+  ) {
+    return null
+  }
+
+  const start =
+    new Date(
+      props.item.firstDepositedAt
+    )
+
+  const complete =
+    new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate() + 7
+    )
+
+  const now =
+    new Date()
+
+  const today =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    )
+
+  return Math.max(
+    0,
+    Math.round(
+      (complete - today) /
+        86400000
+    )
+  )
+})
+
+// Q 표시 조건
+const showSevenDayQuestion = computed(
+  () =>
+    isPendingAchieve.value &&
+    dday.value != null &&
+    dday.value > 0
+)
+
+// 보너스 상태
+const bonusStatus = computed(() =>
+  String(
+    props.item.bonus?.status ?? ''
+  ).toUpperCase()
+)
+
+// 보너스 지급 완료
+const isBonusPaid = computed(() =>
+  [
+    'PAID',
+    'COMPLETED'
+  ].includes(
+    bonusStatus.value
+  )
+)
+
+// 보너스 설정 여부
+const hasBonus = computed(
+  () =>
+    String(
+      props.item.bonus?.type ?? 'NONE'
+    ).toUpperCase() !== 'NONE'
+)
+
+// 최종 완료
+const isFinished = computed(
+  () =>
+    isCompleted.value &&
+    (
+      !hasBonus.value ||
+      isBonusPaid.value
+    )
+)
+
+// 저금통 아이콘
 const icon = computed(() => {
-  if (props.item.icon) return props.item.icon
+  if (props.item.icon) {
+    return props.item.icon
+  }
 
-  const text = `${props.item.name ?? ''} ${props.item.description ?? ''}`
-  if (text.includes('자전거')) return '🚲'
-  if (text.includes('책')) return '📚'
-  if (text.includes('게임')) return '🎮'
-  if (text.includes('여행')) return '🌍'
-  if (text.includes('선물')) return '🎁'
+  const text =
+    `${props.item.name ?? ''} ${props.item.description ?? ''}`
+
+  if (text.includes('자전거')) {
+    return '🚲'
+  }
+
+  if (text.includes('책')) {
+    return '📚'
+  }
+
+  if (text.includes('게임')) {
+    return '🎮'
+  }
+
+  if (text.includes('여행')) {
+    return '🌍'
+  }
+
+  if (text.includes('선물')) {
+    return '🎁'
+  }
+
   return '🚀'
 })
 
+// 보너스 표시
 const bonusText = computed(() => {
-  const bonus = props.item.bonus
-  if (!bonus || String(bonus.type ?? 'NONE').toUpperCase() === 'NONE') return '없음'
+  const bonus =
+    props.item.bonus
 
-  if (['PAID', 'COMPLETED'].includes(bonusStatus.value)) {
-    return won(bonus.paidAmount ?? bonus.amount ?? calculateRateBonus(bonus))
+  if (
+    !bonus ||
+    String(
+      bonus.type ?? 'NONE'
+    ).toUpperCase() === 'NONE'
+  ) {
+    return '없음'
   }
 
-  const expectedAmount = bonus.amount ?? calculateRateBonus(bonus)
-  if (Number(expectedAmount) > 0) return `${won(expectedAmount)}`
+  if (
+    [
+      'PAID',
+      'COMPLETED'
+    ].includes(
+      bonusStatus.value
+    )
+  ) {
+    return won(
+      bonus.paidAmount ??
+      bonus.amount ??
+      calculateRateBonus(bonus)
+    )
+  }
+
+  const expectedAmount =
+    bonus.amount ??
+    calculateRateBonus(bonus)
+
+  if (
+    Number(expectedAmount) > 0
+  ) {
+    return won(expectedAmount)
+  }
+
   return '미지급'
 })
 
+// 비율형 보너스 금액 계산
 function calculateRateBonus(bonus) {
-  if (String(bonus?.type).toUpperCase() !== 'RATE' || bonus?.rate == null) return 0
-  return Math.floor((Number(props.item.targetAmount || 0) * Number(bonus.rate)) / 100)
+  if (
+    String(
+      bonus?.type
+    ).toUpperCase() !== 'RATE' ||
+    bonus?.rate == null
+  ) {
+    return 0
+  }
+
+  return Math.floor(
+    (
+      Number(
+        props.item.targetAmount || 0
+      ) *
+      Number(bonus.rate)
+    ) / 100
+  )
 }
 
+// 원 표시
 function won(amount) {
-  return `${Number(amount || 0).toLocaleString('ko-KR')}원`
+  return `${Number(
+    amount || 0
+  ).toLocaleString('ko-KR')}원`
 }
 
+// 진행률
 const safeRate = computed(() => {
-  if (isCompleted.value) return 100
-  const value = Number(props.item.progressRate || 0)
-  return Math.min(100, Math.max(0, value))
+  if (isCompleted.value) {
+    return 100
+  }
+
+  const value =
+    Number(
+      props.item.progressRate || 0
+    )
+
+  return Math.min(
+    100,
+    Math.max(
+      0,
+      value
+    )
+  )
 })
 
-const PROGRESS_COLORS = ['#FF8C69', '#7BC8F5', '#B39DDB']
-const progressColor = computed(() => PROGRESS_COLORS[props.index % PROGRESS_COLORS.length])
+// 진행률 색상
+const PROGRESS_COLORS = [
+  '#FF8C69',
+  '#7BC8F5',
+  '#B39DDB'
+]
+
+const progressColor = computed(
+  () =>
+    PROGRESS_COLORS[
+      props.index %
+        PROGRESS_COLORS.length
+    ]
+)
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
